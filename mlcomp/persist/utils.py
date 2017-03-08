@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 import os
 import subprocess
+import sys
 import threading
 from contextlib import contextmanager
-
-import sys
-
 from logging import getLogger
 
 __all__ = ['duplicate_console_output', 'BackgroundWorker']
