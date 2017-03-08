@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
-__all__ = ['*']
+__all__ = [
+    'StorageError', 'StorageReadOnlyError'
+]
 
 
 class StorageError(Exception):
@@ -19,7 +21,7 @@ class StorageError(Exception):
     def __str__(self):
         fmt = ['%r']
         args = [self.storage_dir]    # type: list[any]
-        if len(self.args) == 1:
+        if len(self.args) == 2:
             fmt.append('%s')
             args.append(self.args[1])
         elif len(self.args) > 2:

@@ -101,11 +101,18 @@ class StorageMetaProperty(object):
         return set_value
 
     @staticmethod
-    def named(name, getter=None, setter=None):
-        return StorageMetaProperty(
-            getter or StorageMetaProperty.default_named_getter(name),
-            setter or StorageMetaProperty.default_named_setter(name)
-        )
+    def read_only_setter(self, value):
+        raise RuntimeError('Attribute is read-only.')
+
+    @staticmethod
+    def named(name, getter=None, setter=None, readonly=False):
+        if not getter:
+            getter = StorageMetaProperty.default_named_getter(name)
+        if readonly:
+            setter = StorageMetaProperty.read_only_setter
+        elif not setter:
+            setter = StorageMetaProperty.default_named_setter(name)
+        return StorageMetaProperty(getter, setter)
 
 
 class StorageMeta(object):
@@ -116,6 +123,9 @@ class StorageMeta(object):
         self.values = {}
         self._tags = StorageMetaTags(self)
         self.reload()
+
+    def __repr__(self):
+        return repr(self.values)
 
     @contextmanager
     def modify_context(self):
@@ -147,7 +157,8 @@ class StorageMeta(object):
                 raise
 
     # mappers from json attributes to properties
-    description = StorageMetaProperty.named('description')  # type: str
+    create_time = StorageMetaProperty.named('create_time', readonly=True)
+    description = StorageMetaProperty.named('description')
     tags = StorageMetaProperty.named('tags', lambda self: self._tags)  # type: StorageMetaTags
 
 
@@ -186,8 +197,11 @@ class Storage(object):
                 raise
             # 'create' mode: raise error if the directory exists.
             os.makedirs(path, exist_ok=False)
+            initial_cnt = json.dumps({
+                'create_time': time.time()
+            })
             with codecs.open(meta_file, 'wb', 'utf-8') as f:
-                f.write('{}')
+                f.write(initial_cnt)
         else:
             # non-directory entry should cause an error
             if not stat.S_ISDIR(st.st_mode):
