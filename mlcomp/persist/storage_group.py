@@ -121,6 +121,9 @@ class StorageGroup(object):
                 if trial >= 3:
                     raise
 
+            if trial >= 3:
+                raise IOError('Failed to pick up a unique name for storage.')
+
             # wait a random amount of time before next trial.
             trial += 1
             time.sleep(random.random() * 0.1 + 0.01)
