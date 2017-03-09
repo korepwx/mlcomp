@@ -118,11 +118,11 @@ class StorageGroup(object):
                     if not os.path.exists(path):
                         return Storage(path, 'create')
             except (LockTimeout, IOError):
-                trial += 1
                 if trial >= 3:
                     raise
 
             # wait a random amount of time before next trial.
+            trial += 1
             time.sleep(random.random() * 0.1 + 0.01)
 
     def remove_storage(self, name):
