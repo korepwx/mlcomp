@@ -8,8 +8,8 @@ import time
 from contextlib import contextmanager
 from logging import getLogger
 
-from mlcomp.persist.storage_meta import StorageMeta
 from .errors import StorageReadOnlyError
+from .storage_meta import StorageMeta
 from .utils import duplicate_console_output, BackgroundWorker
 
 __all__ = ['Storage']
@@ -126,7 +126,7 @@ class Storage(object):
         ----------
         filename : str
             The target file where the captured contents should be saved to.
-            Default is STORAGE_CONSOLE_LOG.
+            Default is `STORAGE_CONSOLE_LOG`.
 
         append : bool
             Whether or not to append the captured content if the logging
@@ -222,8 +222,16 @@ class Storage(object):
 
         Returns
         -------
-        dict[str, any]
-            The running status dict.
+        dict[str, any] | None
+            The running status dict, or None if the running status file
+            does not exist.
         """
-        with codecs.open(self.resolve_path(filename), 'rb', 'utf-8') as f:
-            return json.load(f)
+        path = self.resolve_path(filename)
+        try:
+            with codecs.open(path, 'rb', 'utf-8') as f:
+                cnt = f.read()
+            return json.loads(cnt)
+        except IOError:
+            if not os.path.exists(path):
+                return None
+            raise
