@@ -81,6 +81,9 @@ class Storage(object):
         self.meta = StorageMeta(self, meta_file)
         self._logging_captured = False
 
+    def __repr__(self):
+        return 'Storage(%r)' % self.path
+
     @property
     def readonly(self):
         """Whether or not the storage is read-only?"""

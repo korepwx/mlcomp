@@ -3,9 +3,7 @@ import os
 import random
 import re
 import shutil
-import socket
 import time
-from contextlib import contextmanager
 from datetime import datetime
 
 from filelock import FileLock, Timeout as LockTimeout
@@ -13,6 +11,112 @@ from filelock import FileLock, Timeout as LockTimeout
 from .storage import STORAGE_META_FILE, Storage
 
 __all__ = ['StorageGroup']
+
+
+class StorageName(object):
+    """Well-defined storage name.
+
+    A well-defined storage name should be composed of three parts:
+    base name (optional), date of creation (required), and host name
+    (optional).  These components should be separated by '__', and
+    each of these components should not contain the separator.
+
+    Parameters
+    ----------
+    basename
+        The base name of the storage.
+
+    creation
+        The creation time as string.
+
+    hostname
+        The host name of the storage.
+    """
+    DATE_FMT = '%Y%m%d.%H%M%S.%f'
+    WELL_DEFINED_NAME = re.compile(
+        r'''
+            ^
+            (?:((?:[^_]|_(?!_))+)__)?   # the basename
+            (\d{8}\.\d{6}\.\d{3})       # the creation
+            (?:__((?:[^_]|_(?!_))+))?   # the hostname
+            $
+        ''',
+        re.VERBOSE
+    )
+    CONTINUOUS_SEPARATOR = re.compile(r'_+')
+
+    def __init__(self, basename, creation=None, hostname=None):
+        if creation:
+            self._create_time = datetime.strptime(creation, self.DATE_FMT)
+        else:
+            self._create_time = None
+        self._creation = creation
+        self._basename = basename
+        self._hostname = hostname
+
+    create_time = property(lambda self: self._create_time)
+    creation = property(lambda self: self._creation)
+    basename = property(lambda self: self._basename)
+    hostname = property(lambda self: self._hostname)
+
+    @property
+    def name_tuple(self):
+        return self.basename, self.creation, self.hostname
+
+    def __str__(self):
+        return '__'.join(filter(lambda s: s, self.name_tuple))
+
+    def __repr__(self):
+        return 'Storage(basename=%r,creation=%r,hostname=%r)' % self.name_tuple
+
+    def __eq__(self, other):
+        if isinstance(other, StorageName):
+            return other.name_tuple == self.name_tuple
+        return False
+
+    @classmethod
+    def parse(cls, name):
+        """Parse the storage directory name."""
+        m = cls.WELL_DEFINED_NAME.match(name)
+        if m:
+            return StorageName(*m.groups())
+        return StorageName(name)
+
+    @classmethod
+    def filter_name(cls, name):
+        """Filter out continuous '_' in the name."""
+        return cls.CONTINUOUS_SEPARATOR.sub('_', name)
+
+    @classmethod
+    def unparse(cls, create_time, basename=None, hostname=None):
+        """Create a well-defined name.
+
+        Continuous '_' in `basename` and `hostname` will be replaced by one.
+
+        Parameters
+        ----------
+        create_time : datetime
+            The create time.
+
+        basename : str
+            Optional basename.
+
+        hostname : str
+            Optional hostname.
+        """
+        creation = create_time.strftime(cls.DATE_FMT)[:-3]
+        basename = cls.filter_name(basename) if basename else None
+        hostname = cls.filter_name(hostname) if hostname else None
+        return StorageName(basename, creation, hostname)
+
+    @property
+    def well_defined(self):
+        """Whether or not this name is well-defined?"""
+        return (
+            self.creation is not None and
+            (self.basename is None or '__' not in self.basename) and
+            (self.hostname is None or '__' not in self.hostname)
+        )
 
 
 class StorageGroup(object):
@@ -29,9 +133,6 @@ class StorageGroup(object):
         Path of the group directory.
     """
 
-    DOUBLE_DELIM_REPLACER = re.compile('_{2,}')
-    WELL_NAMED_PATTERN = re.compile('^(?:(.+)__)?(.+)__(\d{8}\.\d{6}\.\d{3})$')
-
     def __init__(self, path):
         path = os.path.abspath(path)
         self.path = path
@@ -41,7 +142,7 @@ class StorageGroup(object):
 
         Parameters
         ----------
-        *paths : tuple[str]
+        *paths : tuple[str | StorageName]
             Path pieces relative to the path of this group.
 
         Returns
@@ -49,46 +150,39 @@ class StorageGroup(object):
         str
             Resolved absolute path.
         """
-        return os.path.abspath(os.path.join(self.path, *paths))
+        return os.path.abspath(
+            os.path.join(self.path, *(str(s) for s in paths)))
 
-    def iter_storage(self, hostname=None, well_named=True):
+    def iter_storage(self, hostname=None, well_defined=True):
         """Iterate the storage directory under the group directory.
 
         Parameters
         ----------
         hostname : str
             Include storage only if the hostname matches.
-            This argument will imply `well_named`.
+            This argument will imply `well_defined`.
 
-        well_named : bool
-            Whether or not to include storage only if it is well-named?
-            By 'well-named' it means that the storage should have the
-            name '{basename}__{hostname}__{datetime}' or
-            '{hostname}__{datetime}'.
+        well_defined : bool
+            Include storage only if its name is well-defined.
 
         Yields
         ------
-        str
-            The directory name of the storage.
+        StorageName
         """
         if hostname:
-            hostname = self.DOUBLE_DELIM_REPLACER.sub('_', hostname)
-            well_named = True
+            hostname = StorageName.filter_name(hostname)
+            well_defined = True
 
         for f in os.listdir(self.path):
             f_path = os.path.join(self.path, f)
             meta_file = os.path.join(f_path, STORAGE_META_FILE)
             if os.path.isfile(meta_file):
-                if well_named:
-                    m = self.WELL_NAMED_PATTERN.match(f)
-                    if m:
-                        if not hostname or hostname == m.group(2):
-                            yield f
-                else:
-                    yield f
-
-    def list_storage(self):
-        return list(self.iter_storage())
+                name = StorageName.parse(f)
+                if not well_defined:
+                    yield name
+                elif name.well_defined and \
+                        (hostname is None or name.hostname == hostname):
+                    yield name
 
     def open_latest_storage(self, hostname=None, mode='read'):
         """Open the latest storage according to name.
@@ -99,7 +193,7 @@ class StorageGroup(object):
         Parameters
         ----------
         hostname : str
-            If specified, find the latest storage with this hostname only.
+            If specified, find the latest storage with this hostname.
 
         mode : {'read', 'write', 'create'}
             In which mode should this storage to be open?
@@ -111,28 +205,14 @@ class StorageGroup(object):
             The latest storage directory, or None if not found.
         """
         candidate = None
-        candidate_dt = None
-        for f in self.iter_storage(hostname=hostname, well_named=True):
-            dt = f.rsplit('__', maxsplit=1)[-1]
-            dt = datetime.strptime(dt, '%Y%m%d.%H%M%S.%f')
-            if candidate_dt is None or dt > candidate_dt:
-                candidate = f
-                candidate_dt = dt
+        for name in self.iter_storage(hostname=hostname, well_defined=True):
+            if candidate is None or name.create_time > candidate.create_time:
+                candidate = name
         if candidate:
             return Storage(self.resolve_path(candidate), mode=mode)
 
-    @contextmanager
-    def _lock_name(self, name, timeout=-1):
-        """Lock the specified directory name."""
-        with FileLock(self.resolve_path(name + '.lock'), timeout=timeout):
-            yield
-
     def create_storage(self, basename=None, hostname=None):
         """Create a new storage with unique name.
-
-        If the `basename` is specified, the storage directory will
-        have the name '{basename}__{hostname}__{datetime}`.  Otherwise
-        it will have the name '{hostname}__{datetime}'.
 
         Parameters
         ----------
@@ -140,40 +220,20 @@ class StorageGroup(object):
             Specify a basename for the storage.
 
         hostname : str
-            Specify a hostname, instead of using the system hostname.
+            Specify a hostname for the storage (optional).
 
         Returns
         -------
         Storage
             The storage object, open in 'create' mode.
         """
-        # gather the identity pieces of the storage name
-        pieces = []
-        if basename:
-            basename = self.DOUBLE_DELIM_REPLACER.sub('_', basename)
-            pieces.append(basename)
-
-        if not hostname:
-            try:
-                hostname = socket.gethostname()
-            except Exception:
-                hostname = 'unknown'
-        hostname = self.DOUBLE_DELIM_REPLACER.sub('_', hostname)
-        pieces.append(hostname)
-
-        # search for a non-conflict directory name
         trial = 0
-        pieces.append('')
         while True:
-            # find a candidate name for the storage.
-            dt = datetime.now()
-            pieces[-1] = datetime.now().strftime('%Y%m%d.%H%M%S')
-            pieces[-1] += '.' + ('%06d' % dt.microsecond)[:3]
-            name = '__'.join(pieces)
-
+            # find a non-conflict name for the storage.
+            name = StorageName.unparse(datetime.now(), basename, hostname)
             try:
-                with self._lock_name(name, timeout=1):
-                    path = self.resolve_path(name)
+                path = self.resolve_path(name)
+                with FileLock(path + '.lock', timeout=1):
                     if not os.path.exists(path):
                         return Storage(path, 'create')
             except (LockTimeout, IOError):
@@ -196,7 +256,7 @@ class StorageGroup(object):
             Name of the storage directory.  If the specified directory
             is not a storage, the method will raise IOError.
         """
-        storage_dir = self.resolve_path(name)
-        if not os.path.isfile(os.path.join(storage_dir, STORAGE_META_FILE)):
-            raise IOError('%r is not a storage directory.' % storage_dir)
-        shutil.rmtree(storage_dir)
+        path = self.resolve_path(name)
+        if not os.path.isfile(os.path.join(path, STORAGE_META_FILE)):
+            raise IOError('%r is not a storage directory.' % path)
+        shutil.rmtree(path)

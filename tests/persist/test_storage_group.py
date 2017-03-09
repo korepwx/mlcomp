@@ -15,47 +15,56 @@ class StorageGroupTestCase(unittest.TestCase):
             sg = StorageGroup(tempdir)
 
             # test create
+            s0 = sg.create_storage()
+            self.assertTrue('__' not in s0.name)
             s1 = sg.create_storage(hostname='host1')
-            self.assertTrue(s1.name.startswith('host1__'))
+            self.assertTrue(s1.name.endswith('__host1'))
             s1_2 = sg.create_storage(hostname='host1')
-            self.assertTrue(s1_2.name.startswith('host1__'))
+            self.assertTrue(s1_2.name.endswith('__host1'))
             self.assertNotEquals(s1.name, s1_2.name)
             time.sleep(0.01)
             s2 = sg.create_storage('abc', hostname='host1')
-            self.assertTrue(s2.name.startswith('abc__host1__'))
+            self.assertTrue(s2.name.startswith('abc__'))
+            self.assertTrue(s2.name.endswith('__host1'))
             time.sleep(0.01)
             s3 = sg.create_storage(hostname='host__2')
-            self.assertTrue(s3.name.startswith('host_2__'))
+            self.assertTrue(s3.name.endswith('__host_2'))
             time.sleep(0.01)
             s4 = sg.create_storage('abc', hostname='host__2')
-            self.assertTrue(s4.name.startswith('abc__host_2__'))
+            self.assertTrue(s4.name.startswith('abc__'))
+            self.assertTrue(s4.name.endswith('__host_2'))
             time.sleep(0.01)
             sbad = Storage(os.path.join(tempdir, 'badname'), mode='create')
             self.assertEquals(sbad.name, 'badname')
 
             # test match
+            f = lambda *args, **kwargs: (
+                sorted(str(s) for s in sg.iter_storage(*args, **kwargs))
+            )
+            print(f())
             self.assertEquals(
-                sorted(sg.iter_storage()),
-                [s2.name, s4.name, s1.name, s1_2.name, s3.name]
+                f(),
+                [s0.name, s1.name, s1_2.name, s3.name, s2.name, s4.name]
             )
             self.assertEquals(
-                sorted(sg.iter_storage(well_named=False)),
-                [s2.name, s4.name, sbad.name, s1.name, s1_2.name, s3.name]
+                f(well_defined=False),
+                [s0.name, s1.name, s1_2.name, s3.name, s2.name, s4.name,
+                 sbad.name]
             )
             self.assertEquals(
-                sorted(sg.iter_storage(hostname='host1')),
-                [s2.name, s1.name, s1_2.name]
+                f(hostname='host1'),
+                [s1.name, s1_2.name, s2.name]
             )
             self.assertEquals(
-                sorted(sg.iter_storage(hostname='host1', well_named=False)),
-                [s2.name, s1.name, s1_2.name]
+                f(hostname='host1', well_defined=False),
+                [s1.name, s1_2.name, s2.name]
             )
             self.assertEquals(
-                sorted(sg.iter_storage(hostname='host__2')),
-                [s4.name, s3.name]
+                f(hostname='host__2'),
+                [s3.name, s4.name]
             )
             self.assertEquals(
-                sorted(sg.iter_storage(hostname='host3')),
+                f(hostname='host3'),
                 []
             )
 
