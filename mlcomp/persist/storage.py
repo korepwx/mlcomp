@@ -78,7 +78,7 @@ class Storage(object):
         self.name = os.path.split(path)[1]
         self.path = path
         self.mode = mode
-        self.meta = StorageMeta(self, self.resolve_path(STORAGE_META_FILE))
+        self.meta = StorageMeta(self, meta_file)
         self._logging_captured = False
 
     @property
@@ -180,6 +180,7 @@ class Storage(object):
 
         self.check_write()
         filepath = self.ensure_parent_exists(filename)
+        start_time = time.time()
 
         def write_status():
             try:
@@ -189,6 +190,7 @@ class Storage(object):
             status = {
                 'pid': os.getpid(),
                 'hostname': hostname,
+                'start_time': start_time,
                 'active_time': time.time(),
             }
             cnt = json.dumps(status)

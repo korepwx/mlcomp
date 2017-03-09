@@ -2,7 +2,6 @@
 import codecs
 import copy
 import json
-import os
 from contextlib import contextmanager
 
 from sortedcontainers import SortedSet
@@ -129,13 +128,9 @@ class StorageMeta(object):
 
     def reload(self):
         """Reload the meta information from storage."""
-        try:
-            with codecs.open(self.meta_file, 'rb', 'utf-8') as f:
-                self.values = json.load(f)
-                self._tags = StorageMetaTags(self, self.values.get('tags'))
-        except IOError:
-            if os.path.exists(self.meta_file):
-                raise
+        with codecs.open(self.meta_file, 'rb', 'utf-8') as f:
+            self.values = json.load(f)
+            self._tags = StorageMetaTags(self, self.values.get('tags'))
 
     # mappers from json attributes to properties
     create_time = StorageMetaProperty.named('create_time', readonly=True)
