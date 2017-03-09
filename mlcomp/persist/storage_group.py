@@ -10,7 +10,7 @@ from filelock import FileLock, Timeout as LockTimeout
 
 from .storage import STORAGE_META_FILE, Storage
 
-__all__ = ['StorageGroup']
+__all__ = ['StorageName', 'StorageGroup']
 
 
 class StorageName(object):
