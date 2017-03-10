@@ -4,7 +4,7 @@ import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
-from madoka.utils import duplicate_console_output
+from mlcomp.persist.utils import duplicate_console_output
 
 with duplicate_console_output(sys.argv[1]):
     print('from print')
