@@ -2,7 +2,6 @@
 import codecs
 import json
 import os
-import socket
 import stat
 import time
 from contextlib import contextmanager
@@ -10,6 +9,7 @@ from logging import getLogger
 
 from .errors import StorageReadOnlyError
 from .storage_meta import StorageMeta
+from .storage_status import StorageRunningStatus
 from .utils import duplicate_console_output, BackgroundWorker
 
 __all__ = ['Storage']
@@ -79,10 +79,22 @@ class Storage(object):
         self.path = path
         self.mode = mode
         self.meta = StorageMeta(self, meta_file)
+        self.status = self._load_running_status()
         self._logging_captured = False
 
     def __repr__(self):
         return 'Storage(%r)' % self.path
+
+    def _load_running_status(self):
+        status_file = self.resolve_path(STORAGE_RUNNING_STATUS)
+        try:
+            with codecs.open(status_file, 'rb', 'utf-8') as f:
+                cnt = f.read()
+            return json.loads(cnt)
+        except IOError:
+            if not os.path.exists(status_file):
+                return None
+            raise
 
     @property
     def readonly(self):
@@ -120,6 +132,7 @@ class Storage(object):
     def reload(self):
         """Reload contents from the storage."""
         self.meta.reload()
+        self.status = self._load_running_status()
 
     @contextmanager
     def capture_logging(self, filename=STORAGE_CONSOLE_LOG, append=True):
@@ -168,7 +181,7 @@ class Storage(object):
                 return f.read()
 
     @contextmanager
-    def keep_running_status(self, filename=STORAGE_RUNNING_STATUS,
+    def keep_running_status(self,
                             update_interval=STORAGE_RUNNING_STATUS_INTERVAL):
         """Keep updating the running status file within a context.
 
@@ -182,25 +195,15 @@ class Storage(object):
         """
 
         self.check_write()
-        filepath = self.ensure_parent_exists(filename)
-        start_time = time.time()
+        filepath = self.ensure_parent_exists(STORAGE_RUNNING_STATUS)
+        status = StorageRunningStatus.generate()
+        self.status = status
 
-        def write_status():
-            try:
-                hostname = socket.gethostname()
-            except Exception:
-                hostname = None
-            status = {
-                'pid': os.getpid(),
-                'hostname': hostname,
-                'start_time': start_time,
-                'active_time': time.time(),
-            }
-            cnt = json.dumps(status)
-            with codecs.open(filepath, 'wb', 'utf-8') as f:
-                f.write(cnt)
+        def update_status():
+            status.active_time = time.time()
+            status.save_file(filepath)
 
-        worker = BackgroundWorker(write_status, update_interval)
+        worker = BackgroundWorker(update_status, update_interval)
         try:
             worker.start()
             yield
@@ -214,27 +217,3 @@ class Storage(object):
                     'failed to remove running status file %r.',
                     filepath, exc_info=True
                 )
-
-    def get_running_status(self, filename=STORAGE_RUNNING_STATUS):
-        """Get the running status.
-
-        Parameters
-        ----------
-        filename : str
-            The running status file.
-
-        Returns
-        -------
-        dict[str, any] | None
-            The running status dict, or None if the running status file
-            does not exist.
-        """
-        path = self.resolve_path(filename)
-        try:
-            with codecs.open(path, 'rb', 'utf-8') as f:
-                cnt = f.read()
-            return json.loads(cnt)
-        except IOError:
-            if not os.path.exists(path):
-                return None
-            raise

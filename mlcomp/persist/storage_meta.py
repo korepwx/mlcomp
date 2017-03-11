@@ -127,7 +127,7 @@ class StorageMeta(object):
             raise
 
     def reload(self):
-        """Reload the meta information from storage."""
+        """Reload the meta information from file."""
         with codecs.open(self.meta_file, 'rb', 'utf-8') as f:
             self.values = json.load(f)
             self._tags = StorageMetaTags(self, self.values.get('tags'))
