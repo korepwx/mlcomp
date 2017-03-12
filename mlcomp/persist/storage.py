@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import codecs
+import copy
 import json
 import os
 import stat
@@ -19,6 +20,13 @@ STORAGE_META_FILE = 'storage.json'
 STORAGE_CONSOLE_LOG = 'console.log'
 STORAGE_RUNNING_STATUS = 'running.json'
 STORAGE_RUNNING_STATUS_INTERVAL = 2 * 60
+
+
+def storage_property(name):
+    return property(
+        lambda self: getattr(self.meta, name),
+        lambda self, value: setattr(self.meta, name, value)
+    )
 
 
 class Storage(object):
@@ -95,6 +103,13 @@ class Storage(object):
             if not os.path.exists(status_file):
                 return None
             raise
+
+    def to_dict(self):
+        """Get the information of this storage as a dict."""
+        ret = copy.copy(self.meta.values)
+        if self.running_status:
+            ret['running_status'] = self.running_status.to_dict()
+        return ret
 
     @property
     def readonly(self):
@@ -218,3 +233,9 @@ class Storage(object):
                     'failed to remove running status file %r.',
                     filepath, exc_info=True
                 )
+            self.running_status = None
+
+    # lift the meta properties to storage properties
+    create_time = storage_property('create_time')
+    description = storage_property('description')
+    tags = storage_property('tags')
