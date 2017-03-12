@@ -41,7 +41,6 @@ class StorageGroupTestCase(unittest.TestCase):
             f = lambda *args, **kwargs: (
                 sorted(str(s) for s in sg.iter_storage(*args, **kwargs))
             )
-            print(f())
             self.assertEquals(
                 f(),
                 [s0.name, s1.name, s1_2.name, s3.name, s2.name, s4.name]

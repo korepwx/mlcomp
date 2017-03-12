@@ -104,13 +104,6 @@ class Storage(object):
                 return None
             raise
 
-    def to_dict(self):
-        """Get the information of this storage as a dict."""
-        ret = copy.copy(self.meta.values)
-        if self.running_status:
-            ret['running_status'] = self.running_status.to_dict()
-        return ret
-
     @property
     def readonly(self):
         """Whether or not the storage is read-only?"""
@@ -148,6 +141,17 @@ class Storage(object):
         """Reload contents from the storage."""
         self.meta.reload()
         self.running_status = self._load_running_status()
+
+    def reopen(self, mode):
+        """Re-open the storage in alternative mode."""
+        return Storage(self.path, mode)
+
+    def to_dict(self):
+        """Get the information of this storage as a dict."""
+        ret = copy.copy(self.meta.values)
+        if self.running_status:
+            ret['running_status'] = self.running_status.to_dict()
+        return ret
 
     @contextmanager
     def capture_logging(self, filename=STORAGE_CONSOLE_LOG, append=True):
