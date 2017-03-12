@@ -79,7 +79,7 @@ class Storage(object):
         self.path = path
         self.mode = mode
         self.meta = StorageMeta(self, meta_file)
-        self.status = self._load_running_status()
+        self.running_status = self._load_running_status()
         self._logging_captured = False
 
     def __repr__(self):
@@ -132,7 +132,7 @@ class Storage(object):
     def reload(self):
         """Reload contents from the storage."""
         self.meta.reload()
-        self.status = self._load_running_status()
+        self.running_status = self._load_running_status()
 
     @contextmanager
     def capture_logging(self, filename=STORAGE_CONSOLE_LOG, append=True):
@@ -187,9 +187,6 @@ class Storage(object):
 
         Parameters
         ----------
-        filename : str
-            The running status file.
-
         update_interval : float
             Number of seconds between two update of the status file.
         """
@@ -197,11 +194,15 @@ class Storage(object):
         self.check_write()
         filepath = self.ensure_parent_exists(STORAGE_RUNNING_STATUS)
         status = StorageRunningStatus.generate()
-        self.status = status
+        self.running_status = status
 
         def update_status():
             status.active_time = time.time()
             status.save_file(filepath)
+            # if one has called `reload()` during the keep status context,
+            # the object will lose track of the latest status.
+            # thus we need to set the status here.
+            self.running_status = status
 
         worker = BackgroundWorker(update_status, update_interval)
         try:
