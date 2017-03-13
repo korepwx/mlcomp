@@ -2,8 +2,10 @@
 import os
 
 import six
-from flask import Blueprint, request, current_app
+from flask import Blueprint, current_app
 from werkzeug.exceptions import NotFound
+
+from .utils import is_testing
 
 
 storage_bp = Blueprint('storage', __name__.rsplit('.')[1])
@@ -18,7 +20,7 @@ def parse_request_storage(method):
     @six.wraps(method)
     def wrapped(*args, **kwargs):
         # first, find the tree and get the path in the tree
-        path = kwargs.pop('path')
+        path = kwargs.pop('path', '')
         node = current_app.mounts.get_node(path, use_parent=True)
         if not node or not node.data:
             raise NotFound()
@@ -40,6 +42,7 @@ def parse_request_storage(method):
         # and get the path inside the storage
         path = os.path.abspath(os.path.join(tree.path, path))
         path = os.path.relpath(storage.path, path).replace('\\', '/')
+        path = '/'.join(v for v in path.split('/') if v not in ('', '.'))
         # finally, call the method
         kwargs.setdefault('storage', storage)
         kwargs.setdefault('path', path)
@@ -47,7 +50,18 @@ def parse_request_storage(method):
     return wrapped
 
 
-@storage_bp.route('/<path:path>/_greeting/')
-@parse_request_storage
-def greeting(storage, path):
-    return repr(storage) + '\n' + path
+if is_testing():
+    @storage_bp.route('/_hello/')
+    def storage_hello():
+        return 'storage hello'
+
+
+    @storage_bp.route('/_greeting/')
+    @storage_bp.route('/<path:path>/_greeting/')
+    @parse_request_storage
+    def storage_greeting(storage, path):
+        return '\n'.join([
+            'storage greeting',
+            storage.path,
+            path
+        ])
