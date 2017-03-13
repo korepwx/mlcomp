@@ -147,6 +147,10 @@ class StorageTree(object):
         if self.root is None:
             self.root = StorageTreeNode('', os.path.abspath(path), mode)
 
+    @property
+    def path(self):
+        return self.root.path
+
     def iter_storage(self):
         """Iterate through all the storage in this tree."""
         stack = [(False, self.root)]
@@ -172,7 +176,7 @@ class StorageTree(object):
         Parameters
         ----------
         path : str
-            The path of the storage.
+            The path of the storage, or any child of the storage.
 
         Returns
         -------
@@ -182,6 +186,9 @@ class StorageTree(object):
         names = re.split(r'[/\\]+', path)
         node = self.root
         for name in filter(lambda v: v, names):
+            storage = node.storage
+            if storage:
+                return storage
             children = node.children
             if not children or name not in children:
                 return None
