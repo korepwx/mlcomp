@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import codecs
 import os
 import unittest
 
@@ -16,6 +17,13 @@ class ViewsTestCase(unittest.TestCase):
         with TemporaryDirectory() as tempdir:
             f = lambda s: (
                 s if isinstance(s, six.text_type) else s.decode('utf-8'))
+
+            def read_meta(storage):
+                with codecs.open(
+                        storage.resolve_path('storage.json'),
+                        'rb',
+                        'utf-8') as f_meta:
+                    return f_meta.read()
 
             # populate the storage trees
             storage_dict = {}
@@ -55,6 +63,10 @@ class ViewsTestCase(unittest.TestCase):
                     'storage greeting\n%s\n' % (storage_dict['a/1'].path,)
                 )
 
+                rv = c.get('/s/1/storage.json')
+                self.assertEquals(rv.status_code, 200)
+                self.assertEquals(f(rv.data), read_meta(storage_dict['a/1']))
+
                 rv = c.get('/s/2/_greeting/')
                 self.assertEquals(rv.status_code, 200)
                 self.assertEquals(
@@ -65,12 +77,19 @@ class ViewsTestCase(unittest.TestCase):
                 rv = c.get('/s/b/_greeting/')
                 self.assertEquals(rv.status_code, 404)
 
+                rv = c.get('/s/b/storage.json')
+                self.assertEquals(rv.status_code, 404)
+
                 rv = c.get('/s/b/1/_greeting/')
                 self.assertEquals(rv.status_code, 200)
                 self.assertEquals(
                     f(rv.data),
                     'storage greeting\n%s\n' % (storage_dict['b/1'].path,)
                 )
+
+                rv = c.get('/s/b/1/storage.json')
+                self.assertEquals(rv.status_code, 200)
+                self.assertEquals(f(rv.data), read_meta(storage_dict['b/1']))
 
                 rv = c.get('/s/b/2/_greeting/')
                 self.assertEquals(rv.status_code, 200)
@@ -85,3 +104,7 @@ class ViewsTestCase(unittest.TestCase):
                     f(rv.data),
                     'storage greeting\n%s\n' % (storage_dict['c'].path,)
                 )
+
+                rv = c.get('/s/c/storage.json')
+                self.assertEquals(rv.status_code, 200)
+                self.assertEquals(f(rv.data), read_meta(storage_dict['c']))

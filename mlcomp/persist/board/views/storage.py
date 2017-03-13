@@ -2,7 +2,7 @@
 import os
 
 import six
-from flask import Blueprint, current_app
+from flask import Blueprint, current_app, send_from_directory
 from werkzeug.exceptions import NotFound
 
 from .utils import is_testing
@@ -41,7 +41,7 @@ def parse_request_storage(method):
             raise NotFound()
         # and get the path inside the storage
         path = os.path.abspath(os.path.join(tree.path, path))
-        path = os.path.relpath(storage.path, path).replace('\\', '/')
+        path = os.path.relpath(path, storage.path).replace('\\', '/')
         path = '/'.join(v for v in path.split('/') if v not in ('', '.'))
         # finally, call the method
         kwargs.setdefault('storage', storage)
@@ -65,3 +65,10 @@ if is_testing():
             storage.path,
             path
         ])
+
+
+@storage_bp.route('/<path:path>')
+@parse_request_storage
+def resources(storage, path):
+    """Get resources from the storage directory."""
+    return send_from_directory(storage.path, path)

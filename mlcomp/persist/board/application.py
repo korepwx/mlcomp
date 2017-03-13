@@ -9,11 +9,6 @@ from .utils import MountTree
 from .webpack import Webpack
 from ..storage_tree import StorageTree, StorageTreeWatcher
 
-if six.PY2:
-    from urlparse import quote as urlquote
-else:
-    from urllib.parse import quote as urlquote
-
 __all__ = ['MainApp']
 
 
@@ -25,18 +20,6 @@ def norm_url_prefix(url):
     if url == '/_api':
         raise ValueError('URL prefix of a storage cannot be `/_api`.')
     return url
-
-
-def get_request_path(environ):
-    """Get the request path from wsgi environ dict."""
-    def unquote(s):
-        return urlquote(s, safe='/;=,', encoding='latin1')
-
-    path = unquote(environ.get('SCRIPT_NAME', '')).rstrip('/')
-    path += unquote(environ.get('PATH_INFO', ''))
-    if not path.startswith('/'):
-        path = '/' + path
-    return path
 
 
 class MainApp(Flask):

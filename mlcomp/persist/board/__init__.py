@@ -1,3 +1,3 @@
 # -*- coding: utf-8 -*-
 
-"""Package of the storage display server."""
+"""Package of the experiment board server."""
