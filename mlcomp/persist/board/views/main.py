@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from flask import Blueprint
+from flask import Blueprint, render_template
 
 from .utils import is_testing
 
@@ -11,3 +11,8 @@ if is_testing():
     def main_hello():
         """For testing purpose."""
         return 'main hello'
+
+
+@main_bp.route('/')
+def index():
+    return render_template('index.html')

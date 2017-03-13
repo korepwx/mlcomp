@@ -4,6 +4,8 @@ import re
 import six
 from flask import Flask
 
+from mlcomp import __version__
+from . import config
 from .views import api_bp, main_bp, storage_bp
 from .utils import MountTree
 from .webpack import Webpack
@@ -22,6 +24,13 @@ def norm_url_prefix(url):
     return url
 
 
+class SystemInfo(object):
+
+    def __init__(self):
+        self.name = 'ML Companion'
+        self.version = __version__
+
+
 class MainApp(Flask):
     """The main application.
 
@@ -32,6 +41,8 @@ class MainApp(Flask):
     """
 
     def __init__(self, mappings):
+        super(MainApp, self).__init__(__name__)
+        self.config.from_object(config)
 
         # check the mappings
         self.mappings = {
@@ -50,9 +61,13 @@ class MainApp(Flask):
         self.watcher = StorageTreeWatcher(six.itervalues(self.trees))
         self.watcher.start()
 
-        # initialize the Flask application.
-        super(MainApp, self).__init__(__name__)
+        # setup the plugins and views
         self.webpack = Webpack(self)
         self.register_blueprint(main_bp, url_prefix='')
         self.register_blueprint(api_bp, url_prefix='/_api')
         self.register_blueprint(storage_bp, url_prefix='/s')
+
+        # inject Jinja2 template context
+        self.jinja_env.globals.update({
+            '__system__': SystemInfo()
+        })

@@ -104,4 +104,4 @@ class Webpack(object):
         """
         ret = self.assets.get(name, None)
         if ret:
-            return url_for('.static', filename=ret)
+            return url_for('static', filename=ret)
