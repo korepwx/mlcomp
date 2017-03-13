@@ -24,8 +24,8 @@ STORAGE_RUNNING_STATUS_INTERVAL = 2 * 60
 
 def storage_property(name):
     return property(
-        lambda self: getattr(self.meta, name),
-        lambda self, value: setattr(self.meta, name, value)
+        lambda self: getattr(self._meta, name),
+        lambda self, value: setattr(self._meta, name, value)
     )
 
 
@@ -83,22 +83,34 @@ class Storage(object):
             if not os.path.exists(meta_file):
                 raise IOError('%r is not a storage directory.' % path)
 
-        self.name = os.path.split(path)[1]
-        self.path = path
-        self.mode = mode
-        self.meta = StorageMeta(self, meta_file)
-        self.running_status = self._load_running_status()
+        self._name = os.path.split(path)[1]
+        self._path = path
+        self._mode = mode
+        self._meta = StorageMeta(self, meta_file)
+        self._running_status = self._load_running_status()
         self._logging_captured = False
+        
+    # the read-only properties of this class
+    name = property(lambda self: self._name)
+    path = property(lambda self: self._path)
+    mode = property(lambda self: self._mode)
+    running_status = property(lambda self: self._running_status)
 
     def __repr__(self):
-        return 'Storage(%r)' % self.path
+        return 'Storage(%r)' % self._path
 
     def _load_running_status(self):
         status_file = self.resolve_path(STORAGE_RUNNING_STATUS)
         try:
             with codecs.open(status_file, 'rb', 'utf-8') as f:
                 cnt = f.read()
-            return json.loads(cnt)
+            values = json.loads(cnt)
+            return StorageRunningStatus(
+                pid=values.get('pid'),
+                hostname=values.get('hostname'),
+                start_time=values.get('start_time'),
+                active_time=values.get('active_time')
+            )
         except IOError:
             if not os.path.exists(status_file):
                 return None
@@ -107,12 +119,12 @@ class Storage(object):
     @property
     def readonly(self):
         """Whether or not the storage is read-only?"""
-        return self.mode == 'read'
+        return self._mode == 'read'
 
     def check_write(self):
         """Raises StorageReadOnlyError if the storage is read-only."""
         if self.readonly:
-            raise StorageReadOnlyError(self.path, 'storage is read-only')
+            raise StorageReadOnlyError(self._path, 'storage is read-only')
 
     def resolve_path(self, *paths):
         """Join pieces of paths and make it absolute relative to storage dir.
@@ -127,7 +139,7 @@ class Storage(object):
         str
             Resolved absolute path.
         """
-        return os.path.abspath(os.path.join(self.path, *paths))
+        return os.path.abspath(os.path.join(self._path, *paths))
 
     def ensure_parent_exists(self, *paths):
         """Resolve the path pieces and ensure its parent exists."""
@@ -139,18 +151,18 @@ class Storage(object):
 
     def reload(self):
         """Reload contents from the storage."""
-        self.meta.reload()
-        self.running_status = self._load_running_status()
+        self._meta.reload()
+        self._running_status = self._load_running_status()
 
     def reopen(self, mode):
         """Re-open the storage in alternative mode."""
-        return Storage(self.path, mode)
+        return Storage(self._path, mode)
 
     def to_dict(self):
         """Get the information of this storage as a dict."""
-        ret = copy.copy(self.meta.values)
-        if self.running_status:
-            ret['running_status'] = self.running_status.to_dict()
+        ret = copy.copy(self._meta.values)
+        if self._running_status:
+            ret['running_status'] = self._running_status.to_dict()
         return ret
 
     @contextmanager
@@ -213,7 +225,7 @@ class Storage(object):
         self.check_write()
         filepath = self.ensure_parent_exists(STORAGE_RUNNING_STATUS)
         status = StorageRunningStatus.generate()
-        self.running_status = status
+        self._running_status = status
 
         def update_status():
             status.active_time = time.time()
@@ -221,10 +233,11 @@ class Storage(object):
             # if one has called `reload()` during the keep status context,
             # the object will lose track of the latest status.
             # thus we need to set the status here.
-            self.running_status = status
+            self._running_status = status
 
         worker = BackgroundWorker(update_status, update_interval)
         try:
+            update_status()
             worker.start()
             yield
         finally:
@@ -237,7 +250,7 @@ class Storage(object):
                     'failed to remove running status file %r.',
                     filepath, exc_info=True
                 )
-            self.running_status = None
+            self._running_status = None
 
     # lift the meta properties to storage properties
     create_time = storage_property('create_time')

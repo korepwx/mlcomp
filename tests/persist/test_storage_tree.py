@@ -10,7 +10,7 @@ from mlcomp.persist.storage_tree import StorageTree
 from mlcomp.utils import TemporaryDirectory
 
 
-class StorageTreeUnitTest(unittest.TestCase):
+class StorageTreeTestCase(unittest.TestCase):
     """Test cases for StorageTree."""
 
     def populate_tree(self, path, level, width=3):

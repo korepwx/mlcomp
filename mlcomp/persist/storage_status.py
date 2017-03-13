@@ -42,6 +42,11 @@ class StorageRunningStatus(object):
         )
         return 'StorageRunningStatus(%s)' % attrs
 
+    def __eq__(self, other):
+        if isinstance(other, StorageRunningStatus):
+            return self.to_dict() == other.to_dict()
+        return False
+
     def to_dict(self):
         return {
             'pid': self.pid,

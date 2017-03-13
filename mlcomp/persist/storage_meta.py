@@ -6,6 +6,8 @@ from contextlib import contextmanager
 
 from sortedcontainers import SortedSet
 
+from .errors import StorageReadOnlyError
+
 __all__ = []
 
 
@@ -30,6 +32,13 @@ class StorageMetaTags(object):
 
     def __getitem__(self, item):
         return self.items[item]
+
+    def __eq__(self, other):
+        if isinstance(other, StorageMetaTags):
+            return self.items == other.items
+        elif isinstance(other, (tuple, list)):
+            return self.items == SortedSet(other)
+        return False
 
     def add(self, item):
         if item not in self.items:
@@ -78,7 +87,7 @@ class StorageMetaProperty(object):
 
     @staticmethod
     def read_only_setter(self, value):
-        raise RuntimeError('Attribute is read-only.')
+        raise StorageReadOnlyError('Attribute is read-only.')
 
     @staticmethod
     def named(name, getter=None, setter=None, readonly=False):
