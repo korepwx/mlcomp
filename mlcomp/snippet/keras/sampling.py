@@ -3,7 +3,7 @@ from __future__ import absolute_import
 
 from keras.engine import Layer
 
-from .distribution import DiagonalGaussian
+from .distribution import Distribution, DiagonalGaussian
 
 __all__ = ['SamplingLayer', 'DiagonalGaussianLayer']
 
@@ -18,6 +18,23 @@ class SamplingLayer(Layer):
     The sampling layers in this package are designed to be differentiable,
     so we would prefer to use reparameterization trick to do sampling.
     """
+
+    def get_distribution(self, inputs, **kwargs):
+        """Get the distribution object for specified inputs.
+
+        Parameters
+        ----------
+        inputs : tensor(s) or layer(s)
+            The tensors or layers, as the parameters of the distribution.
+
+        **kwargs
+            Other arguments for constructing the distribution.
+
+        Returns
+        -------
+        Distribution
+        """
+        raise NotImplementedError()
 
     def check_input_shape(self, input_shape, arg_shapes):
         # first, validate the number of parameters
@@ -59,6 +76,9 @@ class SamplingLayer(Layer):
                         (self.__class__.__name__, k, a, i[1:])
                     )
 
+    def call(self, inputs):
+        return self.get_distribution(inputs).sample()
+
 
 class DiagonalGaussianLayer(SamplingLayer):
     """Gaussian sampling layer with diagonal covariance.
@@ -85,6 +105,10 @@ class DiagonalGaussianLayer(SamplingLayer):
         self.output_dim = output_dim
         super(DiagonalGaussianLayer, self).__init__(**kwargs)
 
+    def get_distribution(self, inputs, **kwargs):
+        mu, log_var = inputs
+        return DiagonalGaussian(mu=mu, log_var=log_var)
+
     def get_output_shape_for(self, input_shape):
         output_shape = (self.output_dim,)
         self.check_input_shape(input_shape, [output_shape, output_shape])
@@ -94,7 +118,3 @@ class DiagonalGaussianLayer(SamplingLayer):
         output_shape = (self.output_dim,)
         self.check_input_shape(input_shape, [output_shape, output_shape])
         super(DiagonalGaussianLayer, self).build(input_shape)
-
-    def call(self, x, mask=None):
-        mu, log_var = x
-        return DiagonalGaussian(mu=mu, log_var=log_var).sample()

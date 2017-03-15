@@ -7,7 +7,6 @@ from keras import backend as K
 from keras.engine import Model, Layer
 from keras.layers import Dense, Lambda
 
-from .distribution import DiagonalGaussian
 from .sampling import DiagonalGaussianLayer
 from .utils import get_shape, is_deterministic_shape
 
@@ -61,18 +60,10 @@ class SimpleVAE(Model):
         self.z_params = self.z_params_for(self.input_x)
         self.z = self.z_sampler(self.z_params)
         self.x_params = self.x_params_for(self.z)
-        self.x = self._sample_x(self.x_params)
+        self.x = self.x_sampler(self.x_params)
 
         # initialize the model
         super(SimpleVAE, self).__init__(inputs=inputs, outputs=self.x)
-
-    def _build_x_layers(self):
-        """Build output specified layers."""
-        raise NotImplementedError()
-
-    def _sample_x(self, x_params):
-        """Sample `x` with specified distribution parameters."""
-        raise NotImplementedError()
 
     def z_params_for(self, x):
         """Compute the distribution parameters of `z` for specified `x`."""
@@ -81,16 +72,31 @@ class SimpleVAE(Model):
 
     def sample_z_for(self, x):
         """Sample `z` from `x`."""
-        mean, logvar = self.z_params_for(x)
-        return self.z_sampler([mean, logvar])
+        return self.z_sampler(self.z_params_for(x))
+
+    def _build_x_layers(self):
+        """Build output specified layers."""
+        raise NotImplementedError()
+
+    @property
+    def x_sampler(self):
+        """Get the sampling layer of `x`."""
+        raise NotImplementedError()
 
     def x_params_for(self, z):
-        """Compute the distribution parameters of `x` for specified `z`."""
+        """Compute the distribution parameters of `x` for specified `z`.
+
+        The first output of this method is required to be the mean of `x`.
+
+        Returns
+        -------
+        list[tensor]
+        """
         raise NotImplementedError()
 
     def sample_x_for(self, z):
         """Sample `x` from specified `z`."""
-        return self._sample_x(self.x_params_for(z))
+        return self.x_sampler(self.x_params_for(z))
 
     def kl_divergence_for(self, z_params):
         """Compute the variational KL-divergence.
@@ -163,20 +169,20 @@ class SimpleVAE(Model):
         def compute(x):
             # take z samples or the mean of z
             if z_sample_num is None:
-                z_samples, _ = self.z_params_for(x)
+                z_samples = self.z_params_for(x)[0]
             else:
-                z_mean, z_logvar = self.z_params_for(x)
-                z_distribution = DiagonalGaussian(mu=z_mean, log_var=z_logvar)
-                z_samples = z_distribution.sample(sample_shape=(z_sample_num,))
+                z_params = self.z_params_for(x)
+                z_dist = self.z_sampler.get_distribution(z_params)
+                z_samples = z_dist.sample(sample_shape=(z_sample_num,))
                 z_samples = K.reshape(z_samples, [-1, self.z_dim])
 
             # take x samples or the mean of x
             if x_sample_num is None:
-                x_samples, _ = self.x_params_for(z_samples)
+                x_samples = self.x_params_for(z_samples)[0]
             else:
-                x_mean, x_logvar = self.x_params_for(x)
-                x_distribution = DiagonalGaussian(mu=x_mean, log_var=x_logvar)
-                x_samples = x_distribution.sample(sample_shape=(x_sample_num,))
+                x_params = self.x_params_for(x)
+                x_dist = self.x_sampler.get_distribution(x_params)
+                x_samples = x_dist.sample(sample_shape=(x_sample_num,))
 
                 # now take the average out the x samples
                 if x_sample_num > 1:
@@ -252,10 +258,11 @@ class DiagonalGaussianSimpleVAE(SimpleVAE):
     def _build_x_layers(self):
         self.x_mean_layer = Dense(self.x_dim)
         self.x_logvar_layer = Dense(self.x_dim)
-        self.x_sampler = DiagonalGaussianLayer(self.x_dim)
+        self._x_sampler = DiagonalGaussianLayer(self.x_dim)
 
-    def _sample_x(self, x_params):
-        return self.x_sampler(x_params)
+    @property
+    def x_sampler(self):
+        return self._x_sampler
 
     def x_params_for(self, z):
         feature = self.x_feature_layer(z)
