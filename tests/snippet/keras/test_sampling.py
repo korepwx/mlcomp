@@ -6,6 +6,7 @@ from keras import backend as K
 from keras.engine import Input, Model
 
 from mlcomp.snippet.keras.sampling import DiagonalGaussianLayer
+from tests.utils import big_number_verify
 
 
 class SamplingTestCase(unittest.TestCase):
@@ -27,12 +28,6 @@ class SamplingTestCase(unittest.TestCase):
             for a in args
         ])
 
-    def big_number_verify(self, x, mean, stddev, scale=4, n_samples=N_SAMPLES):
-        np.testing.assert_array_less(
-            np.abs(x - mean), stddev * scale / np.sqrt(n_samples),
-            err_msg='away from expected mean by %s stddev' % scale
-        )
-
     def test_diagonal_gaussian(self):
         layer = DiagonalGaussianLayer(3)
         mean = np.asarray([0.0, 1.0, -2.0])
@@ -41,5 +36,5 @@ class SamplingTestCase(unittest.TestCase):
             layer,
             [mean, np.log(covariance)]
         )
-        self.big_number_verify(
-            np.mean(samples, axis=0), mean, np.sqrt(covariance))
+        big_number_verify(np.mean(samples, axis=0), mean, np.sqrt(covariance),
+                          self.N_SAMPLES)

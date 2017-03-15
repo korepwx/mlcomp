@@ -134,13 +134,6 @@ class SimpleVAE(Model):
         """
         raise NotImplementedError()
 
-    def vae_loss(self, x, x_sampled):
-        """Get the VAE loss for specified `x` and `x_params`."""
-        return -(
-            self.log_likelihood_for(x, self.x_params) +
-            self.kl_divergence_for(self.z_params)
-        )
-
     def sampling_reconstruct(self, input_x, z_sample_num=32, x_sample_num=None):
         """Get a reconstructed tensor with sampling.
 
@@ -211,7 +204,12 @@ class SimpleVAE(Model):
 
     def compile(self, optimizer, metrics=None, loss_weights=None,
                 sample_weight_mode=None, **kwargs):
-        kwargs.setdefault('loss', self.vae_loss)
+        def vae_loss(x, x_sampled):
+            return -(
+                self.log_likelihood_for(x, self.x_params) +
+                self.kl_divergence_for(self.z_params)
+            )
+        kwargs.setdefault('loss', vae_loss)
         return super(SimpleVAE, self).compile(
             optimizer, metrics=metrics, loss_weights=loss_weights,
             sample_weight_mode=sample_weight_mode, **kwargs

@@ -8,6 +8,7 @@ from keras.engine import Input
 from logging import getLogger
 
 from mlcomp.snippet.keras.distribution import DiagonalGaussian
+from tests.utils import big_number_verify
 
 
 class DistributionTestCase(unittest.TestCase):
@@ -38,12 +39,6 @@ class DistributionTestCase(unittest.TestCase):
             )
             raise
 
-    def big_number_verify(self, x, mean, stddev, scale=4, n_samples=N_SAMPLES):
-        np.testing.assert_array_less(
-            np.abs(x - mean), stddev * scale / np.sqrt(n_samples),
-            err_msg='away from expected mean by %s stddev' % scale
-        )
-
     def test_diagonal_gaussian(self):
         mu = np.asarray([0.0, 1.0, -2.0])
         var = np.asarray([1.0, 2.0, 5.0])
@@ -51,27 +46,29 @@ class DistributionTestCase(unittest.TestCase):
         # test 2d sampling
         samples = self.get_samples(DiagonalGaussian, {'mu': mu, 'var': var})
         self.assertEquals(samples.shape, (self.N_SAMPLES, 3))
-        self.big_number_verify(np.mean(samples, axis=0), mu, np.sqrt(var))
+        big_number_verify(np.mean(samples, axis=0), mu, np.sqrt(var),
+                          self.N_SAMPLES)
 
         # test 2d sampling (explicit batch size)
         samples = self.get_samples(DiagonalGaussian, {'mu': mu, 'var': var},
                                    explicit_batch_size=True)
         self.assertEquals(samples.shape, (self.N_SAMPLES, 3))
-        self.big_number_verify(np.mean(samples, axis=0), mu, np.sqrt(var))
+        big_number_verify(np.mean(samples, axis=0), mu, np.sqrt(var),
+                          self.N_SAMPLES)
 
         # test extra sampling shape
         samples = self.get_samples(DiagonalGaussian, {'mu': mu, 'var': var},
                                    sample_shape=[4, 5])
         self.assertEquals(samples.shape, (4, 5, self.N_SAMPLES, 3))
-        self.big_number_verify(
-            np.mean(samples.reshape([-1, 3]), axis=0), mu, np.sqrt(var))
+        big_number_verify(np.mean(samples.reshape([-1, 3]), axis=0),
+                          mu, np.sqrt(var), self.N_SAMPLES)
 
         # test extra sampling shape == 1
         samples = self.get_samples(DiagonalGaussian, {'mu': mu, 'var': var},
                                    sample_shape=[1])
         self.assertEquals(samples.shape, (1, self.N_SAMPLES, 3))
-        self.big_number_verify(
-            np.mean(samples.reshape([-1, 3]), axis=0), mu, np.sqrt(var))
+        big_number_verify(np.mean(samples.reshape([-1, 3]), axis=0), mu,
+                          np.sqrt(var), self.N_SAMPLES)
 
         # test 3d sampling
         bias = [[0.0], [3.0], [6.0], [9.0]]
@@ -84,7 +81,14 @@ class DistributionTestCase(unittest.TestCase):
         )
         self.assertEquals(samples.shape, (self.N_SAMPLES, 4, 3))
         for i in range(4):
-            self.big_number_verify(
+            big_number_verify(
                 np.mean(samples[:, i, :], axis=0), mu + bias[i],
-                np.sqrt(var + bias[i])
+                np.sqrt(var + bias[i]), self.N_SAMPLES
             )
+
+        # test log sampling
+        samples = self.get_samples(
+            DiagonalGaussian, {'mu': mu, 'log_var': np.log(var)})
+        self.assertEquals(samples.shape, (self.N_SAMPLES, 3))
+        big_number_verify(
+            np.mean(samples, axis=0), mu, np.sqrt(var), self.N_SAMPLES)
