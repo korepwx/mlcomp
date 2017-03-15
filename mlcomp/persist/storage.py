@@ -3,9 +3,11 @@ import codecs
 import copy
 import json
 import os
+import random
 import stat
 import time
 from contextlib import contextmanager
+from json import JSONDecodeError
 from logging import getLogger
 
 from .errors import StorageReadOnlyError
@@ -99,22 +101,31 @@ class Storage(object):
     def __repr__(self):
         return 'Storage(%r)' % self._path
 
-    def _load_running_status(self):
+    def _load_running_status(self, retry_delay_min=0.01, retry_delay_max=0.1):
+        retry = 0
         status_file = self.resolve_path(STORAGE_RUNNING_STATUS)
-        try:
-            with codecs.open(status_file, 'rb', 'utf-8') as f:
-                cnt = f.read()
-            values = json.loads(cnt)
-            return StorageRunningStatus(
-                pid=values.get('pid'),
-                hostname=values.get('hostname'),
-                start_time=values.get('start_time'),
-                active_time=values.get('active_time')
-            )
-        except IOError:
-            if not os.path.exists(status_file):
-                return None
-            raise
+        while retry < 3:
+            try:
+                with codecs.open(status_file, 'rb', 'utf-8') as f:
+                    cnt = f.read()
+                values = json.loads(cnt)
+                return StorageRunningStatus(
+                    pid=values.get('pid'),
+                    hostname=values.get('hostname'),
+                    start_time=values.get('start_time'),
+                    active_time=values.get('active_time')
+                )
+            except JSONDecodeError:
+                retry += 1
+                delay = (
+                    random.random() * (retry_delay_max - retry_delay_min) +
+                    retry_delay_min
+                )
+                time.sleep(delay)
+            except IOError:
+                if not os.path.exists(status_file):
+                    return None
+                raise
 
     @property
     def readonly(self):
