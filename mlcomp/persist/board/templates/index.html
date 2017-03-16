@@ -1,3 +1,11 @@
 {% extends "skeleton/base.html" %}
 
+{% block head_scripts %}
+  <link rel="stylesheet" type="text/css" href="{{ asset_url_for('board/css') }}" />
+{% endblock %}
+
+{% block tail_scripts %}
+  <script type="text/javascript" async src="{{ asset_url_for('board/js') }}"></script>
+{% endblock %}
+
 {% block subtitle %}Dashboard{% endblock %}

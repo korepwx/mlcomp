@@ -26,7 +26,8 @@ const optimizers = PROD ? [
 const plugins = [
       new webpack.ProvidePlugin({
         $: "jquery",
-        jQuery: "jquery"
+        jQuery: "jquery",
+        Tether: "tether"
       }),
       new ExtractTextPlugin({ filename: PROD ? '[name].css' : '[name].[contenthash].css', allChunks: true })
     ].concat(optimizers).concat([
@@ -39,9 +40,9 @@ const plugins = [
 // config the webpack
 module.exports = {
   entry: {
-    main: [
-      './sass/main.scss',
-      './src/main.js'
+    board: [
+      './sass/board.scss',
+      './src/board/main.js'
     ]
   },
   output: {
@@ -51,7 +52,8 @@ module.exports = {
   },
   resolve: {
     extensions: ['*', '.js', '.vue'],
-    modules: ['node_modules', 'src', 'themes']
+    modules: ['node_modules', 'src', 'themes'],
+    alias: { vue: 'vue/dist/vue.js' }
   },
   plugins: plugins,
   module: {
@@ -76,7 +78,7 @@ module.exports = {
         })
       },
       {
-        test: /\.scss$/,
+        test: /\.s[a|c]ss$/,
         loader: ExtractTextPlugin.extract({
           fallbackLoader: 'style-loader',
           loader: 'css-loader!postcss-loader!resolve-url-loader!sass-loader?sourceMap',

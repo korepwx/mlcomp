@@ -9,10 +9,15 @@
   <title>{% block title %}{% block subtitle %}{% endblock %} - {{ __system__.name }}{% endblock %}</title>
 
   <!-- Stylesheets -->
-  <link rel="stylesheet" type="text/css" href="{{ asset_url_for('main/css') }}" />
+  {% block head_scripts %}{% endblock %}
+  <script type="text/javascript">
+    var __system__ = {{ __system__.to_json() | safe }};
+  </script>
 </head>
 <body>
+  {% block body %}<div id="app"></div>{% endblock %}
+
   <!-- Tail scripts -->
-  <script type="text/javascript" async src="{{ asset_url_for('main/js') }}"></script>
+  {% block tail_scripts %}{% endblock %}
 </body>
 </html>

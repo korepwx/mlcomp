@@ -7,6 +7,7 @@ from keras import backend as K
 from keras.engine import Model, Layer
 from keras.layers import Dense, Lambda
 
+from mlcomp.utils import deprecated
 from .sampling import DiagonalGaussianLayer
 from .utils import get_shape, is_deterministic_shape
 
@@ -32,10 +33,10 @@ class SimpleVAE(Model):
     z_dim : int
         The dimension of the latent variable.
 
-    z_feature_layer : Layer
+    z_feature_layer : Layer | (tensor) -> tensor
         The hidden layer before computing mean(z) and logvar(z).
 
-    x_feature_layer : Layer
+    x_feature_layer : Layer | (tensor) -> tensor
         The hidden layer before computing output distribution parameters.
     """
 
@@ -66,7 +67,17 @@ class SimpleVAE(Model):
         super(SimpleVAE, self).__init__(inputs=inputs, outputs=self.x)
 
     def z_params_for(self, x):
-        """Compute the distribution parameters of `z` for specified `x`."""
+        """Compute the distribution parameters of `z` for specified `x`.
+
+        Parameters
+        ----------
+        x : tensor
+            The `x` input variable.
+
+        Returns
+        -------
+        list[tensor]
+        """
         feature = self.z_feature_layer(x)
         return [self.z_mean_layer(feature), self.z_logvar_layer(feature)]
 
@@ -87,6 +98,11 @@ class SimpleVAE(Model):
         """Compute the distribution parameters of `x` for specified `z`.
 
         The first output of this method is required to be the mean of `x`.
+
+        Parameters
+        ----------
+        z : tensor
+            The `z` latent variable.
 
         Returns
         -------
@@ -134,8 +150,8 @@ class SimpleVAE(Model):
         """
         raise NotImplementedError()
 
-    def sampling_reconstruct(self, input_x, z_sample_num=32, x_sample_num=None):
-        """Get a reconstructed tensor with sampling.
+    def get_reconstructed(self, input_x, z_sample_num=32, x_sample_num=None):
+        """Get the reconstructed tensor.
 
         Parameters
         ----------
@@ -199,8 +215,12 @@ class SimpleVAE(Model):
                 '2nd dimension, but got shape %r.' % x_shape
             )
         x_dim = x_shape[1]
-        # construct the output which support Model(output=...)
+        # construct the output which support Model(outputs=...)
         return Lambda(compute)(input_x)
+
+    @deprecated('use `get_reconstructed` instead.')
+    def sampling_reconstruct(self, *args, **kwargs):
+        return self.get_reconstructed(*args, **kwargs)
 
     def compile(self, optimizer, metrics=None, loss_weights=None,
                 sample_weight_mode=None, **kwargs):
@@ -227,10 +247,10 @@ class DiagonalGaussianSimpleVAE(SimpleVAE):
     z_dim : int
         The dimension of the latent variable.
 
-    z_feature_layer : Layer
+    z_feature_layer : Layer | (tensor) -> tensor
         The hidden layer before computing mean(z) and logvar(z).
 
-    x_feature_layer : Layer
+    x_feature_layer : Layer | (tensor) -> tensor
         The hidden layer before computing mean(x) and logvar(x).
     """
 
@@ -251,7 +271,11 @@ class DiagonalGaussianSimpleVAE(SimpleVAE):
 
         # call the standard VAE constructor
         super(DiagonalGaussianSimpleVAE, self).__init__(
-            inputs, z_dim, z_feature_layer, x_feature_layer)
+            inputs=inputs,
+            z_dim=z_dim,
+            z_feature_layer=z_feature_layer,
+            x_feature_layer=x_feature_layer,
+        )
 
     def _build_x_layers(self):
         self.x_mean_layer = Dense(self.x_dim)

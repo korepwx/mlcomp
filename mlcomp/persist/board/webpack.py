@@ -46,6 +46,7 @@ class Webpack(object):
 
         # reload assets before each request if in development mode.
         if app.config.get('DEBUG', False):
+            getLogger(__name__).info('Assets will be auto-reloaded.')
             app.before_request(self._load_assets)
 
         # inject Flask application

@@ -98,6 +98,36 @@ class Storage(object):
     mode = property(lambda self: self._mode)
     running_status = property(lambda self: self._running_status)
 
+    @property
+    def is_active(self):
+        """Whether or not this storage is active?"""
+        running_status = self._running_status
+        if running_status:
+            now = time.time()
+            diff = now - running_status.active_time
+            if diff < STORAGE_RUNNING_STATUS_INTERVAL * 2:
+                return True
+        return False
+
+    @property
+    def update_or_active_time(self):
+        """Get the last update or active time of this storage."""
+        ret = None
+        running_status = self._running_status
+        if running_status:
+            ret = running_status.active_time
+        if not ret:
+            ret = self._meta.update_time
+        if not ret:
+            ret = self._meta.create_time
+        return ret
+
+    # lift the meta properties as storage properties
+    create_time = storage_property('create_time')
+    has_error = storage_property('has_error')
+    description = storage_property('description')
+    tags = storage_property('tags')
+
     def __repr__(self):
         return 'Storage(%r)' % self._path
 
@@ -174,6 +204,8 @@ class Storage(object):
         ret = copy.copy(self._meta.values)
         if self._running_status:
             ret['running_status'] = self._running_status.to_dict()
+        ret['is_active'] = self.is_active
+        ret['update_time'] = self.update_or_active_time
         return ret
 
     @contextmanager
@@ -263,7 +295,24 @@ class Storage(object):
                 )
             self._running_status = None
 
-    # lift the meta properties to storage properties
-    create_time = storage_property('create_time')
-    description = storage_property('description')
-    tags = storage_property('tags')
+    @contextmanager
+    def with_context(self):
+        """Open a context that keeps this storage active.
+
+        This method will open all other contexts, e.g., `capture_logging()`
+        and `keep_running_status()`.  Furthermore, when existing the context
+        of this method,
+        """
+        try:
+            with self.capture_logging(), self.keep_running_status():
+                yield
+            self._meta.has_error = False
+        except Exception:
+            self._meta.has_error = True
+            raise
+        finally:
+            try:
+                self._meta.update_time = time.time()
+            except Exception:
+                getLogger(__name__).info(
+                    'Failed to write update time of %r.', self, exc_info=True)

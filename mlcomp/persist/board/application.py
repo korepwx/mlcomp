@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
+import json
 import re
 
 import six
 from flask import Flask
 
 from mlcomp import __version__
+from mlcomp.utils import object_to_dict
 from . import config
 from .views import api_bp, main_bp, storage_bp
 from .utils import MountTree
@@ -30,6 +32,9 @@ class SystemInfo(object):
         self.name = 'ML Companion'
         self.version = __version__
 
+    def to_json(self):
+        return json.dumps(object_to_dict(self))
+
 
 class MainApp(Flask):
     """The main application.
@@ -42,7 +47,7 @@ class MainApp(Flask):
 
     def __init__(self, mappings):
         super(MainApp, self).__init__(__name__)
-        self.config.from_object(config)
+        self.config.from_mapping(config)
 
         # check the mappings
         self.mappings = {
@@ -69,5 +74,5 @@ class MainApp(Flask):
 
         # inject Jinja2 template context
         self.jinja_env.globals.update({
-            '__system__': SystemInfo()
+            '__system__': SystemInfo(),
         })

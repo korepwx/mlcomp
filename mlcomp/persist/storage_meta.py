@@ -143,6 +143,8 @@ class StorageMeta(object):
 
     # mappers from json attributes to properties
     create_time = StorageMetaProperty.named('create_time', readonly=True)
+    update_time = StorageMetaProperty.named('update_time')
+    has_error = StorageMetaProperty.named('has_error')
     description = StorageMetaProperty.named('description')
     tags = StorageMetaProperty.named(
         'tags',
