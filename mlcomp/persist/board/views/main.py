@@ -14,7 +14,5 @@ if is_testing():
 
 
 @main_bp.route('/')
-@main_bp.route('/active')
-@main_bp.route('/completed')
 def index():
     return render_template('index.html')

@@ -40,9 +40,9 @@ const plugins = [
 // config the webpack
 module.exports = {
   entry: {
-    board: [
+    main: [
       './sass/board.scss',
-      './src/board/main.js'
+      './src/main.js'
     ]
   },
   output: {

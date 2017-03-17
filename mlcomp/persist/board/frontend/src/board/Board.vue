@@ -1,0 +1,178 @@
+<template>
+  <div id="board" class="page-wrapper">
+    <!-- the navigation bar -->
+    <mu-appbar title="ML Board" class="appbar" :class="{'side-panel-hided': !sidePanelOpen}">
+      <mu-icon-button icon="menu" slot="left" @click="toggleSidePanel" />
+      <mu-icon-button icon="refresh" slot="right" @click="loadStorageGroups" />
+    </mu-appbar>
+
+    <!-- the config panel at the left -->
+    <side-panel class="side-panel" :open="sidePanelOpen" :docked="sidePanelDocked"
+                @close="closeSidePanel" @toggle="toggleSidePanel"></side-panel>
+
+    <!-- the main content -->
+    <div class="main-wrapper" :class="{'side-panel-hided': !sidePanelOpen}">
+      <!-- the loading progress -->
+      <mu-linear-progress class="loading-progress" v-if="isLoading"></mu-linear-progress>
+
+      <!-- the loading error message -->
+      <div v-if="errorMessage" class="main-content error">
+        Failed to load experiments: {{ errorMessage }}.
+      </div>
+
+      <!-- the main list group -->
+      <group-list v-if="!errorMessage" class="main-content groups"
+                  :groups="filteredGroups"></group-list>
+    </div> <!-- div.main-wrapper -->
+  </div> <!-- div.page-wrapper -->
+</template>
+<script>
+  import APIClient from '../lib/api.js';
+  import { filterGroups } from '../lib/query.js';
+  import { isDesktop } from '../lib/utils.js';
+  import SidePanel from './SidePanel.vue';
+  import GroupList from './GroupList.vue';
+
+  // The component definition.
+  export default {
+    components: {
+      'side-panel': SidePanel,
+      'group-list': GroupList,
+    },
+
+    data() {
+      return {
+        sidePanelOpen: isDesktop(),
+        sidePanelDocked: isDesktop(),
+        desktop: isDesktop(),
+        isLoading: false,
+        storageGroups: null,
+        errorMessage: null,
+      }
+    },
+
+    created() {
+      this.loadStorageGroups();
+    },
+
+    mounted() {
+      this.checkDesktop();
+      this.handleResize = () => {
+        this.checkDesktop()
+      };
+      window.addEventListener('resize', this.handleResize);
+    },
+
+    destroyed() {
+      window.removeEventListener('resize', this.handleResize)
+    },
+
+    computed: {
+      filteredGroups() {
+        return this.storageGroups;
+      }
+    },
+
+    methods: {
+      checkDesktop() {
+        const desktop = isDesktop();
+        this.sidePanelDocked = desktop;
+        if (desktop === this.desktop) return;
+        if (!desktop && this.desktop && this.sidePanelOpen) {
+          this.sidePanelOpen = false
+        }
+        if (desktop && !this.desktop && !this.sidePanelOpen) {
+          this.sidePanelOpen = true
+        }
+        this.desktop = desktop
+      },
+
+      toggleSidePanel() {
+        this.sidePanelOpen = !this.sidePanelOpen;
+      },
+
+      closeSidePanel() {
+        this.sidePanelOpen = false;
+      },
+
+      loadStorageGroups() {
+        const self = this;
+        const apiClient = new APIClient('/_api');
+
+        // show the loading flag if the resource cannot be retrieved within half a second
+        const loadingFlag = [true];
+        const showLoadingAfterHalfSecond = setInterval(function() {
+          self.isLoading = loadingFlag[0];
+          clearInterval(showLoadingAfterHalfSecond);
+        }, 500);
+
+        function clearLoadingFlag() {
+          loadingFlag[0] = false;
+          clearInterval(showLoadingAfterHalfSecond);
+          self.isLoading = false;
+        }
+
+        // start to load the data
+        apiClient.getStorageGroups({
+          success: function (groups) {
+            self.storageGroups = groups;
+            self.errorMessage = null;
+            clearLoadingFlag();
+          },
+          error: function (e) {
+            self.storageGroups = null;
+            self.errorMessage = e;
+            clearLoadingFlag();
+          }
+        });
+      },
+    } // methods
+  }
+</script>
+
+<style lang="sass">
+  $easeOut: cubic-bezier(0.23, 1, 0.32, 1);
+
+  .appbar {
+    position: fixed;
+    left: 256px;
+    right: 0;
+    top: 0;
+    width: auto;
+    transition: all .45s $easeOut;
+  }
+
+  .main-wrapper {
+    padding-top: 64px;
+    padding-left: 256px;
+    transition: all .45s $easeOut;
+  }
+
+  .side-panel-hided.main-wrapper {
+    padding-left: 0;
+  }
+  .side-panel-hided.appbar {
+    left: 0;
+  }
+
+  .main-content {
+    padding: 48px 72px;
+  }
+
+  @media (max-width: 480px) {
+    .main-wrapper {
+      padding-top: 56px;
+    }
+  }
+  @media (max-width: 993px) {
+    .appbar {
+      left: 0;
+    }
+    .main-wrapper {
+      padding-left: 0;
+    }
+    .main-content {
+      padding: 24px 36px;
+    }
+  }
+</style>

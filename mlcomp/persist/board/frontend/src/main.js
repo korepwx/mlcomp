@@ -1,22 +1,18 @@
-// Initialize Bootstrap
-import 'tether';
-import 'bootstrap';
-
 // Initialize the Vue and its plugins
 import Vue from 'vue';
 import VueRouter from 'vue-router';
+import MuseUI from 'muse-ui';
 Vue.use(VueRouter);
+Vue.use(MuseUI);
 
 // Initialize the App
-import Main from './comp/main.vue';
-import Board from './comp/board.vue';
+import Main from './App.vue';
+import Board from './board/Board.vue';
 
 // The vue routes and router
 const routes = [
   // List of experiments, with different filters applied
   { path: '/', component: Board },
-  { path: '/active', component: Board },
-  { path: '/completed', component: Board },
 ];
 const router = new VueRouter({
   routes,
@@ -25,15 +21,10 @@ const router = new VueRouter({
 });
 
 // The Vue main application
-import store from './lib/store.js';
 new Vue({
   el: '#app',
   router,
-  store,
   render(h) {
     return h(Main);
   }
 });
-
-// Start to fetch the data
-store.dispatch('loadStorageGroups');
