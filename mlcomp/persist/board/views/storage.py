@@ -74,7 +74,7 @@ def resources(storage, path):
     """Get resources from the storage directory."""
     # the index of a storage, show the web app
     if path in ('/', ''):
-        return render_template('index.html')
+        return render_template('report.html', storage=storage)
 
     # request for some resource in the storage
     return send_from_directory(storage.path, path)

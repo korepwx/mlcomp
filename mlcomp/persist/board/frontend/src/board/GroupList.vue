@@ -4,8 +4,9 @@
 
     <mu-list class="group-entry" @itemClick="handleSelectGroup">
       <mu-list-item v-for="group in groups" titleClass="group-title"
-                    :title="'/' + group.path" :value="group" :data="group" :key="group.path">
+                    :value="group" :data="group" :key="group.path">
         <mu-icon slot="left" value="folder" />
+        <div slot="title" class="group-title">/{{ group.path }}</div>
         <div slot="describe" class="summary">
           <div class="status-left">
             <span class="text-active" v-if="group.active_count">{{ group.active_count }} running</span>
@@ -84,10 +85,10 @@
       .status-right {
         float: right;
       }
-
-      .clear {
-        clear: both;
-      }
     } /* .summary */
+
+    .clear {
+      clear: both;
+    }
   }
 </style>

@@ -16,19 +16,21 @@
     data() {
       return {
         text: null,
-        updateConfig: [null, 0, false]
       }
     },
 
     mounted() {
+      this.hasDestroyed = false;
+      this.updateInterval = null;
+      this.updateIntervalSeconds = 0;
       this.updateText();
     },
 
     destroyed() {
-      this.updateConfig[2] = true;
-      if (this.updateConfig[0]) {
-        clearInterval(this.updateConfig[0]);
-        this.updateConfig[0] = null;
+      this.hasDestroyed = true;
+      if (this.updateInterval) {
+        clearInterval(this.updateInterval);
+        this.updateInterval = null;
       }
     },
 
@@ -84,23 +86,23 @@
         self.text = date_text;
 
         // create the update updater if necessary
-        if (!self.updateConfig[2] /* component is not destroyed */) {
-          if (!refresh_rate || refresh_rate != self.updateConfig[1]) {
-            if (self.updateConfig[0]) {
-              clearInterval(self.updateConfig[0]);
-              self.updateConfig[0] = null;
+        if (!self.hasDestroyed /* component is not destroyed */) {
+          if (!refresh_rate || refresh_rate != self.updateIntervalSeconds) {
+            if (self.updateInterval) {
+              clearInterval(self.updateInterval);
+              self.updateInterval = null;
             }
           }
-          if (refresh_rate && refresh_rate != self.updateConfig[1]) {
-            self.updateConfig[0] = setInterval(
+          if (refresh_rate && refresh_rate != self.updateIntervalSeconds) {
+            self.updateInterval = setInterval(
               function() {
                 self.updateText();
               },
               refresh_rate * 1000
             );
-            self.updateConfig[1] = refresh_rate;
+            self.updateIntervalSeconds = refresh_rate;
           }
-        } // if (!updateConfig[2])
+        } // if (!hasDestroyed)
       }
     },
 

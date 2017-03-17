@@ -61,10 +61,15 @@
         this.checkDesktop()
       };
       window.addEventListener('resize', this.handleResize);
+      this.reloadInterval = setInterval(
+        () => this.loadStorageGroups(),
+        5 * 60 * 1000
+      );
     },
 
     destroyed() {
-      window.removeEventListener('resize', this.handleResize)
+      window.removeEventListener('resize', this.handleResize);
+      clearInterval(this.reloadInterval);
     },
 
     computed: {
@@ -126,7 +131,12 @@
           }
         });
       },
-    } // methods
+    }, // methods
+
+    beforeRouteEnter (to, from, next) {
+      window.document.title = "Dashboard - ML Board";
+      next();
+    },
   }
 </script>
 

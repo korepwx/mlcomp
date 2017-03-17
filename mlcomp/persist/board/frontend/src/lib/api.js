@@ -49,6 +49,7 @@ export default class APIClient {
                       path: pa_path,
                       name: child[0],
                       description: data['description'] || '',
+                      tags: data['tags'] || [],
                       create_time: data['create_time'] || 0,
                       update_time: data['update_time'] || 0,
                       is_active: !!data['is_active'],

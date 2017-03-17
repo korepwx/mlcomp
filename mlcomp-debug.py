@@ -18,7 +18,9 @@ with TemporaryDirectory() as tempdir:
     storage_dict = {}
     for name in ['a/1', 'a/2', 'a/b', 'b/1', 'b/2', 'c']:
         s = Storage(os.path.join(tempdir, name), mode='create')
-        s.description = name
+        if name != 'c':
+            s.description = name
+            s.tags = [name, 'hello']
         storage_dict[name] = s
 
     # construct the application
