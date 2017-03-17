@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import codecs
+import json
 import os
 import unittest
 
@@ -108,3 +109,38 @@ class ViewsTestCase(unittest.TestCase):
                 rv = c.get('/s/c/storage.json')
                 self.assertEquals(rv.status_code, 200)
                 self.assertEquals(f(rv.data), read_meta(storage_dict['c']))
+
+    def test_tree_root_as_storage(self):
+        with TemporaryDirectory() as tempdir:
+            f = lambda s: (
+                s if isinstance(s, six.text_type) else s.decode('utf-8'))
+
+            # populate the storage tree
+            os.removedirs(tempdir)
+            s = Storage(tempdir, mode='create')
+
+            # construct the application
+            app = MainApp({'/': tempdir})
+
+            with app.test_client() as c:
+                # test the routes
+                rv = c.get('/s/_greeting/')
+                self.assertEquals(rv.status_code, 200)
+                self.assertEquals(
+                    f(rv.data),
+                    'storage greeting\n%s\n' % (s.path,)
+                )
+
+                rv = c.get('/s/storage.json')
+                self.assertEquals(rv.status_code, 200)
+                with codecs.open(s.resolve_path('storage.json'),
+                                 'rb', 'utf-8') as fin:
+                    self.assertEquals(f(rv.data), fin.read())
+
+                # test the api output
+                rv = c.get('/_api/all')
+                self.assertEquals(rv.status_code, 200)
+                cnt = json.loads(f(rv.data))
+                self.assertIsInstance(cnt, dict)
+                self.assertIn('create_time', cnt)
+                self.assertIn('update_time', cnt)
