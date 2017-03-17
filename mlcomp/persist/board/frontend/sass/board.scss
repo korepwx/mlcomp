@@ -15,9 +15,27 @@ html {
 }
 */
 
+// ---- Page Layout ----
 html, body {
   margin: 0;
   padding: 0;
   width: 100%;
   height: 100%;
+}
+.mu-dialog-wrapper {
+  width: 90% !important;
+}
+
+// ---- Common Elements ----
+.text-active {
+  color: #3f51b5;
+}
+.text-success {
+  color: #009688;
+}
+.text-error {
+  color: #f44336;
+}
+.text-info {
+  color: #9e9e9e;
 }

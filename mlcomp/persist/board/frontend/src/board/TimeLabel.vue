@@ -4,7 +4,6 @@
 
 <script>
   import moment from 'moment';
-  const updateConfig = [null, 0, false];
 
   export default {
     props: {
@@ -16,7 +15,8 @@
 
     data() {
       return {
-        text: null
+        text: null,
+        updateConfig: [null, 0, false]
       }
     },
 
@@ -25,10 +25,10 @@
     },
 
     destroyed() {
-      updateConfig[2] = true;
-      if (updateConfig[0]) {
-        clearInterval(updateConfig[0]);
-        updateConfig[0] = null;
+      this.updateConfig[2] = true;
+      if (this.updateConfig[0]) {
+        clearInterval(this.updateConfig[0]);
+        this.updateConfig[0] = null;
       }
     },
 
@@ -84,21 +84,21 @@
         self.text = date_text;
 
         // create the update updater if necessary
-        if (!updateConfig[2] /* component is not destroyed */) {
-          if (!refresh_rate || refresh_rate != updateConfig[1]) {
-            if (updateConfig[0]) {
-              clearInterval(updateConfig[0]);
-              updateConfig[0] = null;
+        if (!self.updateConfig[2] /* component is not destroyed */) {
+          if (!refresh_rate || refresh_rate != self.updateConfig[1]) {
+            if (self.updateConfig[0]) {
+              clearInterval(self.updateConfig[0]);
+              self.updateConfig[0] = null;
             }
           }
-          if (refresh_rate && refresh_rate != updateConfig[1]) {
-            updateConfig[0] = setInterval(
+          if (refresh_rate && refresh_rate != self.updateConfig[1]) {
+            self.updateConfig[0] = setInterval(
               function() {
                 self.updateText();
               },
               refresh_rate * 1000
             );
-            updateConfig[1] = refresh_rate;
+            self.updateConfig[1] = refresh_rate;
           }
         } // if (!updateConfig[2])
       }

@@ -2,7 +2,7 @@
 import os
 
 import six
-from flask import Blueprint, current_app, send_from_directory
+from flask import Blueprint, current_app, send_from_directory, render_template
 from werkzeug.exceptions import NotFound
 
 from .utils import is_testing
@@ -71,4 +71,9 @@ if is_testing():
 @parse_request_storage
 def resources(storage, path):
     """Get resources from the storage directory."""
+    # the index of a storage, show the web app
+    if path in ('/', ''):
+        return render_template('index.html')
+
+    # request for some resource in the storage
     return send_from_directory(storage.path, path)

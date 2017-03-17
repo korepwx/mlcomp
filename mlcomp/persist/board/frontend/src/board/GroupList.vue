@@ -1,28 +1,20 @@
 <template>
   <div>
-    <mu-list>
-      <mu-list-item v-for="group in groups" toggleNested titleClass="group-title"
-                    :title="'/' + group.path" :value="group" :data="group" :key="group.path"
-                    :open="false">
+    <group-dialog :group="selectedGroup" @close="handleDialogClose"></group-dialog>
+
+    <mu-list class="group-entry" @itemClick="handleSelectGroup">
+      <mu-list-item v-for="group in groups" titleClass="group-title"
+                    :title="'/' + group.path" :value="group" :data="group" :key="group.path">
         <mu-icon slot="left" value="folder" />
-        <div class="group-summary">
-          <div class="counts">
-            <span style="color: #3f51b5" class="active-count"
-                  v-if="group.active_count">{{ group.active_count }} running</span>
-            <span style="color: #009688" class="success-count"
-                  v-if="group.success_count">{{ group.success_count }} success</span>
-            <span style="color: #f44336" class="error-count"
-                  v-if="group.error_count">{{ group.error_count }} error</span>
+        <div slot="describe" class="summary">
+          <div class="status-left">
+            <span class="text-active" v-if="group.active_count">{{ group.active_count }} running</span>
+            <span class="text-success" v-if="group.success_count">{{ group.success_count }} success</span>
+            <span class="text-error" v-if="group.error_count">{{ group.error_count }} failed</span>
           </div>
-          <time-label style="color: #9e9e9e" class="update-time" :timestamp="group.update_time"></time-label>
+          <time-label class="status-right text-info" :timestamp="group.update_time"></time-label>
           <div class="clear"></div>
         </div>
-
-        <!-- Here start the storage list -->
-        <mu-list-item slot="nested" v-for="storage in group.items"
-                      :title="storage.name" :value="storage" :data="storage" :key="storage.name">
-          <mu-icon slot="left" value="assignment"/>
-        </mu-list-item>
       </mu-list-item>
     </mu-list>
   </div>
@@ -30,10 +22,12 @@
 
 <script>
   import TimeLabel from './TimeLabel.vue';
+  import GroupDialog from './GroupDialog.vue';
 
   export default {
     components: {
-      'time-label': TimeLabel
+      'time-label': TimeLabel,
+      'group-dialog': GroupDialog,
     },
 
     props: {
@@ -44,41 +38,56 @@
     },
 
     data() {
-      return {};
+      return {
+        selectedGroup: null
+      };
+    },
+
+    methods: {
+      handleSelectGroup(item) {
+        const group = item.value;
+        this.selectedGroup = group;
+      },
+
+      handleDialogClose() {
+        this.selectedGroup = null;
+      }
     }
   }
 </script>
 
 <style lang="sass">
-  .group-title {
-    font-weight: bold;
-    font-size: 20px;
-  }
+  .group-entry {
+    .group-title {
+      font-weight: bold;
+    }
 
-  .group-summary {
-    padding-top: 8px;
+    .summary {
+      .status-left {
+        float: left;
 
-    div.counts {
-      float: left;
-      span {
-        margin-right: 2px;
+        span {
+          margin-right: 2px;
+        }
+        span:after {
+          color: #9e9e9e;
+          content: ',';
+        }
+        span:last-child {
+          margin-right: 0;
+        }
+        span:last-child:after {
+          content: '';
+        }
+      }  /* .status */
+
+      .status-right {
+        float: right;
       }
-      span:after {
-        color: #9e9e9e;
-        content: ',';
+
+      .clear {
+        clear: both;
       }
-      span:last-child {
-        margin-right: 0;
-      }
-      span:last-child:after {
-        content: '';
-      }
-    }
-    div.update-time {
-      float: right;
-    }
-    div.clear {
-      clear: both;
-    }
+    } /* .summary */
   }
 </style>
