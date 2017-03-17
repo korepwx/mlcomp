@@ -67,6 +67,7 @@ if is_testing():
         ])
 
 
+@storage_bp.route('/')
 @storage_bp.route('/<path:path>')
 @parse_request_storage
 def resources(storage, path):
