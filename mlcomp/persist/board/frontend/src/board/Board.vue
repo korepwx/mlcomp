@@ -8,7 +8,11 @@
 
     <!-- the config panel at the left -->
     <side-panel class="side-panel" :open="sidePanelOpen" :docked="sidePanelDocked"
-                @close="closeSidePanel" @toggle="toggleSidePanel"></side-panel>
+                :statusFilter="statusFilter" :queryString="queryString"
+                @close="closeSidePanel" @toggle="toggleSidePanel"
+                @changeStatusFilter="changeStatusFilter"
+                @changeQueryString="changeQueryString">
+    </side-panel>
 
     <!-- the main content -->
     <div class="main-wrapper" :class="{'side-panel-hided': !sidePanelOpen}">
@@ -27,9 +31,10 @@
   </div> <!-- div.page-wrapper -->
 </template>
 <script>
-  import APIClient from '../lib/api.js';
-  import { filterGroups } from '../lib/query.js';
+  import { APIClient, ALL_STATUS } from '../lib/api.js';
+  import { GroupFilter } from '../lib/query.js';
   import { isDesktop } from '../lib/utils.js';
+  import persistStorage from '../lib/storage.js';
   import SidePanel from './SidePanel.vue';
   import GroupList from './GroupList.vue';
 
@@ -42,12 +47,14 @@
 
     data() {
       return {
-        sidePanelOpen: isDesktop(),
+        sidePanelOpen: isDesktop() && persistStorage.boardConfig.sidePanelOpen,
         sidePanelDocked: isDesktop(),
         desktop: isDesktop(),
         isLoading: false,
-        storageGroups: null,
         errorMessage: null,
+        storageGroups: null,
+        statusFilter: persistStorage.boardConfig.statusFilter,
+        queryString: persistStorage.boardConfig.queryString,
       }
     },
 
@@ -73,8 +80,15 @@
     },
 
     computed: {
+      groupFilter() {
+        return new GroupFilter(this.storageGroups);
+      },
+
       filteredGroups() {
-        return this.storageGroups;
+        return this.groupFilter.getFiltered({
+          status: this.statusFilter,
+          query: this.queryString
+        });
       }
     },
 
@@ -87,7 +101,7 @@
           this.sidePanelOpen = false
         }
         if (desktop && !this.desktop && !this.sidePanelOpen) {
-          this.sidePanelOpen = true
+          this.sidePanelOpen = persistStorage.boardConfig.sidePanelOpen;
         }
         this.desktop = desktop
       },
@@ -122,16 +136,47 @@
           success: function (groups) {
             self.storageGroups = groups;
             self.errorMessage = null;
+            console.log('loaded storage groups.');
             clearLoadingFlag();
           },
           error: function (e) {
             self.storageGroups = null;
             self.errorMessage = e;
+            console.log(`error when loading storage groups: ${e}.`);
             clearLoadingFlag();
           }
         });
       },
+
+      changeStatusFilter(config) {
+        for (const key of Object.keys(config)) {
+          const value = config[key];
+          if (value) {
+            if (!this.statusFilter.includes(key)) {
+              this.statusFilter.push(key);
+            }
+          } else {
+            if (this.statusFilter.includes(key)) {
+              this.statusFilter = this.statusFilter.filter(x => x != key);
+            }
+          }
+        }
+        persistStorage.boardConfig.statusFilter = this.statusFilter;
+      }, // changeStatusFilter
+
+      changeQueryString(value) {
+        this.queryString = value;
+        persistStorage.boardConfig.queryString = this.queryString;
+      }, // changeQueryString
     }, // methods
+
+    watch: {
+      sidePanelOpen(value) {
+        if (this.sidePanelDocked) {
+          persistStorage.boardConfig.sidePanelOpen = value;
+        }
+      }
+    }, // watch
 
     beforeRouteEnter (to, from, next) {
       window.document.title = "Dashboard - ML Board";
@@ -140,7 +185,7 @@
   }
 </script>
 
-<style lang="sass">
+<style lang="sass" rel="stylesheet/scss" scoped>
   $easeOut: cubic-bezier(0.23, 1, 0.32, 1);
 
   .appbar {

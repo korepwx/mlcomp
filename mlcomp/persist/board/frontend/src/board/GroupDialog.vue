@@ -11,16 +11,16 @@
         <!-- storage title -->
         <div slot="title" class="storage-title">
           {{ storage.name }}
-          <div class="tags" v-if="storage.tags">
-            <span v-for="tag in storage.tags" class="tag">{{ tag }}</span>
-            <div class="clear"></div>
-          </div>
+          <time-label class="update-time text-info" :timestamp="storage.update_time"></time-label>
+          <div class="clear"></div>
         </div>
 
         <!-- storage describe -->
         <div slot="describe" class="summary">
           <div class="description status-left" v-if="storage.description">{{ storage.description }}</div>
-          <time-label class="info status-right" :timestamp="storage.update_time"></time-label>
+          <div class="tags status-right" v-if="storage.tags">
+            <span v-for="tag in storage.tags" class="tag">{{ tag }}</span>
+          </div>
           <div class="clear"></div>
         </div>
       </mu-list-item>
@@ -31,7 +31,7 @@
 </template>
 
 <script>
-  import TimeLabel from './TimeLabel.vue';
+  import TimeLabel from '../comp/TimeLabel.vue';
 
   export default {
     components: {
@@ -62,24 +62,14 @@
   }
 </script>
 
-<style lang="sass" scoped>
+<style lang="sass" rel="stylesheet/scss" scoped>
   .group-detail {
     .storage-title {
       font-weight: bold;
-      .tags {
+      .update-time {
         float: right;
-
-        .tag {
-          margin-left: 5px;
-          font-size: 11px;
-          font-weight: normal;
-          background-color: #e0e0e0;
-          border-radius: 2px;
-          padding: 1px 3px;
-        }
-        .tag:first-child {
-          margin-left: 0;
-        }
+        font-weight: normal;
+        font-size: 11px;
       }
     }
 
@@ -90,6 +80,20 @@
 
       .status-right {
         float: right;
+      }
+
+      .tags {
+        .tag {
+          margin-left: 5px;
+          background-color: #e0e0e0;
+          font-size: 11px;
+          border-radius: 2px;
+          padding: 1px 3px;
+        }
+
+        .tag:first-child {
+          margin-left: 0;
+        }
       }
     } /* .summary */
 

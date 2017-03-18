@@ -1,6 +1,84 @@
 import $ from "jquery";
 
-export default class APIClient {
+
+function norm_timestamp(tm) {
+  if (tm)
+    tm = Math.round(tm * 1000);
+  return tm;
+}
+
+/** All storage statuses */
+export const ALL_STATUS = ['active', 'error', 'success'];
+
+/**
+ * Storage object.
+ */
+export class Storage {
+  constructor(path, name, data) {
+    const running_status = data['running_status'] || null;
+    if (running_status) {
+      for (const k of ['start_time', 'active_time']) {
+        if (running_status[k]) {
+          running_status[k] = norm_timestamp(running_status[k]);
+        }
+      }
+    }
+    this.path = path;
+    this.name = name;
+    this.description = data['description'] || '';
+    this.tags = data['tags'] || [];
+    this.joined_tags = this.tags.join(',');
+    this.create_time = norm_timestamp(data['create_time'] || 0);
+    this.update_time = norm_timestamp(data['update_time'] || 0);
+    this.running_status = running_status;
+    this.is_active = !!data['is_active'];
+    this.has_error = !!data['has_error'];
+  }
+
+  get is_success() { return !this.is_active && !this.has_error; }
+
+  /** Get the full, absolute path of this storage (typically used as keys). */
+  get full_path() {
+    return '/' + (this.path ? this.path + '/' + this.name : this.name);
+  }
+}
+
+/**
+ * Group of storage instances.
+ */
+export class StorageGroup {
+  constructor(path) {
+    this.path = path;
+    this.items = [];
+    this.update_time = 0;
+    this.active_count = 0;
+    this.error_count = 0;
+    this.success_count = 0;
+  }
+
+  push(storage) {
+    this.items.push(storage);
+    this.update_time = Math.max(this.update_time, storage.update_time);
+    if (storage.is_active)
+      this.active_count += 1;
+    else if (storage.has_error)
+      this.error_count += 1;
+    else
+      this.success_count += 1;
+  }
+
+  filterStorage(filter) {
+    const g = new StorageGroup(this.path);
+    for (const itm of this.items) {
+      if (filter(itm)) {
+        g.push(itm);
+      }
+    }
+    return g;
+  }
+}
+
+export class APIClient {
   constructor(endpoint) {
     this._endpoint = endpoint;
   }
@@ -19,12 +97,6 @@ export default class APIClient {
         if (!success) {
         } else {
           try {
-            function norm_timestamp(owner, key) {
-              if (owner[key]) {
-                owner[key] = Math.round(owner[key] * 1000);
-              }
-            }
-
             function dfs(groups, pa_path, parent) {
               if (parent) {
                 for (const child of parent) {
@@ -38,45 +110,16 @@ export default class APIClient {
                   // Otherwise if the node is a storage node
                   else {
                     // construct the storage object
+                    const name = child[0];
                     const data = child[1];
-                    norm_timestamp(data, 'create_time');
-                    norm_timestamp(data, 'update_time');
-                    if (data['running_status']) {
-                      norm_timestamp(data['running_status'], 'create_time');
-                      norm_timestamp(data['running_status'], 'active_time');
-                    }
-                    const storage = {
-                      path: pa_path,
-                      name: child[0],
-                      description: data['description'] || '',
-                      tags: data['tags'] || [],
-                      create_time: data['create_time'] || 0,
-                      update_time: data['update_time'] || 0,
-                      is_active: !!data['is_active'],
-                      has_error: !!data['has_error'],
-                      data: data,
-                    };
+                    const storage = new Storage(pa_path, name, data);
 
                     // add to the group, and update group properties
                     if (!groups[pa_path]) {
-                      groups[pa_path] = {
-                        path: pa_path,
-                        items: [],
-                        update_time: 0,
-                        active_count: 0,
-                        error_count: 0,
-                        success_count: 0,
-                      };
+                      groups[pa_path] = new StorageGroup(pa_path);
                     }
                     const group = groups[pa_path];
-                    group.items.push(storage);
-                    group.update_time = Math.max(group.update_time, storage.update_time);
-                    if (storage.is_active)
-                      group.active_count += 1;
-                    else if (storage.has_error)
-                      group.error_count += 1;
-                    else
-                      group.success_count += 1;
+                    group.push(storage);
                   }
                 }
               }

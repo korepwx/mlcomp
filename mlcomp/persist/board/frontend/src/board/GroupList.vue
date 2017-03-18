@@ -22,7 +22,7 @@
 </template>
 
 <script>
-  import TimeLabel from './TimeLabel.vue';
+  import TimeLabel from '../comp/TimeLabel.vue';
   import GroupDialog from './GroupDialog.vue';
 
   export default {
@@ -34,7 +34,7 @@
     props: {
       groups: {
         type: Array,
-        default: []
+        default: () => []
       }
     },
 
@@ -46,8 +46,7 @@
 
     methods: {
       handleSelectGroup(item) {
-        const group = item.value;
-        this.selectedGroup = group;
+        this.selectedGroup = item.value;
       },
 
       handleDialogClose() {
@@ -57,7 +56,7 @@
   }
 </script>
 
-<style lang="sass">
+<style lang="sass" rel="stylesheet/scss" scoped>
   .group-entry {
     .group-title {
       font-weight: bold;
