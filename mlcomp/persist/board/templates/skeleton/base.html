@@ -10,6 +10,8 @@
 
   <!-- Stylesheets -->
 {% block head_scripts %}
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bokeh/bokeh-0.12.4.min.css') }}" />
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bokeh/bokeh-widgets-0.12.4.min.css') }}" />
   <link rel="stylesheet" type="text/css" href="{{ asset_url_for('main/css') }}" />
 {% endblock %}
   <script type="text/javascript">
@@ -21,7 +23,9 @@
 
   <!-- Tail scripts -->
 {% block tail_scripts %}
-  <script type="text/javascript" async src="{{ asset_url_for('main/js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='bokeh/bokeh-0.12.4.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='bokeh/bokeh-widgets-0.12.4.min.js') }}"></script>
+  <script type="text/javascript" src="{{ asset_url_for('main/js') }}"></script>
 {% endblock %}
 </body>
 </html>

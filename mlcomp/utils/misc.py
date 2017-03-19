@@ -75,11 +75,21 @@ class AutoReprObject(object):
     """
 
     __repr_attributes__ = None
+    __repr_value_length__ = None
 
     def __repr__(self):
+        def truncate(s):
+            maxlen = self.__repr_value_length__
+            if maxlen is None or len(s) < maxlen:
+                return s
+            return '%s...' % (s[: maxlen],)
+
         repr_attrs = getattr(self, '__repr_attributes__') or ()
         repr_attrs = unique(chain(repr_attrs, sorted(self.__dict__)))
-        pieces = ','.join('%s=%r' % (k, getattr(self, k)) for k in repr_attrs)
+        pieces = ','.join(
+            '%s=%s' % (k, truncate(repr(v)))
+            for k, v in ((k, getattr(self, k)) for k in repr_attrs) if v
+        )
         return '%s(%s)' % (self.__class__.__name__, pieces)
 
 
