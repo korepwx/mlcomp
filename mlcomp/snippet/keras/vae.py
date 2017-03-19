@@ -148,7 +148,7 @@ class SimpleVAE(Model):
         -------
         tensor
         """
-        raise NotImplementedError()
+        return self.x_sampler.get_distribution(x_params).log_likelihood(x)
 
     def get_reconstructed(self, input_x, z_sample_num=32, x_sample_num=None):
         """Get the reconstructed tensor.
@@ -164,11 +164,18 @@ class SimpleVAE(Model):
             If None is specified, use the mean of `z` instead of sampling.
             Otherwise will increase the number of `x` samples.
 
+            Note that it is often not suitable for taking the average of `z`,
+            since the decoder network is not linear.
+
         x_sample_num : int | None
             Number of `x` samples to take.
 
             If None is specified, use the mean of `x` instead of sampling.
             Otherwise will compute the average of the sampled `x`.
+
+            Note that unlike `z_sample_num`, it is often meaningless to have
+            `x_sample_num > 1`, since the average of `x` given a determined
+            `z` is expected to be the mean of `x` given `z`.
 
         Returns
         -------
@@ -289,15 +296,3 @@ class DiagonalGaussianSimpleVAE(SimpleVAE):
     def x_params_for(self, z):
         feature = self.x_feature_layer(z)
         return [self.x_mean_layer(feature), self.x_logvar_layer(feature)]
-
-    def log_likelihood_for(self, x, x_params):
-        # compose the p(x|z) likelihood loss, which should be:
-        #   -1/2 * {dot[(x-x_mean)^T,x_var^{-1},(x-x_mean)] + k*log(2pi) +
-        #           log[det(x_var)]}
-        x_mean, x_logvar = x_params
-        x_var = K.exp(x_logvar)
-        log_likelihood = -0.5 * K.sum(
-            K.square(x - x_mean) / x_var + math.log(math.pi * 2) + x_logvar,
-            axis=-1
-        )
-        return log_likelihood
