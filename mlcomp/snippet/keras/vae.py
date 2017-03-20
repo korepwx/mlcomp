@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
-import math
-
 from keras import backend as K
 from keras.engine import Model, Layer
 from keras.layers import Dense, Lambda
@@ -18,8 +16,8 @@ class SimpleVAE(Model):
     """Basic class for simple variational auto-encoders.
 
     By "simple" we refer to such VAE whose latent variable follows
-    diagonal gaussian distribution, and the mean and log-variance of
-    the latent variable is produced by a network consuming the whole
+    diagonal gaussian distribution, and the mean and standard derivation
+    of the latent variable is produced by a network consuming the whole
     input vector.
 
     Parameters
@@ -34,23 +32,29 @@ class SimpleVAE(Model):
         The dimension of the latent variable.
 
     z_feature_layer : Layer | (tensor) -> tensor
-        The hidden layer before computing mean(z) and logvar(z).
+        The hidden layer before computing mean(z) and stddev(z).
 
     x_feature_layer : Layer | (tensor) -> tensor
         The hidden layer before computing output distribution parameters.
+
+    stddev_activation : str | activation
+        The activation function used for producing the standard derivation,
+        given input feature vector.
     """
 
-    def __init__(self, inputs, z_dim, z_feature_layer, x_feature_layer):
+    def __init__(self, inputs, z_dim, z_feature_layer, x_feature_layer,
+                 stddev_activation='softplus'):
         if isinstance(inputs, (tuple, list)):
             self.input_x = inputs[0]
         else:
             self.input_x = inputs
         self.z_dim = z_dim
+        self.stddev_activation = stddev_activation
 
         # build the layers to translate input frame to latent variable
         self.z_feature_layer = z_feature_layer
         self.z_mean_layer = Dense(z_dim)
-        self.z_logvar_layer = Dense(z_dim)
+        self.z_stddev_layer = Dense(z_dim, activation=stddev_activation)
         self.z_sampler = DiagonalGaussianLayer(z_dim)
 
         # build the layers to translate latent variable back to frame
@@ -79,7 +83,7 @@ class SimpleVAE(Model):
         list[tensor]
         """
         feature = self.z_feature_layer(x)
-        return [self.z_mean_layer(feature), self.z_logvar_layer(feature)]
+        return [self.z_mean_layer(feature), self.z_stddev_layer(feature)]
 
     def sample_z_for(self, x):
         """Sample `z` from `x`."""
@@ -128,8 +132,9 @@ class SimpleVAE(Model):
         """
         # compose the KL-divergence, which should be:
         #   -1/2 * {tr(z_var) + dot(z_mean^T,z_mean) - dim(z) - log[det(z_var)]}
-        z_mean, z_logvar = z_params
-        z_var = K.exp(z_logvar)
+        z_mean, z_stddev = z_params
+        z_var = K.square(z_stddev)
+        z_logvar = 2. * K.log(z_stddev)
         kld = -0.5 * K.sum(z_var + K.square(z_mean) - 1 - z_logvar, axis=-1)
         return kld
 
@@ -255,13 +260,18 @@ class DiagonalGaussianSimpleVAE(SimpleVAE):
         The dimension of the latent variable.
 
     z_feature_layer : Layer | (tensor) -> tensor
-        The hidden layer before computing mean(z) and logvar(z).
+        The hidden layer before computing mean(z) and stddev(z).
 
     x_feature_layer : Layer | (tensor) -> tensor
-        The hidden layer before computing mean(x) and logvar(x).
+        The hidden layer before computing mean(x) and stddev(x).
+
+    stddev_activation : str | activation
+        The activation function used for producing the standard derivation,
+        given input feature vector.
     """
 
-    def __init__(self, inputs, z_dim, z_feature_layer, x_feature_layer):
+    def __init__(self, inputs, z_dim, z_feature_layer, x_feature_layer,
+                 stddev_activation='softplus'):
         # check the arguments
         if isinstance(inputs, (tuple, list)):
             input_x = inputs[0]
@@ -285,8 +295,9 @@ class DiagonalGaussianSimpleVAE(SimpleVAE):
         )
 
     def _build_x_layers(self):
+        activation = self.stddev_activation
         self.x_mean_layer = Dense(self.x_dim)
-        self.x_logvar_layer = Dense(self.x_dim)
+        self.x_stddev_layer = Dense(self.x_dim, activation=activation)
         self._x_sampler = DiagonalGaussianLayer(self.x_dim)
 
     @property
@@ -295,4 +306,4 @@ class DiagonalGaussianSimpleVAE(SimpleVAE):
 
     def x_params_for(self, z):
         feature = self.x_feature_layer(z)
-        return [self.x_mean_layer(feature), self.x_logvar_layer(feature)]
+        return [self.x_mean_layer(feature), self.x_stddev_layer(feature)]

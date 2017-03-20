@@ -30,11 +30,7 @@ class SamplingTestCase(unittest.TestCase):
 
     def test_diagonal_gaussian(self):
         layer = DiagonalGaussianLayer(3)
-        mean = np.asarray([0.0, 1.0, -2.0])
-        covariance = np.asarray([1.0, 2.0, 5.0])
-        samples = self.get_samples(
-            layer,
-            [mean, np.log(covariance)]
-        )
-        big_number_verify(np.mean(samples, axis=0), mean, np.sqrt(covariance),
-                          self.N_SAMPLES)
+        mu = np.asarray([0.0, 1.0, -2.0])
+        std = np.asarray([1.0, 2.0, 5.0])
+        samples = self.get_samples(layer, [mu, std])
+        big_number_verify(np.mean(samples, axis=0), mu, std, self.N_SAMPLES)

@@ -84,7 +84,7 @@ class DiagonalGaussianLayer(SamplingLayer):
     """Gaussian sampling layer with diagonal covariance.
 
     This layer should sample 2d gaussian variables from some diagonal
-    gaussian distribution.  The mean and the log diagonal covariance
+    gaussian distribution.  The mean and the diagonal standard derivation
     should be fed into this layer from previous ones.
 
     Parameters
@@ -97,7 +97,7 @@ class DiagonalGaussianLayer(SamplingLayer):
     mu : tensor
         Tensor of shape (?, output_dim).
 
-    log_var : tensor
+    stddev : tensor
         Tensor of shape (?, output_dim).
     """
 
@@ -106,8 +106,8 @@ class DiagonalGaussianLayer(SamplingLayer):
         super(DiagonalGaussianLayer, self).__init__(**kwargs)
 
     def get_distribution(self, inputs, **kwargs):
-        mu, log_var = inputs
-        return DiagonalGaussian(mu=mu, log_var=log_var)
+        mu, stddev = inputs
+        return DiagonalGaussian(mu=mu, stddev=stddev)
 
     def get_output_shape_for(self, input_shape):
         output_shape = (self.output_dim,)

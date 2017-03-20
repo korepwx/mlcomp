@@ -67,56 +67,44 @@ class DiagonalGaussian(Distribution):
     Parameters
     ----------
     mu : tensor
-        The mean and the log variance of the gaussian distribution.
+        The mean of the gaussian distribution.
         Auxiliary dimensions will be treated as sample shape.
 
-    var, log_var : tensor
-        The variance or the log variance of the gaussian distribution,
-        while either one and only one should be specified.
-
+    stddev : tensor
+        The standard derivation of the gaussian distribution.
         Auxiliary dimensions will be treated as sample shape.
-        The shape of the variance or log-variance must match `mu`.
     """
 
-    def __init__(self, mu, var=None, log_var=None):
-        if (var is None and log_var is None) or \
-                (var is not None and log_var is not None):
-            raise ValueError('Either one and only one of `var`, `log_var` '
-                             'should be specified.')
-
+    def __init__(self, mu, stddev):
         # we require the shape information of `mu` and `var` to be available,
         # otherwise we shall not determine the sample shape under Theano.
         mu_shape = get_shape(mu)
-        if var is not None:
-            var_x = var
-        else:
-            var_x = log_var
-        var_x_shape = get_shape(var_x)
+        stddev_shape = get_shape(stddev)
         if not isinstance(mu_shape, tuple) or \
-                not isinstance(var_x_shape, tuple):
-            raise ValueError('At least the dimension of `mu`, `var` and '
-                             '`log_var` should be deterministic.')
+                not isinstance(stddev_shape, tuple):
+            raise ValueError('At least the dimension of `mu` and `stddev` '
+                             'should be deterministic.')
 
-        # check whether or not mu / var_x need reshape
-        pad_size = len(mu_shape) - len(var_x_shape)
+        # check whether or not mu / stddev need reshape
+        pad_size = len(mu_shape) - len(stddev_shape)
         if pad_size < 0:
             mu_shape = (1,) * (-pad_size) + mu_shape
         elif pad_size > 0:
-            var_x_shape = (1,) * pad_size + var_x_shape
+            stddev_shape = (1,) * pad_size + stddev_shape
 
-        # compute the sample shape from mu_shape and var_x_shape
+        # compute the sample shape from mu_shape and stddev_shape
         sample_shape = [1] * len(mu_shape)
         for i in range(len(sample_shape)):
-            a, b = mu_shape[i], var_x_shape[i]
+            a, b = mu_shape[i], stddev_shape[i]
             a_deterministic = is_deterministic_shape([a])
             b_deterministic = is_deterministic_shape([b])
             if a_deterministic and b_deterministic:
                 if a != b and a != 1 and b != 1:
-                    raise ValueError('Mismatch shape of mu and var.')
+                    raise ValueError('Mismatch shape of `mu` and `stddev`.')
                 sample_shape[i] = max(a, b)
             elif a_deterministic or b_deterministic:
                 raise ValueError(
-                    'Shape of mu and var must be both deterministic '
+                    'Shape of `mu` and `stddev` must be both deterministic '
                     'or neither deterministic at corresponding dimension.'
                 )
             else:
@@ -125,20 +113,19 @@ class DiagonalGaussian(Distribution):
 
         self._sample_shape = tuple(sample_shape)
         self._mu = mu
-        self._var_x = var_x
-        self._is_log_var = log_var is not None
+        self._stddev = stddev
 
     def _expand_param_dims(self, k):
-        """Get `mu` and `var_x` which has `k` dimensions."""
-        mu, var_x = self._mu, self._var_x
+        """Get `mu` and `stddev` which has `k` dimensions."""
+        mu, stddev = self._mu, self._stddev
         mu_shape = get_shape(mu)
-        var_x_shape = get_shape(var_x)
+        stddev_shape = get_shape(stddev)
         if len(mu_shape) < k:
             mu = reshape_tensor(mu, (1,) * (k - len(mu_shape)) + mu_shape)
-        if len(var_x_shape) < k:
-            var_x = reshape_tensor(
-                var_x, (1,) * (k - len(var_x_shape)) + var_x_shape)
-        return mu, var_x
+        if len(stddev_shape) < k:
+            stddev = reshape_tensor(
+                stddev, (1,) * (k - len(stddev_shape)) + stddev_shape)
+        return mu, stddev
 
     def _prepare_params_for_elem_op(self, x):
         """Prepare parameters for element-wise operation against `x`."""
@@ -151,8 +138,8 @@ class DiagonalGaussian(Distribution):
                 'The dimension of `x` must be at least the same as '
                 'the distribution parameters.'
             )
-        mu, var_x = self._expand_param_dims(len(x_shape))
-        return mu, var_x
+        mu, stddev = self._expand_param_dims(len(x_shape))
+        return mu, stddev
 
     def sample(self, sample_shape=()):
         # determine the sample shape
@@ -166,26 +153,20 @@ class DiagonalGaussian(Distribution):
             sample_shape = self._sample_shape
 
         # get the distribution parameters
-        mu, var_x = self._expand_param_dims(len(sample_shape))
+        mu, stddev = self._expand_param_dims(len(sample_shape))
 
         # sample the values
         dtype = mu.dtype
         sample = K.random_normal(sample_shape, mean=0.0, stddev=1.0,
                                  dtype=dtype)
-        if self._is_log_var:
-            ret = mu + sample * K.exp(var_x * 0.5)
-        else:
-            ret = mu + sample * K.sqrt(var_x)
+        ret = mu + sample * stddev
         return ret
 
     def likelihood(self, x):
         # compose p(x), which should be:
         #   exp{-1/2 * dot[(x-mu)^T,var^{-1},(x-mu)]} / sqrt{(2pi)^k * det(var)}
-        mu, var_x = self._prepare_params_for_elem_op(x)
-        if self._is_log_var:
-            var = K.exp(var_x)
-        else:
-            var = var_x
+        mu, stddev = self._prepare_params_for_elem_op(x)
+        var = K.square(stddev)
         n_dim = self._sample_shape[-1]
         if is_deterministic_shape([n_dim]):
             factor = 1. / ((2 * math.pi) ** (n_dim * 0.5))
@@ -199,13 +180,9 @@ class DiagonalGaussian(Distribution):
     def log_likelihood(self, x):
         # compose log p(x), which should be:
         #   -1/2 * {dot[(x-mu)^T,var^{-1},(x-mu)] + k*log(2pi) + log[det(var)]}
-        mu, var_x = self._prepare_params_for_elem_op(x)
-        if self._is_log_var:
-            log_var = var_x
-            var = K.exp(var_x)
-        else:
-            log_var = K.log(var_x)
-            var = var_x
+        mu, stddev = self._prepare_params_for_elem_op(x)
+        var = K.square(stddev)
+        log_var = 2. * K.log(stddev)
         return -0.5 * K.sum(
             K.square(x - mu) / var + math.log(math.pi * 2) + log_var,
             axis=-1
