@@ -148,8 +148,8 @@ class SimpleVAE(Model):
         """Sample `x` from specified `z`."""
         return self.x_sampler(self.x_params_for(z))
 
-    def reconstructed_apply(self, input_x, func, z_sample_num=32,
-                            aggregate='average'):
+    def _reconstructed_apply(self, input_x, func, z_sample_num=32,
+                             aggregate='average'):
         """
         Feed `input_x` into the encoder and decoder, then apply `func`.
 
@@ -198,44 +198,40 @@ class SimpleVAE(Model):
                 '2nd dimension, but got shape %r.' % x_shape
             )
 
-        # construct the output which support Model(outputs=...)
-        def compute(x):
-            # take z samples or the mean of z
-            z_params = self.z_params_for(x)
-            if z_sample_num is None:
-                z_samples = z_params[0]
-            else:
-                z_dist = self.z_sampler.get_distribution(z_params)
-                z_samples = z_dist.sample(sample_shape=(z_sample_num,))
-                z_samples = K.reshape(z_samples, [-1, self.z_dim])
+        # take z samples or the mean of z
+        z_params = self.z_params_for(input_x)
+        if z_sample_num is None:
+            z_samples = z_params[0]
+        else:
+            z_dist = self.z_sampler.get_distribution(z_params)
+            z_samples = z_dist.sample(sample_shape=(z_sample_num,))
+            z_samples = K.reshape(z_samples, [-1, self.z_dim])
 
-            # compute the parameters of `x` given specified `z`.
-            x_params = self.x_params_for(z_samples)
-            outputs = func(input_x, z_params, z_samples, x_params)
+        # compute the parameters of `x` given specified `z`.
+        x_params = self.x_params_for(z_samples)
+        outputs = func(input_x, z_params, z_samples, x_params)
 
-            if z_sample_num is not None and z_sample_num > 1:
-                def agg(output):
-                    o_shape = get_shape(output)
-                    if not isinstance(o_shape, (tuple, list)):
-                        raise TypeError(
-                            'At least the dimension of output should '
-                            'be deterministic.'
-                        )
-                    o_shape_new = (z_sample_num, -1) + o_shape[1:]
-                    if not is_deterministic_shape(o_shape_new):
-                        o_shape_new = K.stack(o_shape_new)
-                    return agg_method(K.reshape(output, o_shape_new))
-            else:
-                def agg(output):
-                    return output
+        if z_sample_num is not None and z_sample_num > 1:
+            def agg(output):
+                o_shape = get_shape(output)
+                if not isinstance(o_shape, (tuple, list)):
+                    raise TypeError(
+                        'At least the dimension of output should '
+                        'be deterministic.'
+                    )
+                o_shape_new = (z_sample_num, -1) + o_shape[1:]
+                if not is_deterministic_shape(o_shape_new):
+                    o_shape_new = K.stack(o_shape_new)
+                return agg_method(K.reshape(output, o_shape_new))
+        else:
+            def agg(output):
+                return output
 
-            if isinstance(outputs, (tuple, list)):
-                outputs = [agg(o) for o in outputs]
-            else:
-                outputs = agg(outputs)
-            return outputs
-
-        return Lambda(compute)(input_x)
+        if isinstance(outputs, (tuple, list)):
+            outputs = [agg(o) for o in outputs]
+        else:
+            outputs = agg(outputs)
+        return outputs
 
     def get_reconstructed(self, input_x, z_sample_num=32, sample_x=True):
         """Get the reconstructed tensor.
@@ -263,18 +259,20 @@ class SimpleVAE(Model):
         tensor
             The reconstructed tensor.
         """
-        if sample_x:
-            def func(input_x, z_params, z_samples, x_params):
-                return self.x_sampler.get_distribution(x_params).sample()
-        else:
-            def func(input_x, z_params, z_samples, x_params):
-                return x_params[0]
+        def compute(x):
+            if sample_x:
+                def func(input_x, z_params, z_samples, x_params):
+                    return self.x_sampler.get_distribution(x_params).sample()
+            else:
+                def func(input_x, z_params, z_samples, x_params):
+                    return x_params[0]
 
-        return self.reconstructed_apply(
-            input_x,
-            func=func,
-            z_sample_num=z_sample_num
-        )
+            return self._reconstructed_apply(
+                x,
+                func=func,
+                z_sample_num=z_sample_num
+            )
+        return Lambda(compute)(input_x)
 
     def get_reconstructed_params(self, input_x, z_sample_num=32):
         """Get the reconstructed distribution parameters.
@@ -335,14 +333,20 @@ class SimpleVAE(Model):
             def func(input_x, z_params, z_samples, x_params):
                 x_dist = self.x_sampler.get_distribution(x_params)
                 if z_sample_num is not None and z_sample_num > 1:
-                    x_tiled = K.repeat_elements(input_x, z_sample_num, axis=0)
+                    x_tiled = K.stack(
+                        [input_x] * z_sample_num
+                    )
+                    tiled_shape = (-1,) + get_shape(input_x)[1:]
+                    if not is_deterministic_shape(tiled_shape):
+                        tiled_shape = K.stack(tiled_shape)
+                    x_tiled = K.reshape(x_tiled, tiled_shape)
                 else:
                     x_tiled = input_x
                 z_params_saved.append(z_params)
                 return x_dist.log_likelihood(x_tiled)
 
             z_params_saved = []
-            ret = self.reconstructed_apply(
+            ret = self._reconstructed_apply(
                 x,
                 func=func,
                 z_sample_num=z_sample_num
@@ -468,11 +472,11 @@ class DiagonalGaussianSimpleVAE(SimpleVAE):
                     K.square(x_std) + K.square(x_mu),
                 ]
 
-            mu, var_left = self.reconstructed_apply(
+            mu, var_left = self._reconstructed_apply(
                 x,
                 func=func,
                 z_sample_num=z_sample_num
             )
             var = var_left - K.square(mu)
-            return [mu, K.sqrt(var), var]
+            return K.stack([mu, K.sqrt(var), var], axis=1)
         return Lambda(compute)(input_x)
