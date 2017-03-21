@@ -221,7 +221,7 @@ class SimpleVAE(Model):
                             'At least the dimension of output should '
                             'be deterministic.'
                         )
-                    o_shape_new = [z_sample_num, -1] + o_shape[1:]
+                    o_shape_new = (z_sample_num, -1) + o_shape[1:]
                     if not is_deterministic_shape(o_shape_new):
                         o_shape_new = K.stack(o_shape_new)
                     return agg_method(K.reshape(output, o_shape_new))
@@ -331,25 +331,27 @@ class SimpleVAE(Model):
         tensor
             The reconstructed likelihood of `x`.
         """
-        def func(input_x, z_params, z_samples, x_params):
-            x_dist = self.x_sampler.get_distribution(x_params)
-            if z_sample_num is not None and z_sample_num > 1:
-                x_tiled = K.repeat_elements(input_x, z_sample_num, axis=0)
-            else:
-                x_tiled = input_x
-            z_params_saved.append(z_params)
-            return x_dist.log_likelihood(x_tiled)
+        def compute(x):
+            def func(input_x, z_params, z_samples, x_params):
+                x_dist = self.x_sampler.get_distribution(x_params)
+                if z_sample_num is not None and z_sample_num > 1:
+                    x_tiled = K.repeat_elements(input_x, z_sample_num, axis=0)
+                else:
+                    x_tiled = input_x
+                z_params_saved.append(z_params)
+                return x_dist.log_likelihood(x_tiled)
 
-        z_params_saved = []
-        ret = self.reconstructed_apply(
-            input_x,
-            func=func,
-            z_sample_num=z_sample_num
-        )
-        if kl_divergence:
-            kld = self.z_kl_divergence_for(z_params_saved[0])
-            ret -= kld
-        return ret
+            z_params_saved = []
+            ret = self.reconstructed_apply(
+                x,
+                func=func,
+                z_sample_num=z_sample_num
+            )
+            if kl_divergence:
+                kld = self.z_kl_divergence_for(z_params_saved[0])
+                ret -= kld
+            return ret
+        return Lambda(compute)(input_x)
 
     @deprecated('use `get_reconstructed` instead.')
     def sampling_reconstruct(self, *args, **kwargs):
@@ -456,17 +458,21 @@ class DiagonalGaussianSimpleVAE(SimpleVAE):
 
     def get_reconstructed_params(self, input_x, z_sample_num=32):
         """Get `mu`, `stddev` and `var` of reconstructed `x`."""
-        def func(input_x, z_params, z_samples, x_params):
-            x_mu, x_std = x_params
-            return [
-                x_mu,                               # the expectation term
-                K.square(x_std) + K.square(x_mu),   # the first term of variance
-            ]
+        def compute(x):
+            def func(input_x, z_params, z_samples, x_params):
+                x_mu, x_std = x_params
+                return [
+                    # the expectation term
+                    x_mu,
+                    # the first term of variance
+                    K.square(x_std) + K.square(x_mu),
+                ]
 
-        mu, var_left = self.reconstructed_apply(
-            input_x,
-            func=func,
-            z_sample_num=z_sample_num
-        )
-        var = var_left - K.square(mu)
-        return mu, K.sqrt(var), var
+            mu, var_left = self.reconstructed_apply(
+                x,
+                func=func,
+                z_sample_num=z_sample_num
+            )
+            var = var_left - K.square(mu)
+            return [mu, K.sqrt(var), var]
+        return Lambda(compute)(input_x)
