@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import re
 from collections import OrderedDict
 from datetime import datetime, date
 from itertools import chain
@@ -7,6 +8,7 @@ import six
 
 __all__ = [
     'unique', 'sorted_unique', 'AutoReprObject', 'object_to_dict',
+    'camel_to_underscore',
 ]
 
 NON_OBJECT_TYPES = (
@@ -127,3 +129,12 @@ def object_to_dict(o, ordered_dict=True, recursive=True):
     dict_type = OrderedDict if ordered_dict else dict
     convert_obj = object_to_dict if recursive else (lambda v: v)
     return dict_type((k, convert_obj(getattr(o, k))) for k in attrs)
+
+
+def camel_to_underscore(name):
+    """Convert a camel-case name to underscore."""
+    s1 = re.sub(CAMEL_TO_UNDERSCORE_S1, r'\1_\2', name)
+    return re.sub(CAMEL_TO_UNDERSCORE_S2, r'\1_\2', s1).lower()
+
+CAMEL_TO_UNDERSCORE_S1 = re.compile('(.)([A-Z][a-z]+)')
+CAMEL_TO_UNDERSCORE_S2 = re.compile('([a-z0-9])([A-Z])')
