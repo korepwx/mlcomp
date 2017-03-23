@@ -1,59 +1,16 @@
 # -*- coding: utf-8 -*-
+import copy
+import inspect
+
 import six
+from qualname import qualname
 
-from mlcomp.utils import (JsonConfigSerializer, JsonConfigObject,
-                          AutoReprObject, camel_to_underscore)
+from mlcomp.utils import AutoReprObject, camel_to_underscore, import_string
 
-__all__ = ['Report', 'register_report_type']
-
-
-def register_report_type(report_type, type_name=None):
-    """Register a report type to support serialization.
-
-    Parameters
-    ----------
-    report_type : class
-        The report class object.
-
-    type_name : str
-        Name of this type used in serialized JSON dict.
-        If not specified, will use the class name of the type.
-
-    Raises
-    ------
-    KeyError
-        If `type_name` is duplicated.
-    """
-    if not isinstance(report_type, six.class_types) or \
-            not issubclass(report_type, Report):
-        raise TypeError(
-            '`report_type` %r is not a Report class.' % (report_type,))
-    if not type_name:
-        type_name = report_type.__name__
-    if type_name in __report_types__:
-        raise KeyError('`type_name` %r is duplicated.' % (type_name,))
-    __report_types__[type_name] = report_type
-    __report_type_names__[report_type] = type_name
-
-__report_types__ = {}
-__report_type_names__ = {}
+__all__ = ['Report']
 
 
-class ReportJsonSerializer(JsonConfigSerializer):
-    """Extended JSON config object serializer for `Report`."""
-
-    def to_json_value(self, o):
-        if isinstance(o, Report):
-            return o.to_config()
-        return super(ReportJsonSerializer, self).to_json_value(o)
-
-    def from_json_value(self, v, o_type):
-        if issubclass(o_type, Report):
-            return o_type.from_config(v)
-        return super(ReportJsonSerializer, self).from_json_value(v, o_type)
-
-
-class Report(JsonConfigObject, AutoReprObject):
+class Report(AutoReprObject):
     """Base class for all report objects.
 
     A report object contains a piece of experiment result.
@@ -68,58 +25,109 @@ class Report(JsonConfigObject, AutoReprObject):
         Children of this report object.
     """
 
-    __json_serializer__ = ReportJsonSerializer
-    __json_attributes__ = {
-        'title': str,
-        'children': list
-    }
-
     def __init__(self, title=None, children=None):
         self.title = title
         self.children = children
 
-    def to_config(self):
+    def to_config(self, report_type_names=None):
+        """Get a dict of attribute values for this report.
+
+        Parameters
+        ----------
+        report_type_names : dict[class, str]
+            Additional mapping from report type to type name.
+
+            If not specified, any custom report types will be mapped
+            to its qualified name, thus may cause trouble when loading
+            these report objects via `from_config` in safe-mode.
+
+        Returns
+        -------
+        dict[str, any]
+            The attribute value dict, which can be used to construct
+            a report object via `Report.from_config`.
+        """
         # get the serialized type name
-        if self.__class__ not in __report_type_names__:
-            raise RuntimeError(
-                'Report class %r is not registered.' % (self.__class__,))
-        type_name = __report_type_names__[self.__class__]
+        if report_type_names and self.__class__ in report_type_names:
+            type_name = report_type_names[self.__class__]
+        else:
+            type_name = '%s.%s' % (
+                self.__class__.__module__,
+                qualname(self.__class__)
+            )
+            if type_name.startswith('mlcomp.report.'):
+                type_name = type_name.rsplit('.', 1)[1]
 
         # get the serialized dict
-        ret = super(Report, self).to_config()
-        if 'type' in ret:
-            raise RuntimeError(
-                '`type` is reserved and cannot be used as a serialized value.')
-        if ret['children']:
-            ret['children'] = [c.to_config() for c in ret['children']]
-        else:
-            ret.pop('children')
-        ret['type'] = type_name
+        ret = {'type': type_name}
+        if self.title:
+            ret['title'] = self.title
+        if self.children:
+            ret['children'] = [
+                c.to_config(report_type_names) for c in self.children
+            ]
         return ret
 
     @classmethod
-    def get_constructor_kwargs_from_config(cls, config_dict):
-        d = super(Report, cls).get_constructor_kwargs_from_config(config_dict)
-        if 'children' in d and d['children']:
-            serializer = cls.get_json_serializer()
-            d['children'] = [
-                serializer.from_json_value(v, Report)
-                for v in d['children']
+    def process_config_dict(cls, config_dict, safe_mode, report_types):
+        """Process the `config_dict` before constructing report object."""
+        if 'children' in config_dict and config_dict['children']:
+            config_dict['children'] = [
+                Report.from_config(c, safe_mode, report_types)
+                for c in config_dict['children']
             ]
-        return d
+        return config_dict
 
     @classmethod
-    def from_config(cls, config_dict):
+    def from_config(cls, config_dict, safe_mode=True, report_types=None):
+        """Construct a report object from `config_dict`.
+
+        Parameters
+        ----------
+        config_dict : dict[str, any]
+            The dict of attribute values.
+
+        safe_mode : bool
+            Whether or not to allow importing arbitrary report class
+            according to `type` in `config_dict`?
+
+            If `safe_mode` is set to True, this is not allowed.
+
+        report_types : dict[str, class]
+            Additional mapping from report type name to classes.
+
+            This can allow loading custom report classes when `safe_mode`
+            is turned on.
+        """
         # get the report type
-        type_name = config_dict.get('type', None)
-        if type_name not in __report_types__:
-            raise RuntimeError(
-                'Report type %r is not registered.' % (type_name,))
-        report_type = __report_types__[type_name]
+        type_name = config_dict['type']
+        if report_types and type_name in report_types:
+            rtype = report_types[type_name]
+        elif '.' not in type_name and ':' not in type_name:
+            try:
+                rtype = import_string('mlcomp.report.%s' % (type_name,))
+            except ImportError:
+                raise KeyError(
+                    'Type name %r is not specified in `report_types`.' %
+                    (type_name,)
+                )
+        elif safe_mode:
+            raise KeyError(
+                'Type name %r is not specified in `report_types`.' %
+                (type_name,)
+            )
+        else:
+            rtype = import_string(type_name)
+
+        if not isinstance(rtype, six.class_types) or \
+                not issubclass(rtype, Report):
+            raise TypeError('%r is not a Report class.' % (rtype,))
 
         # construct the object
-        d = report_type.get_constructor_kwargs_from_config(config_dict)
-        return report_type(**d)
+        kwargs = copy.copy(config_dict)
+        kwargs.pop('type')
+        kwargs = rtype.process_config_dict(kwargs, safe_mode, report_types)
+        return rtype(**kwargs)
 
     def render(self, renderer):
         """Render this report object via specified renderer.
@@ -129,17 +137,10 @@ class Report(JsonConfigObject, AutoReprObject):
         renderer : mlcomp.report.ReportRenderer
             The report renderer.
         """
-        name = camel_to_underscore(
-            __report_type_names__.get(
-                self.__class__,
-                self.__class__.__name__
-            )
-        )
+        name = camel_to_underscore(self.__class__.__name__)
         with renderer.open_scope(name, title=self.title):
             self._render_content(renderer)
 
     def _render_content(self, renderer):
         """Derived classes might override this to actual render the report."""
         raise NotImplementedError()
-
-register_report_type(Report)
