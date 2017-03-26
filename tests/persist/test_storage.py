@@ -33,7 +33,7 @@ class StorageTestCase(unittest.TestCase):
             # test to open a storage for read
             s2 = Storage(s_path, mode='read')
             for attr in self.META_ATTRS:
-                self.assertEquals(getattr(s2, attr), getattr(s1, attr))
+                self.assertEqual(getattr(s2, attr), getattr(s1, attr))
             with self.assertRaises(StorageReadOnlyError):
                 s2.description = 'description2'
             with self.assertRaises(StorageReadOnlyError):
@@ -44,22 +44,22 @@ class StorageTestCase(unittest.TestCase):
             # test to open a storage for write
             s3 = Storage(s_path, mode='write')
             for attr in self.META_ATTRS:
-                self.assertEquals(getattr(s3, attr), getattr(s1, attr))
+                self.assertEqual(getattr(s3, attr), getattr(s1, attr))
             s3.description = 'description3'
             s3.tags = ['tag1', 'tag2', 'tag3']
             s3.tags.add('tag4')
             s3.tags.remove('tag2')
-            self.assertEquals(s3.description, 'description3')
-            self.assertEquals(s3.tags, ['tag1', 'tag3', 'tag4'])
+            self.assertEqual(s3.description, 'description3')
+            self.assertEqual(s3.tags, ['tag1', 'tag3', 'tag4'])
 
             s4 = Storage(s_path, mode='read')
             for attr in self.META_ATTRS:
-                self.assertEquals(getattr(s4, attr), getattr(s3, attr))
+                self.assertEqual(getattr(s4, attr), getattr(s3, attr))
 
             # test reload
             s1.reload()
             for attr in self.META_ATTRS:
-                self.assertEquals(getattr(s1, attr), getattr(s4, attr))
+                self.assertEqual(getattr(s1, attr), getattr(s4, attr))
 
             # test keep running status
             status_file = os.path.join(s_path, STORAGE_RUNNING_STATUS)
@@ -71,7 +71,7 @@ class StorageTestCase(unittest.TestCase):
                 self.assertTrue(os.path.isfile(status_file))
                 s1.reload()
                 self.assertIsNotNone(s1.running_status)
-                self.assertEquals(s1.running_status, s3.running_status)
+                self.assertEqual(s1.running_status, s3.running_status)
 
             self.assertIsNone(s3.running_status)
             self.assertFalse(os.path.exists(status_file))

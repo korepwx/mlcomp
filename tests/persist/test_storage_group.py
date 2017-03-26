@@ -35,40 +35,40 @@ class StorageGroupTestCase(unittest.TestCase):
             self.assertTrue(s4.name.endswith('__host_2'))
             time.sleep(0.01)
             sbad = Storage(os.path.join(tempdir, 'badname'), mode='create')
-            self.assertEquals(sbad.name, 'badname')
+            self.assertEqual(sbad.name, 'badname')
 
             # test match
             f = lambda *args, **kwargs: (
                 sorted(str(s) for s in sg.iter_storage(*args, **kwargs))
             )
-            self.assertEquals(
+            self.assertEqual(
                 f(),
                 [s0.name, s1.name, s1_2.name, s3.name, s2.name, s4.name]
             )
-            self.assertEquals(
+            self.assertEqual(
                 f(well_defined=False),
                 [s0.name, s1.name, s1_2.name, s3.name, s2.name, s4.name,
                  sbad.name]
             )
-            self.assertEquals(
+            self.assertEqual(
                 f(hostname='host1'),
                 [s1.name, s1_2.name, s2.name]
             )
-            self.assertEquals(
+            self.assertEqual(
                 f(hostname='host1', well_defined=False),
                 [s1.name, s1_2.name, s2.name]
             )
-            self.assertEquals(
+            self.assertEqual(
                 f(hostname='host__2'),
                 [s3.name, s4.name]
             )
-            self.assertEquals(
+            self.assertEqual(
                 f(hostname='host3'),
                 []
             )
 
             # test find latest
-            self.assertEquals(sg.open_latest_storage().name, s4.name)
-            self.assertEquals(sg.open_latest_storage('host1').name, s2.name)
-            self.assertEquals(sg.open_latest_storage('host__2').name, s4.name)
+            self.assertEqual(sg.open_latest_storage().name, s4.name)
+            self.assertEqual(sg.open_latest_storage('host1').name, s2.name)
+            self.assertEqual(sg.open_latest_storage('host__2').name, s4.name)
             self.assertIsNone(sg.open_latest_storage('host3'))

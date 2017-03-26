@@ -29,5 +29,5 @@ class UtilsTestCase(unittest.TestCase):
                 file_out = f.read()
             answer = ('from print\nfrom stdout.write\nfrom stderr.write\n'
                       'os.system+stdout\nos.system+stderr\n')
-            self.assertEquals(proc_out.replace('\r\n', '\n'), answer)
-            self.assertEquals(file_out.replace('\r\n', '\n'), answer)
+            self.assertEqual(proc_out.replace('\r\n', '\n'), answer)
+            self.assertEqual(file_out.replace('\r\n', '\n'), answer)

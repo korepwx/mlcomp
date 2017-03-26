@@ -44,71 +44,71 @@ class ViewsTestCase(unittest.TestCase):
             with app.test_client() as c:
                 # test the main routes
                 rv = c.get('/_hello/')
-                self.assertEquals(rv.status_code, 200)
-                self.assertEquals(f(rv.data), 'main hello')
+                self.assertEqual(rv.status_code, 200)
+                self.assertEqual(f(rv.data), 'main hello')
 
                 # test the api routes
                 rv = c.get('/_api/_hello/')
-                self.assertEquals(rv.status_code, 200)
-                self.assertEquals(f(rv.data).strip(), '"api hello"')
+                self.assertEqual(rv.status_code, 200)
+                self.assertEqual(f(rv.data).strip(), '"api hello"')
 
                 # test the storage routes
                 rv = c.get('/s/_hello/')
-                self.assertEquals(rv.status_code, 200)
-                self.assertEquals(f(rv.data), 'storage hello')
+                self.assertEqual(rv.status_code, 200)
+                self.assertEqual(f(rv.data), 'storage hello')
 
                 rv = c.get('/s/1/_greeting/')
-                self.assertEquals(rv.status_code, 200)
-                self.assertEquals(
+                self.assertEqual(rv.status_code, 200)
+                self.assertEqual(
                     f(rv.data),
                     'storage greeting\n%s\n' % (storage_dict['a/1'].path,)
                 )
 
                 rv = c.get('/s/1/storage.json')
-                self.assertEquals(rv.status_code, 200)
-                self.assertEquals(f(rv.data), read_meta(storage_dict['a/1']))
+                self.assertEqual(rv.status_code, 200)
+                self.assertEqual(f(rv.data), read_meta(storage_dict['a/1']))
 
                 rv = c.get('/s/2/_greeting/')
-                self.assertEquals(rv.status_code, 200)
-                self.assertEquals(
+                self.assertEqual(rv.status_code, 200)
+                self.assertEqual(
                     f(rv.data),
                     'storage greeting\n%s\n' % (storage_dict['a/2'].path,)
                 )
 
                 rv = c.get('/s/b/_greeting/')
-                self.assertEquals(rv.status_code, 404)
+                self.assertEqual(rv.status_code, 404)
 
                 rv = c.get('/s/b/storage.json')
-                self.assertEquals(rv.status_code, 404)
+                self.assertEqual(rv.status_code, 404)
 
                 rv = c.get('/s/b/1/_greeting/')
-                self.assertEquals(rv.status_code, 200)
-                self.assertEquals(
+                self.assertEqual(rv.status_code, 200)
+                self.assertEqual(
                     f(rv.data),
                     'storage greeting\n%s\n' % (storage_dict['b/1'].path,)
                 )
 
                 rv = c.get('/s/b/1/storage.json')
-                self.assertEquals(rv.status_code, 200)
-                self.assertEquals(f(rv.data), read_meta(storage_dict['b/1']))
+                self.assertEqual(rv.status_code, 200)
+                self.assertEqual(f(rv.data), read_meta(storage_dict['b/1']))
 
                 rv = c.get('/s/b/2/_greeting/')
-                self.assertEquals(rv.status_code, 200)
-                self.assertEquals(
+                self.assertEqual(rv.status_code, 200)
+                self.assertEqual(
                     f(rv.data),
                     'storage greeting\n%s\n' % (storage_dict['b/2'].path,)
                 )
 
                 rv = c.get('/s/c/_greeting/')
-                self.assertEquals(rv.status_code, 200)
-                self.assertEquals(
+                self.assertEqual(rv.status_code, 200)
+                self.assertEqual(
                     f(rv.data),
                     'storage greeting\n%s\n' % (storage_dict['c'].path,)
                 )
 
                 rv = c.get('/s/c/storage.json')
-                self.assertEquals(rv.status_code, 200)
-                self.assertEquals(f(rv.data), read_meta(storage_dict['c']))
+                self.assertEqual(rv.status_code, 200)
+                self.assertEqual(f(rv.data), read_meta(storage_dict['c']))
 
     def test_tree_root_as_storage(self):
         with TemporaryDirectory() as tempdir:
@@ -125,21 +125,21 @@ class ViewsTestCase(unittest.TestCase):
             with app.test_client() as c:
                 # test the routes
                 rv = c.get('/s/_greeting/')
-                self.assertEquals(rv.status_code, 200)
-                self.assertEquals(
+                self.assertEqual(rv.status_code, 200)
+                self.assertEqual(
                     f(rv.data),
                     'storage greeting\n%s\n' % (s.path,)
                 )
 
                 rv = c.get('/s/storage.json')
-                self.assertEquals(rv.status_code, 200)
+                self.assertEqual(rv.status_code, 200)
                 with codecs.open(s.resolve_path('storage.json'),
                                  'rb', 'utf-8') as fin:
-                    self.assertEquals(f(rv.data), fin.read())
+                    self.assertEqual(f(rv.data), fin.read())
 
                 # test the api output
                 rv = c.get('/_api/all')
-                self.assertEquals(rv.status_code, 200)
+                self.assertEqual(rv.status_code, 200)
                 cnt = json.loads(f(rv.data))
                 self.assertIsInstance(cnt, dict)
                 self.assertIn('create_time', cnt)

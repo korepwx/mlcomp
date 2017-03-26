@@ -16,7 +16,7 @@ class BaseTestCase(unittest.TestCase):
                 1234, 'Hi, Google', children=[Report('abc')]),
             Report('Hey, Apple')
         ])
-        self.assertEquals(
+        self.assertEqual(
             repr(r),
             "Report(children=[MyReport(c=1234,children=["
             "Report(title='abc')],title='Hi, Google'), Report(title='Hey, "
@@ -24,7 +24,7 @@ class BaseTestCase(unittest.TestCase):
         )
 
         # test to_config and from_config in safe-mode
-        self.assertEquals(
+        self.assertEqual(
             r.to_config({MyReport: 'MyReport'}),
             {'children': [{'c': 1234,
                            'children': [{'title': 'abc', 'type': 'Report'}],
@@ -38,12 +38,12 @@ class BaseTestCase(unittest.TestCase):
             r.to_config({MyReport: 'MyReport'}),
             report_types={'MyReport': MyReport}
         )
-        self.assertEquals(repr(r2), repr(r))
+        self.assertEqual(repr(r2), repr(r))
 
         # test to_config and from_config in non safe-mode
         type_name = MyReport.__module__ + '.' + qualname(MyReport)
         self.assertNotEquals(type_name, 'MyReport')
-        self.assertEquals(
+        self.assertEqual(
             r.to_config(),
             {'children': [{'c': 1234,
                            'children': [{'title': 'abc', 'type': 'Report'}],
@@ -54,7 +54,7 @@ class BaseTestCase(unittest.TestCase):
              'type': 'Report'}
         )
         r2 = Report.from_config(r.to_config(), safe_mode=False)
-        self.assertEquals(repr(r2), repr(r))
+        self.assertEqual(repr(r2), repr(r))
 
         # test importing a qualified name in safe-mode
         with self.assertRaises(KeyError):

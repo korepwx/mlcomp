@@ -89,7 +89,7 @@ class DistributionTestCase(unittest.TestCase):
 
         # test 2d sampling
         samples = self.get_samples(DiagonalGaussian, {'mu': mu, 'stddev': std})
-        self.assertEquals(samples.shape, (self.N_SAMPLES, 3))
+        self.assertEqual(samples.shape, (self.N_SAMPLES, 3))
         big_number_verify(np.mean(samples, axis=0), mu, std, self.N_SAMPLES)
         np.testing.assert_allclose(
             self.compute_likelihood(samples, DiagonalGaussian,
@@ -101,13 +101,13 @@ class DistributionTestCase(unittest.TestCase):
         # test 2d sampling (explicit batch size)
         samples = self.get_samples(DiagonalGaussian, {'mu': mu, 'stddev': std},
                                    explicit_batch_size=True)
-        self.assertEquals(samples.shape, (self.N_SAMPLES, 3))
+        self.assertEqual(samples.shape, (self.N_SAMPLES, 3))
         big_number_verify(np.mean(samples, axis=0), mu, std, self.N_SAMPLES)
 
         # test extra sampling shape
         samples = self.get_samples(DiagonalGaussian, {'mu': mu, 'stddev': std},
                                    sample_shape=[4, 5])
-        self.assertEquals(samples.shape, (4, 5, self.N_SAMPLES, 3))
+        self.assertEqual(samples.shape, (4, 5, self.N_SAMPLES, 3))
         big_number_verify(np.mean(samples.reshape([-1, 3]), axis=0),
                           mu, std, self.N_SAMPLES)
         np.testing.assert_allclose(
@@ -120,7 +120,7 @@ class DistributionTestCase(unittest.TestCase):
         # test extra sampling shape == 1
         samples = self.get_samples(DiagonalGaussian, {'mu': mu, 'stddev': std},
                                    sample_shape=[1])
-        self.assertEquals(samples.shape, (1, self.N_SAMPLES, 3))
+        self.assertEqual(samples.shape, (1, self.N_SAMPLES, 3))
         big_number_verify(np.mean(samples.reshape([-1, 3]), axis=0), mu,
                           std, self.N_SAMPLES)
         np.testing.assert_allclose(
@@ -138,7 +138,7 @@ class DistributionTestCase(unittest.TestCase):
             DiagonalGaussian,
             {'mu': mu_3d, 'stddev': std_3d}
         )
-        self.assertEquals(samples.shape, (self.N_SAMPLES, 4, 3))
+        self.assertEqual(samples.shape, (self.N_SAMPLES, 4, 3))
         for i in range(4):
             big_number_verify(
                 np.mean(samples[:, i, :], axis=0), mu + bias[i],
@@ -156,7 +156,7 @@ class DistributionTestCase(unittest.TestCase):
         # test log sampling
         samples = self.get_samples(
             DiagonalGaussian, {'mu': mu, 'stddev': np.log(std)})
-        self.assertEquals(samples.shape, (self.N_SAMPLES, 3))
+        self.assertEqual(samples.shape, (self.N_SAMPLES, 3))
         big_number_verify(np.mean(samples, axis=0), mu, std, self.N_SAMPLES)
         np.testing.assert_allclose(
             self.compute_likelihood(samples, DiagonalGaussian,

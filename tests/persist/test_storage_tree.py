@@ -25,7 +25,7 @@ class StorageTreeTestCase(unittest.TestCase):
             self.populate_tree(tempdir, 2, width=2)
             tree = StorageTree(tempdir)
             names = ['0/0', '0/1', '1/0', '1/1']
-            self.assertEquals(
+            self.assertEqual(
                 [k for k, v in tree.iter_storage()],
                 names
             )
@@ -40,7 +40,7 @@ class StorageTreeTestCase(unittest.TestCase):
 
             # test find the nodes
             for name in names:
-                self.assertEquals(tree.find_storage(name), storage_dict[name])
+                self.assertEqual(tree.find_storage(name), storage_dict[name])
             self.assertIsNone(tree.find_storage('0/999'))
             self.assertIsNone(tree.find_storage('999'))
             self.assertIsNone(tree.find_storage(''))
@@ -50,7 +50,7 @@ class StorageTreeTestCase(unittest.TestCase):
             s.description = '0/0 description'
             self.assertIsNone(tree.find_storage('0/0').description)
             tree.set_reload('0/0')
-            self.assertEquals(tree.find_storage('0/0').description,
+            self.assertEqual(tree.find_storage('0/0').description,
                               '0/0 description')
 
             # test to reload a renamed storage
@@ -60,7 +60,7 @@ class StorageTreeTestCase(unittest.TestCase):
             )
             tree.set_reload('0')
             tree.set_reload('1')
-            self.assertEquals(
+            self.assertEqual(
                 [k for k, v in tree.iter_storage()],
                 ['0/1', '1/0', '1/1', '1/2']
             )
@@ -69,7 +69,7 @@ class StorageTreeTestCase(unittest.TestCase):
             Storage(os.path.join(tempdir, '0/0/0'), 'create')
             Storage(os.path.join(tempdir, '0/0/1'), 'create')
             tree.set_reload('0/0')
-            self.assertEquals(
+            self.assertEqual(
                 [k for k, v in tree.iter_storage()],
                 ['0/0/0', '0/0/1', '0/1', '1/0', '1/1', '1/2']
             )
@@ -79,7 +79,7 @@ class StorageTreeTestCase(unittest.TestCase):
             shutil.rmtree(os.path.join(tempdir, '1/2'))
             tree.set_reload('0')
             tree.set_reload('1')
-            self.assertEquals(
+            self.assertEqual(
                 [k for k, v in tree.iter_storage()],
                 ['0/1', '1/0', '1/1']
             )
