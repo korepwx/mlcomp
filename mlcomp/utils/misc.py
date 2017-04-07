@@ -11,6 +11,7 @@ import six
 __all__ = [
     'unique', 'sorted_unique', 'AutoReprObject', 'object_to_dict',
     'camel_to_underscore', 'import_string', 'ContextStack',
+    'flatten_list',
 ]
 
 NON_OBJECT_TYPES = (
@@ -189,7 +190,7 @@ def import_string(import_name, silent=False):
 
 class ContextStack(object):
     """Thread-local context stack for general purpose.
-    
+
     Parameters
     ----------
     initial_factory : () -> any
@@ -222,3 +223,31 @@ class ContextStack(object):
         items = self.items
         if items:
             return items[-1]
+
+
+def flatten_list(nested_list, list_types=(list, tuple), return_type=list):
+    """Flatten `nested_list`.
+
+    All the nested lists in `nested_list` will be flatten, and the elements
+    in all these lists will be gathered together into one new list.
+
+    Parameters
+    ----------
+    nested_list : list | tuple
+        The (maybe) nested list to be flatten.
+
+    list_types : tuple[type]
+        Types to be regarded as lists. (default is `(list, tuple)`)
+
+    return_type : type
+        The returning list type. (default is `list`)
+    """
+    ret = []
+    stack = [nested_list]
+    while stack:
+        top = stack.pop()
+        if isinstance(top, list_types):
+            stack.extend(reversed(top))
+        else:
+            ret.append(top)
+    return return_type(ret)

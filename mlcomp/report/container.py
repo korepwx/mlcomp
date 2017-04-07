@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from mlcomp.utils import flatten_list
 from .base import ReportObject
 from .persist import ReportSaver
 
@@ -7,12 +8,13 @@ __all__ = ['Container', 'Report']
 
 class Container(ReportObject):
     """Report object container.
-    
+
     Parameters
     ----------
     children : collections.Iterable[ReportObject]
         The child report objects of this container.
-        
+        If a nested list is provided, it will be flatten.
+
     name, name_scope : str
         Name and the scope of this container.
     """
@@ -30,8 +32,9 @@ class Container(ReportObject):
         ----------
         *children : ReportObject
             The report object(s) to be added into this container.
+            If nested list(s) are provided, they will be flatten.
         """
-        for c in children:
+        for c in flatten_list(children):
             if not isinstance(c, ReportObject):
                 raise TypeError('%r is not a report object.' % (c,))
         self.children.extend(children)
@@ -43,9 +46,13 @@ class Container(ReportObject):
         ----------
         *children : ReportObject
             The report object(s) to be removed from this container.
+            If nested list(s) are provided, they will be flatten.
+            
             Will not raise error if specified children does not exist.
         """
-        for c in children:
+        for c in flatten_list(children):
+            if not isinstance(c, ReportObject):
+                raise TypeError('%r is not a report object.' % (c,))
             try:
                 self.children.remove(c)
             except ValueError:

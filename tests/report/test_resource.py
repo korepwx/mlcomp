@@ -117,11 +117,11 @@ class ResourceTestCase(unittest.TestCase):
                 ]
             )
             self.assertEqual(
-                report.to_json(),
-                '{"children": [{"name": "child", "data": {"__type__": "binary", "data": "MTIz", "__id__": 2}, "extension": ".c", "__type__": "Resource", "__id__": 1}, {"data": {"__type__": "binary", "data": "NDU2", "__id__": 4}, "content_type": "image/png", "__type__": "Resource", "__id__": 3}, {"data": {"__type__": "binary", "data": "Nzg5", "__id__": 6}, "__type__": "Resource", "__id__": 5}], "__type__": "MyReport", "__id__": 0}'
+                report.to_json(sort_keys=True),
+                '{"__id__": 0, "__type__": "MyReport", "children": [{"__id__": 1, "__type__": "Resource", "data": {"__id__": 2, "__type__": "binary", "data": "MTIz"}, "extension": ".c", "name": "child"}, {"__id__": 3, "__type__": "Resource", "content_type": "image/png", "data": {"__id__": 4, "__type__": "binary", "data": "NDU2"}}, {"__id__": 5, "__type__": "Resource", "data": {"__id__": 6, "__type__": "binary", "data": "Nzg5"}}]}'
             )
             self.assertEqual(
-                repr(MyReportObject.from_json(report.to_json())),
+                repr(MyReportObject.from_json(report.to_json(sort_keys=True))),
                 repr(report),
             )
 
@@ -129,11 +129,11 @@ class ResourceTestCase(unittest.TestCase):
             report.assign_name_scopes()
             report.save_resources(rm)
             self.assertEqual(
-                report.to_json(),
-                '{"name_scope": "my_report_object", "children": [{"name": "child", "name_scope": "my_report_object/child", "path": "my_report_object/child.c", "extension": ".c", "__type__": "Resource", "__id__": 1}, {"name_scope": "my_report_object/resource", "path": "my_report_object/resource.png", "content_type": "image/png", "__type__": "Resource", "__id__": 2}, {"name_scope": "my_report_object/resource_1", "path": "my_report_object/resource_1", "__type__": "Resource", "__id__": 3}], "__type__": "MyReport", "__id__": 0}'
+                report.to_json(sort_keys=True),
+                '{"__id__": 0, "__type__": "MyReport", "children": [{"__id__": 1, "__type__": "Resource", "extension": ".c", "name": "child", "name_scope": "my_report_object/child", "path": "my_report_object/child.c"}, {"__id__": 2, "__type__": "Resource", "content_type": "image/png", "name_scope": "my_report_object/resource", "path": "my_report_object/resource.png"}, {"__id__": 3, "__type__": "Resource", "name_scope": "my_report_object/resource_1", "path": "my_report_object/resource_1"}], "name_scope": "my_report_object"}'
             )
             self.assertEqual(
-                repr(MyReportObject.from_json(report.to_json())),
+                repr(MyReportObject.from_json(report.to_json(sort_keys=True))),
                 repr(report),
             )
             self.assertEqual(rm.load('my_report_object/child.c'), b'123')
@@ -141,7 +141,7 @@ class ResourceTestCase(unittest.TestCase):
             self.assertEqual(rm.load('my_report_object/resource_1'), b'789')
 
             # test load resources
-            report2 = MyReportObject.from_json(report.to_json())
+            report2 = MyReportObject.from_json(report.to_json(sort_keys=True))
             self.assertIsNone(report2.children[0].data)
             with TemporaryDirectory() as tempdir2, \
                     self.assertRaises(RuntimeError):
