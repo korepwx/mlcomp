@@ -10,3 +10,4 @@ Flask >= 0.11.1
 sortedcontainers >= 1.5.7
 watchdog >= 0.8.3
 qualname >= 0.1.0
+awesome-slugify >= 1.6.5
