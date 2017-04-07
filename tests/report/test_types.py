@@ -18,7 +18,7 @@ class TypesTestCase(unittest.TestCase):
         self.assertIs(ctx.name_to_type('ReportObject'), ReportObject)
         self.assertIs(ctx.name_to_type('HTML'), HTML)
         with self.assertRaises(TypeError):
-            ctx.name_to_type('ObjectTypes')
+            ctx.name_to_type('ReportTypes')
         with self.assertRaises(KeyError):
             ctx.name_to_type('MyReport')
         with self.assertRaises(KeyError):
@@ -28,7 +28,7 @@ class TypesTestCase(unittest.TestCase):
         self.assertIs(ctx.name_to_type('ReportObject'), ReportObject)
         self.assertIs(ctx.name_to_type('HTML'), HTML)
         with self.assertRaises(TypeError):
-            ctx.name_to_type('ObjectTypes')
+            ctx.name_to_type('ReportTypes')
         self.assertIs(ctx.name_to_type('MyReport'), MyReport)
         with self.assertRaises(KeyError):
             ctx.name_to_type(my_report_name)
@@ -37,7 +37,7 @@ class TypesTestCase(unittest.TestCase):
         self.assertIs(ctx.name_to_type('ReportObject'), ReportObject)
         self.assertIs(ctx.name_to_type('HTML'), MyReport)
         with self.assertRaises(TypeError):
-            ctx.name_to_type('ObjectTypes')
+            ctx.name_to_type('ReportTypes')
         with self.assertRaises(TypeError):
             ctx.name_to_type(TypesTestCase.__module__ + '.TypesTestCase')
         with self.assertRaises(KeyError):
