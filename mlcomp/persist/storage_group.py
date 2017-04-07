@@ -142,7 +142,7 @@ class StorageGroup(object):
 
         Parameters
         ----------
-        *paths : tuple[str | StorageName]
+        *paths : str | StorageName
             Path pieces relative to the path of this group.
 
         Returns

@@ -80,6 +80,7 @@ class ReportSaver(object):
         """
         if not self.overwrite and self.save_dir_exists():
             raise IOError('%r already exists.' % (self.save_dir,))
+        os.makedirs(self.save_dir, exist_ok=True)
         report.assign_name_scopes()
         rm = ResourceManager(
             os.path.join(self.save_dir, self.RESOURCE_DIR),

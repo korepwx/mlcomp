@@ -172,7 +172,7 @@ class Storage(object):
 
         Parameters
         ----------
-        *paths : tuple[str]
+        *paths : str
             Path pieces relative to the work_dir of this storage.
 
         Returns

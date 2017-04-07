@@ -5,7 +5,7 @@ import unittest
 
 from mlcomp.utils import TemporaryDirectory
 from mlcomp.report import (ReportSaver, ReportObject, Resource,
-                           default_report_types)
+                           default_report_types, Report)
 
 
 class MyReportObject(ReportObject):
@@ -29,8 +29,7 @@ class MyReportObject(ReportObject):
 class PersistTestCase(unittest.TestCase):
 
     def test_ReportSaver(self):
-        report = MyReportObject(
-            value=123456789,
+        report = Report(
             children=[
                 Resource(data=b'123'),
                 MyReportObject(
@@ -69,7 +68,19 @@ class PersistTestCase(unittest.TestCase):
             saver = ReportSaver(tempdir + '/2', overwrite=True)
             saver.save(report)
 
+            # test the `save` and `load` method of Report
+            report.save(tempdir + '/3')
+            report2 = Report.load(tempdir + '/3')
+            self.assertEqual(repr(report), repr(report2))
+            self.assertEqual(report.children[0].data,
+                             report2.children[0].data)
+            self.assertEqual(report.children[1].value.data,
+                             report2.children[1].value.data)
+            self.assertEqual(report.children[1].children[0].data,
+                             report2.children[1].children[0].data)
+
+            with self.assertRaises(IOError):
+                report.save(tempdir + '/3')
 
 if __name__ == '__main__':
     unittest.main()
-
