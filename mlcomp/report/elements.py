@@ -6,7 +6,7 @@ import six
 
 from mlcomp.utils import flatten_list
 from .base import ReportObject
-from .container import Container
+from .container import Container, Group
 from .resource import Resource
 
 try:
@@ -20,6 +20,7 @@ __all__ = [
     'Image', 'Attachment',
     'TableCell', 'TableRow', 'Table',
     'BokehFigure',
+    'Block', 'Section',
 ]
 
 
@@ -244,6 +245,11 @@ class TableRow(Container, _Element):
             ret['cells'] = ret.pop('children')
         return ret
 
+    @property
+    def cells(self):
+        """Get the cells in this row."""
+        return self.children
+
 
 class Table(ReportObject, _Element):
     """Table element.
@@ -280,7 +286,7 @@ class Table(ReportObject, _Element):
                     if not isinstance(c, TableRow):
                         raise TypeError('%r is not a TableRow.' % (c,))
                     ret.append(c)
-                return ret
+                return ret or None
             else:
                 raise TypeError('%r is not TableRow(s).' % (arr,))
 
@@ -289,6 +295,16 @@ class Table(ReportObject, _Element):
         self.header = parse_row_list(header) if header else None
         self.footer = parse_row_list(footer) if footer else None
         self.title = title
+
+    def gather_children(self):
+        ret = super(Table, self).gather_children()
+        if self.rows:
+            ret.extend(self.rows)
+        if self.header:
+            ret.extend(self.header)
+        if self.footer:
+            ret.extend(self.footer)
+        return ret
 
 
 class BokehFigure(ReportObject, _Element):
@@ -326,3 +342,30 @@ class BokehFigure(ReportObject, _Element):
         self.html = html
         self.js = js
         super(BokehFigure, self).__init__(**kwargs)
+
+
+class Block(Group, _Element):
+    """Block element.
+    
+    A block is a report group which is guaranteed to be placed in
+    a dedicated block (even if adjacent elements are inline elements).
+    """
+
+
+class Section(Block):
+    """Section element.
+    
+    A section is a report block with a title.
+    
+    Parameters
+    ----------
+    title : str
+        The title of the section.
+        
+    children
+        The report object(s) contained in this section.
+    """
+
+    def __init__(self, title, children=None, **kwargs):
+        super(Section, self).__init__(children=children, **kwargs)
+        self.title = title

@@ -23,6 +23,7 @@ class ElementsTestCase(unittest.TestCase):
             Image, Attachment,
             TableCell, TableRow, Table,
             BokehFigure,
+            Block, Section,
         ]
         for cls in element_classes:
             self.assertTrue(is_report_element(cls))
@@ -211,10 +212,11 @@ class ElementsTestCase(unittest.TestCase):
             title='My Table Title',
             name='My Table'
         )
+        r.assign_name_scopes()
         self.assertTrue(is_report_element(r))
         self.assertEqual(
             r.to_json(sort_keys=True),
-            '{"__id__": 0, "__type__": "Table", "footer": [{"__id__": 1, "__type__": "TableRow", "cells": [{"__id__": 2, "__type__": "TableCell", "children": [{"__id__": 3, "__type__": "Text", "text": "footer1"}]}]}, {"__id__": 4, "__type__": "TableRow", "cells": [{"__id__": 5, "__type__": "TableCell", "children": [{"__id__": 6, "__type__": "Text", "text": "footer2"}]}]}], "header": [{"__id__": 7, "__type__": "TableRow", "cells": [{"__id__": 8, "__type__": "TableCell", "children": [{"__id__": 9, "__type__": "Text", "text": "header"}]}]}], "name": "My Table", "rows": [{"__id__": 10, "__type__": "TableRow", "cells": [{"__id__": 11, "__type__": "TableCell", "children": [{"__id__": 12, "__type__": "Text", "text": "row1"}]}]}, {"__id__": 13, "__type__": "TableRow", "cells": [{"__id__": 14, "__type__": "TableCell", "children": [{"__id__": 15, "__type__": "Text", "text": "row2"}]}]}], "title": "My Table Title"}'
+            '{"__id__": 0, "__type__": "Table", "footer": [{"__id__": 1, "__type__": "TableRow", "cells": [{"__id__": 2, "__type__": "TableCell", "children": [{"__id__": 3, "__type__": "Text", "name_scope": "my_table/table_row_3/table_cell/text", "text": "footer1"}], "name_scope": "my_table/table_row_3/table_cell"}], "name_scope": "my_table/table_row_3"}, {"__id__": 4, "__type__": "TableRow", "cells": [{"__id__": 5, "__type__": "TableCell", "children": [{"__id__": 6, "__type__": "Text", "name_scope": "my_table/table_row_4/table_cell/text", "text": "footer2"}], "name_scope": "my_table/table_row_4/table_cell"}], "name_scope": "my_table/table_row_4"}], "header": [{"__id__": 7, "__type__": "TableRow", "cells": [{"__id__": 8, "__type__": "TableCell", "children": [{"__id__": 9, "__type__": "Text", "name_scope": "my_table/table_row_2/table_cell/text", "text": "header"}], "name_scope": "my_table/table_row_2/table_cell"}], "name_scope": "my_table/table_row_2"}], "name": "My Table", "name_scope": "my_table", "rows": [{"__id__": 10, "__type__": "TableRow", "cells": [{"__id__": 11, "__type__": "TableCell", "children": [{"__id__": 12, "__type__": "Text", "name_scope": "my_table/table_row/table_cell/text", "text": "row1"}], "name_scope": "my_table/table_row/table_cell"}], "name_scope": "my_table/table_row"}, {"__id__": 13, "__type__": "TableRow", "cells": [{"__id__": 14, "__type__": "TableCell", "children": [{"__id__": 15, "__type__": "Text", "name_scope": "my_table/table_row_1/table_cell/text", "text": "row2"}], "name_scope": "my_table/table_row_1/table_cell"}], "name_scope": "my_table/table_row_1"}], "title": "My Table Title"}'
         )
         self.assertEqual(
             repr(Report.from_json(r.to_json(sort_keys=True))),
@@ -245,6 +247,28 @@ class ElementsTestCase(unittest.TestCase):
 
             r2 = ReportSaver(tempdir).load()
             self.assertEqual(repr(r2), repr(r))
+
+    def test_Block(self):
+        r = Block([Text('text')], name='Block element')
+        r.assign_name_scopes()
+        self.assertTrue(is_report_element(r))
+        self.assertEqual(
+            r.to_json(sort_keys=True),
+            '{"__id__": 0, "__type__": "Block", "children": [{"__id__": 1, "__type__": "Text", "name_scope": "block_element/text", "text": "text"}], "name": "Block element", "name_scope": "block_element"}'
+        )
+
+    def test_Section(self):
+        r = Section('Section 1', [Text('text')], name='Section element')
+        r.assign_name_scopes()
+        self.assertTrue(is_report_element(r))
+        self.assertEqual(
+            r.to_json(sort_keys=True),
+            '{"__id__": 0, "__type__": "Section", "children": [{"__id__": 1, "__type__": "Text", "name_scope": "section_element/text", "text": "text"}], "name": "Section element", "name_scope": "section_element", "title": "Section 1"}'
+        )
+        self.assertEqual(
+            repr(Report.from_json(r.to_json(sort_keys=True))),
+            repr(r)
+        )
 
 if __name__ == '__main__':
     unittest.main()
