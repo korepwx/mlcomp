@@ -4,6 +4,7 @@ import json
 import os
 import stat
 
+from mlcomp import __version__
 from .base import ReportJsonEncoder, ReportJsonDecoder
 from .resource import ResourceManager
 
@@ -33,6 +34,8 @@ class ReportSaver(object):
         
     It would be tedious to write a bunch of code every time to load or
     save a report object.  Thus we provide `ReportSaver` to simplify it.
+    Furthermore, it also writes some meta information in additional to
+    the report object to the serialized JSON file.
     
     Parameters
     ----------
@@ -89,13 +92,18 @@ class ReportSaver(object):
         json_file = os.path.join(self.save_dir, self.JSON_FILE)
         report.save_resources(rm)
         with codecs.open(json_file, 'wb', 'utf-8') as f:
-            json.dump(report, f, cls=ReportJsonEncoder, sort_keys=True)
+            cnt = {
+                'generator': 'mlcomp %s' % __version__,
+                'report': report,
+            }
+            json.dump(cnt, f, cls=ReportJsonEncoder, sort_keys=True)
 
     def load(self):
         """Load the report object from `save_dir`."""
         json_file = os.path.join(self.save_dir, self.JSON_FILE)
         with codecs.open(json_file, 'rb', 'utf-8') as f:
-            report = json.load(f, cls=ReportJsonDecoder)
+            cnt = json.load(f, cls=ReportJsonDecoder)
+            report = cnt['report']
         rm = ResourceManager(
             os.path.join(self.save_dir, self.RESOURCE_DIR),
             rel_path=self.RESOURCE_DIR

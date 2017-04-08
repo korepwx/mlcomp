@@ -82,7 +82,25 @@ class Group(Container):
 
 
 class Report(Group):
-    """The top-most report group."""
+    """The top-most report object.
+    
+    A Report object is a specialized report Group, which often represents
+    a whole report file.  It carries additional information, for example,
+    `title` of the report.
+    
+    Parameters
+    ----------
+    children
+        The child report objects of this container.
+        If a nested list is provided, it will be flatten.
+        
+    title : str
+        Optional title for this report.
+    """
+
+    def __init__(self, children=None, title=None, **kwargs):
+        super(Report, self).__init__(children=children, **kwargs)
+        self.title = title
 
     def save(self, save_dir, overwrite=False):
         """Save this report to `save_dir`.
