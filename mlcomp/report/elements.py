@@ -19,6 +19,7 @@ __all__ = [
     'HTML', 'Text', 'ParagraphText', 'LineBreak', 'InlineMath', 'BlockMath',
     'Image', 'Attachment',
     'TableCell', 'TableRow', 'Table',
+    'BokehFigure',
 ]
 
 
@@ -209,17 +210,17 @@ class TableCell(Container, _Element):
     children
         The report objects which is contained in this table cell.
         
-    rows : int
+    rowspan : int
         The rows for this cell to span.
         
-    colls : int
+    colspan : int
         The columns for this cell to span.
     """
 
-    def __init__(self, children=None, rows=None, colls=None, **kwargs):
+    def __init__(self, children=None, rowspan=None, colspan=None, **kwargs):
         super(TableCell, self).__init__(children=children, **kwargs)
-        self.rows = rows
-        self.colls = colls
+        self.rowspan = rowspan
+        self.colspan = colspan
 
 
 class TableRow(Container, _Element):
@@ -288,3 +289,40 @@ class Table(ReportObject, _Element):
         self.header = parse_row_list(header) if header else None
         self.footer = parse_row_list(footer) if footer else None
         self.title = title
+
+
+class BokehFigure(ReportObject, _Element):
+    """Bokeh figure element.
+    
+    Parameters
+    ----------
+    figure
+        The bokeh figure object.
+        Required when constructed from fresh.
+        
+    title : str
+        Optional title of this figure.
+        
+    html : str
+        The HTML source for figure containers.
+        Required only if deserialized from JSON.
+        
+    js : Resource
+        The JS resource file for figure.
+        Required only if deserialized from JSON.
+    """
+
+    def __init__(self, figure=None, title=None, html=None, js=None, **kwargs):
+        if figure is None:
+            if html is None or js is None:
+                raise ValueError('`html` and `js` are required if `figure` '
+                                 'is not specified.')
+        else:
+            from bokeh.embed import components
+            js, html = components(figure, wrap_script=False)
+            js = Resource(js.encode('utf-8'), extension='.js', name='PlotData')
+
+        self.title = title
+        self.html = html
+        self.js = js
+        super(BokehFigure, self).__init__(**kwargs)
