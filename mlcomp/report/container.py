@@ -11,7 +11,7 @@ class Container(ReportObject):
 
     Parameters
     ----------
-    children : collections.Iterable[ReportObject]
+    children
         The child report objects of this container.
         If a nested list is provided, it will be flatten.
 
@@ -21,35 +21,22 @@ class Container(ReportObject):
 
     def __init__(self, children=None, name=None, name_scope=None):
         self.children = []  # type: list[ReportObject]
-        if children:
-            self.add(*children)
+        if isinstance(children, ReportObject):
+            self._add(children)
+        elif children:
+            self._add(*children)
         super(Container, self).__init__(name=name, name_scope=name_scope)
 
-    def add(self, *children):
-        """Add report object(s) into this container.
+    def gather_children(self):
+        return super(Container, self).gather_children() + self.children
 
-        Parameters
-        ----------
-        *children : ReportObject
-            The report object(s) to be added into this container.
-            If nested list(s) are provided, they will be flatten.
-        """
+    def _add(self, *children):
         for c in flatten_list(children):
             if not isinstance(c, ReportObject):
                 raise TypeError('%r is not a report object.' % (c,))
-        self.children.extend(children)
+            self.children.append(c)
 
-    def remove(self, *children):
-        """Remove report object(s) from this container.
-
-        Parameters
-        ----------
-        *children : ReportObject
-            The report object(s) to be removed from this container.
-            If nested list(s) are provided, they will be flatten.
-            
-            Will not raise error if specified children does not exist.
-        """
+    def _remove(self, *children):
         for c in flatten_list(children):
             if not isinstance(c, ReportObject):
                 raise TypeError('%r is not a report object.' % (c,))
@@ -88,3 +75,27 @@ class Report(Container):
     def load(save_dir):
         """Load report from `save_dir`."""
         return ReportSaver(save_dir).load()
+
+    def add(self, *children):
+        """Add report object(s) into this container.
+
+        Parameters
+        ----------
+        *children
+            The report object(s) to be added into this container.
+            If nested list(s) are provided, they will be flatten.
+        """
+        super(Report, self)._add(*children)
+
+    def remove(self, *children):
+        """Remove report object(s) from this container.
+
+        Parameters
+        ----------
+        *children
+            The report object(s) to be removed from this container.
+            If nested list(s) are provided, they will be flatten.
+
+            Will not raise error if specified children does not exist.
+        """
+        super(Report, self)._remove(*children)

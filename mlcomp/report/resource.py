@@ -38,7 +38,7 @@ class Resource(ReportObject):
         super(Resource, self).__init__(name=name, name_scope=name_scope)
         if data is None and path is None:
             raise ValueError(
-                'At least one of `data`, `filename` should be specified.')
+                'At least one of `data`, `path` should be specified.')
         self._data = data
         self._extension = extension
         self._content_type = content_type

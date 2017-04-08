@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import gzip
 import unittest
 from io import BytesIO
-from hashlib import md5
 
+from magic import Magic
 from PIL import Image as PILImage
 
-from mlcomp.report import ReportSaver
+from mlcomp.report import ReportSaver, Report
 from mlcomp.report.elements import *
+from mlcomp.report.elements import _ResourceWithTitle
 from mlcomp.utils import TemporaryDirectory
 
 
@@ -17,7 +17,8 @@ class ElementsTestCase(unittest.TestCase):
     def test_class_is_element(self):
         element_classes = [
             HTML, Text, ParagraphText, LineBreak, InlineMath, BlockMath,
-            Image,
+            Image, Attachment,
+            TableCell,
         ]
         for cls in element_classes:
             self.assertTrue(is_report_element(cls))
@@ -70,21 +71,44 @@ class ElementsTestCase(unittest.TestCase):
             '{"__id__": 0, "__type__": "BlockMath", "latex": "x+1", "name": "BlockMath element"}'
         )
 
-    def test_Image(self):
-        image_data = gzip.decompress(
-            b'\x1f\x8b\x08\x00y\\\xe8X\x02\xffs\xf2\xf5`\x80\x003 \xd6\x00b&'
-            b'(fd\x90\x00\x8b\x0b\x01\xf1eS\x08\x86\x81\xffH,\x08\x1b\x00\x96'
-            b'\x07?\xc0H\x00\x00\x00'
+    def test_ResourceWithTitle(self):
+        R = _ResourceWithTitle
+
+        # test title
+        self.assertIsNone(R(data=b'').title)
+        self.assertIsNone(R(data=b'', content_type='image/png').title)
+        self.assertIsNone(R(data=b'', extension='.txt').title)
+        self.assertEqual(
+            R(data=b'', name='Hello World').title,
+            'Hello World'
         )
-        png_md5 = '6dcf131908cc639a95d11da701b2a059'
-        image = PILImage.open(BytesIO(image_data))
+
+        with TemporaryDirectory() as tempdir:
+            r = Report([R(b''), R(b'', extension='.txt')])
+            ReportSaver(tempdir).save(r)
+            self.assertEqual(
+                r.children[1].title,
+                'resource_with_title_1.txt'
+            )
+
+    def test_Image(self):
+        image = PILImage.frombytes(
+            'RGB',
+            (2, 2),
+            b'\xff\x00\x00\x00\xff\x00\x00\x00\xff\x00\x00\x00'
+        )
 
         # test construct from PIL image
         r = Image(image)
         self.assertTrue(is_report_element(r))
         self.assertEqual(r.content_type, 'image/png')
         self.assertEqual(r.extension, '.png')
-        self.assertEqual(md5(r.data).hexdigest(), png_md5)
+        self.assertEqual(Magic(mime=True).from_buffer(r.data), 'image/png')
+        with PILImage.open(BytesIO(r.data)) as im:
+            self.assertEqual(
+                im.tobytes(),
+                b'\xff\x00\x00\x00\xff\x00\x00\x00\xff\x00\x00\x00'
+            )
         png_data = r.data
 
         with TemporaryDirectory() as tempdir:
@@ -105,27 +129,38 @@ class ElementsTestCase(unittest.TestCase):
             buf.seek(0)
             jpg_data = buf.read()
         r = Image(jpg_data, extension='.jpg')
+        self.assertEqual(r.content_type, 'image/jpeg')
         self.assertEqual(r.extension, '.jpg')
-        if r.content_type is not None:
-            content_type_s = '"content_type": "image/jpeg", '
-        else:
-            # might because 'python-magic' is not installed properly
-            content_type_s = ''
 
         with TemporaryDirectory() as tempdir:
             ReportSaver(tempdir).save(r)
             self.assertEqual(
                 r.to_json(sort_keys=True),
-                '{"__id__": 0, "__type__": "Image", %s"extension": ".jpg", "name_scope": "image", "path": "res/image.jpg"}' % (content_type_s,)
+                '{"__id__": 0, "__type__": "Image", "content_type": "image/jpeg", "extension": ".jpg", "name_scope": "image", "path": "res/image.jpg"}'
             )
 
-        # test detect content-type by python-magic
-        try:
-            import magic
-            r = Image(jpg_data)
-            self.assertEqual(r.content_type, 'image/jpeg')
-        except ImportError:
-            pass
+    def test_Attachment(self):
+        # test ordinary attachment
+        r = Attachment(data=b'1', title='my attach', content_type='image/png',
+                       extension='.txt', name='the_attach')
+        self.assertTrue(is_report_element(r))
+        self.assertEqual(r.title, 'my attach')
+
+        with TemporaryDirectory() as tempdir:
+            ReportSaver(tempdir).save(r)
+            self.assertEqual(
+                r.to_json(sort_keys=True),
+                '{"__id__": 0, "__type__": "Attachment", "content_type": "image/png", "extension": ".txt", "name": "the_attach", "name_scope": "attach", "path": "res/attach.txt", "title": "my attach"}'
+            )
+
+    def test_Table(self):
+        # test construct table cell
+        r = TableCell([Text('text')], rows=1, colls=2, name='Table Cell')
+        self.assertTrue(is_report_element(r))
+        self.assertEqual(
+            r.to_json(sort_keys=True),
+            '{"__id__": 0, "__type__": "TableCell", "children": [{"__id__": 1, "__type__": "Text", "text": "text"}], "colls": 2, "name": "Table Cell", "rows": 1}'
+        )
 
 
 if __name__ == '__main__':
