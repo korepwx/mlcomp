@@ -44,6 +44,11 @@ class Resource(ReportObject):
         self._content_type = content_type
         self.path = path
 
+    def _repr_dict(self):
+        ret = super(Resource, self)._repr_dict()
+        ret.pop('data', None)
+        return ret
+
     @property
     def has_loaded(self):
         return self._data is not None

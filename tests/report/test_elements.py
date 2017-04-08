@@ -18,7 +18,7 @@ class ElementsTestCase(unittest.TestCase):
         element_classes = [
             HTML, Text, ParagraphText, LineBreak, InlineMath, BlockMath,
             Image, Attachment,
-            TableCell,
+            TableCell, TableRow, Table,
         ]
         for cls in element_classes:
             self.assertTrue(is_report_element(cls))
@@ -155,13 +155,67 @@ class ElementsTestCase(unittest.TestCase):
 
     def test_Table(self):
         # test construct table cell
-        r = TableCell([Text('text')], rows=1, colls=2, name='Table Cell')
+        r = TableCell(Text('text'), rows=1, colls=2, name='Table Cell')
         self.assertTrue(is_report_element(r))
         self.assertEqual(
             r.to_json(sort_keys=True),
             '{"__id__": 0, "__type__": "TableCell", "children": [{"__id__": 1, "__type__": "Text", "text": "text"}], "colls": 2, "name": "Table Cell", "rows": 1}'
         )
 
+        # test construct table row
+        r = TableRow([
+            TableCell(Text('text1')),
+            TableCell(Text('text2'))
+        ])
+        self.assertTrue(is_report_element(r))
+        self.assertEqual(
+            r.to_json(sort_keys=True),
+            '{"__id__": 0, "__type__": "TableRow", "cells": [{"__id__": 1, "__type__": "TableCell", "children": [{"__id__": 2, "__type__": "Text", "text": "text1"}]}, {"__id__": 3, "__type__": "TableCell", "children": [{"__id__": 4, "__type__": "Text", "text": "text2"}]}]}'
+        )
+        self.assertEqual(
+            repr(Report.from_json(r.to_json(sort_keys=True))),
+            repr(r)
+        )
+
+        # test construct table row with non-cell element
+        with self.assertRaises(TypeError):
+            TableRow([Text('text')])
+
+        # test construct table
+        r = Table(TableRow(TableCell(Text('row'))))
+        self.assertTrue(is_report_element(r))
+        self.assertEqual(
+            r.to_json(sort_keys=True),
+            '{"__id__": 0, "__type__": "Table", "rows": [{"__id__": 1, "__type__": "TableRow", "cells": [{"__id__": 2, "__type__": "TableCell", "children": [{"__id__": 3, "__type__": "Text", "text": "row"}]}]}]}'
+        )
+        self.assertEqual(
+            repr(Report.from_json(r.to_json(sort_keys=True))),
+            repr(r)
+        )
+
+        # test construct table with header and footer
+        r = Table(
+            rows=[
+                TableRow(TableCell(Text('row1'))),
+                TableRow(TableCell(Text('row2'))),
+            ],
+            header=TableRow(TableCell(Text('header'))),
+            footer=[
+                TableRow(TableCell(Text('footer1'))),
+                TableRow(TableCell(Text('footer2'))),
+            ],
+            title='My Table Title',
+            name='My Table'
+        )
+        self.assertTrue(is_report_element(r))
+        self.assertEqual(
+            r.to_json(sort_keys=True),
+            '{"__id__": 0, "__type__": "Table", "footer": [{"__id__": 1, "__type__": "TableRow", "cells": [{"__id__": 2, "__type__": "TableCell", "children": [{"__id__": 3, "__type__": "Text", "text": "footer1"}]}]}, {"__id__": 4, "__type__": "TableRow", "cells": [{"__id__": 5, "__type__": "TableCell", "children": [{"__id__": 6, "__type__": "Text", "text": "footer2"}]}]}], "header": [{"__id__": 7, "__type__": "TableRow", "cells": [{"__id__": 8, "__type__": "TableCell", "children": [{"__id__": 9, "__type__": "Text", "text": "header"}]}]}], "name": "My Table", "rows": [{"__id__": 10, "__type__": "TableRow", "cells": [{"__id__": 11, "__type__": "TableCell", "children": [{"__id__": 12, "__type__": "Text", "text": "row1"}]}]}, {"__id__": 13, "__type__": "TableRow", "cells": [{"__id__": 14, "__type__": "TableCell", "children": [{"__id__": 15, "__type__": "Text", "text": "row2"}]}]}], "title": "My Table Title"}'
+        )
+        self.assertEqual(
+            repr(Report.from_json(r.to_json(sort_keys=True))),
+            repr(r)
+        )
 
 if __name__ == '__main__':
     unittest.main()

@@ -4,6 +4,7 @@ from io import BytesIO
 
 import six
 
+from mlcomp.utils import flatten_list
 from .base import ReportObject
 from .container import Container
 from .resource import Resource
@@ -17,7 +18,7 @@ __all__ = [
     'is_report_element',
     'HTML', 'Text', 'ParagraphText', 'LineBreak', 'InlineMath', 'BlockMath',
     'Image', 'Attachment',
-    'TableCell',
+    'TableCell', 'TableRow', 'Table',
 ]
 
 
@@ -219,3 +220,71 @@ class TableCell(Container, _Element):
         super(TableCell, self).__init__(children=children, **kwargs)
         self.rows = rows
         self.colls = colls
+
+
+class TableRow(Container, _Element):
+    """Table row element.
+    
+    Parameters
+    ----------
+    cells
+        The table cells contained in this row.
+    """
+
+    def __init__(self, cells=None, **kwargs):
+        super(TableRow, self).__init__(children=cells, **kwargs)
+        for c in self.children:
+            if not isinstance(c, TableCell):
+                raise TypeError('%r is not a TableCell object.' % (c,))
+
+    def to_config(self, sort_keys=False):
+        ret = super(TableRow, self).to_config(sort_keys=sort_keys)
+        if 'children' in ret:
+            ret['cells'] = ret.pop('children')
+        return ret
+
+
+class Table(ReportObject, _Element):
+    """Table element.
+    
+    Parameters
+    ----------
+    rows
+        The row(s) of the table.
+        If a nested list is provided, it will be flatten.
+        
+    header
+        Optional row(s) of the table header.
+        If a nested list is provided, it will be flatten.
+        
+    footer
+        Optional row(s) of the table header.
+        If a nested list is provided, it will be flatten.
+        
+    title : str
+        Optional title of the table.
+        
+    name, name_scope : str
+        Name and the name scope of this table.
+    """
+
+    def __init__(self, rows, header=None, footer=None, title=None,
+                 name=None, name_scope=None):
+        def parse_row_list(arr):
+            if isinstance(arr, TableRow):
+                return [arr]
+            elif not isinstance(arr, ReportObject):
+                ret = []
+                for c in flatten_list(arr):
+                    if not isinstance(c, TableRow):
+                        raise TypeError('%r is not a TableRow.' % (c,))
+                    ret.append(c)
+                return ret
+            else:
+                raise TypeError('%r is not TableRow(s).' % (arr,))
+
+        super(Table, self).__init__(name=name, name_scope=name_scope)
+        self.rows = parse_row_list(rows)
+        self.header = parse_row_list(header) if header else None
+        self.footer = parse_row_list(footer) if footer else None
+        self.title = title

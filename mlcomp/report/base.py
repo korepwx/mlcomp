@@ -187,8 +187,11 @@ class ReportObject(object):
             c.load_resources(rm)
             stack.extend(reversed(c.gather_children()))
 
+    def _repr_dict(self):
+        return self.to_config(sort_keys=True)
+
     def __repr__(self):
-        config_dict = self.to_config(sort_keys=True)
+        config_dict = self._repr_dict()
         pieces = ','.join(
             '%s=%s' % (k, repr(v))
             for k, v in six.iteritems(config_dict)

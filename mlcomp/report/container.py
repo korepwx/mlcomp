@@ -3,11 +3,14 @@ from mlcomp.utils import flatten_list
 from .base import ReportObject
 from .persist import ReportSaver
 
-__all__ = ['Container', 'Report']
+__all__ = ['Container', 'Group', 'Report']
 
 
 class Container(ReportObject):
-    """Report object container.
+    """Report container object.
+    
+    A container object contains other report objects as children.
+    It is usually inherited by more complicated report object types.
 
     Parameters
     ----------
@@ -46,19 +49,44 @@ class Container(ReportObject):
                 pass
 
 
-class Report(Container):
-    """Main report container.
-     
-    This container class is mainly used for composing the whole report,
-    as contrary to `Container` class which is usually used as base class
-    of other report classes.  Besides the basic functions of a report
-    container, it also provides two convenient methods `load` and `save`,
-    as a thin wrapper upon `ReportSaver`.
+class Group(Container):
+    """A report group.
+    
+    A report group is a container whose children can be further changed
+    via public method `add` and `remove`.
     """
+
+    def add(self, *children):
+        """Add report object(s) into this container.
+
+        Parameters
+        ----------
+        *children
+            The report object(s) to be added into this container.
+            If nested list(s) are provided, they will be flatten.
+        """
+        super(Group, self)._add(*children)
+
+    def remove(self, *children):
+        """Remove report object(s) from this container.
+
+        Parameters
+        ----------
+        *children
+            The report object(s) to be removed from this container.
+            If nested list(s) are provided, they will be flatten.
+
+            Will not raise error if specified children does not exist.
+        """
+        super(Group, self)._remove(*children)
+
+
+class Report(Group):
+    """The top-most report group."""
 
     def save(self, save_dir, overwrite=False):
         """Save this report to `save_dir`.
-        
+
         Parameters
         ----------
         save_dir : str
@@ -75,27 +103,3 @@ class Report(Container):
     def load(save_dir):
         """Load report from `save_dir`."""
         return ReportSaver(save_dir).load()
-
-    def add(self, *children):
-        """Add report object(s) into this container.
-
-        Parameters
-        ----------
-        *children
-            The report object(s) to be added into this container.
-            If nested list(s) are provided, they will be flatten.
-        """
-        super(Report, self)._add(*children)
-
-    def remove(self, *children):
-        """Remove report object(s) from this container.
-
-        Parameters
-        ----------
-        *children
-            The report object(s) to be removed from this container.
-            If nested list(s) are provided, they will be flatten.
-
-            Will not raise error if specified children does not exist.
-        """
-        super(Report, self)._remove(*children)
