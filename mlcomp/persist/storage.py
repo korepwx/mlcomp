@@ -317,7 +317,7 @@ class Storage(object):
                 getLogger(__name__).info(
                     'Failed to write update time of %r.', self, exc_info=True)
 
-    def save_report(self, report, path='default', overwrite=False):
+    def save_report(self, report, dir_name='default', overwrite=False):
         """Save a report object into the storage.
 
         Parameters
@@ -325,17 +325,20 @@ class Storage(object):
         report : mlcomp.report.ReportObject
             The report object to be saved.
 
-        path : str
-            Where to store the report object.
+        dir_name : str
+            Directory name where to store this report object.
 
-            The report file will be actually placed at `'report/' + path`.
+            The report file will be actually placed at `'report/' + dir_name`.
             Default value for this argument is 'default'.
 
         overwrite : bool
             Whether or not to overwrite existing files?  Default is False.
         """
-        if not path:
-            raise ValueError('`path` must be non-empty.')
+        if not dir_name:
+            raise ValueError('`dir_name` must be non-empty.')
+        if '/' in dir_name or '\\' in dir_name:
+            raise ValueError('`dir_name` must not contain "/" or "\\".')
         from mlcomp.report import ReportSaver
-        s = ReportSaver(self.resolve_path('report', path), overwrite=overwrite)
+        s = ReportSaver(self.resolve_path('report', dir_name),
+                        overwrite=overwrite)
         s.save(report)

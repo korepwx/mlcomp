@@ -10,6 +10,9 @@ from .resource import ResourceManager
 
 __all__ = ['ReportSaver']
 
+REPORT_RESOURCE_DIR = 'res/'
+REPORT_JSON_FILE = 'report.json'
+
 
 class ReportSaver(object):
     """Saving report object and all its resources to directory.
@@ -48,9 +51,6 @@ class ReportSaver(object):
         (default is False)
     """
 
-    RESOURCE_DIR = 'res/'
-    JSON_FILE = 'report.json'
-
     def __init__(self, save_dir, overwrite=False):
         self.save_dir = os.path.abspath(save_dir)
         self.overwrite = overwrite
@@ -86,10 +86,10 @@ class ReportSaver(object):
         os.makedirs(self.save_dir, exist_ok=True)
         report.assign_name_scopes()
         rm = ResourceManager(
-            os.path.join(self.save_dir, self.RESOURCE_DIR),
-            rel_path=self.RESOURCE_DIR
+            os.path.join(self.save_dir, REPORT_RESOURCE_DIR),
+            rel_path=REPORT_RESOURCE_DIR
         )
-        json_file = os.path.join(self.save_dir, self.JSON_FILE)
+        json_file = os.path.join(self.save_dir, REPORT_JSON_FILE)
         report.save_resources(rm)
         with codecs.open(json_file, 'wb', 'utf-8') as f:
             cnt = {
@@ -100,13 +100,13 @@ class ReportSaver(object):
 
     def load(self):
         """Load the report object from `save_dir`."""
-        json_file = os.path.join(self.save_dir, self.JSON_FILE)
+        json_file = os.path.join(self.save_dir, REPORT_JSON_FILE)
         with codecs.open(json_file, 'rb', 'utf-8') as f:
             cnt = json.load(f, cls=ReportJsonDecoder)
             report = cnt['report']
         rm = ResourceManager(
-            os.path.join(self.save_dir, self.RESOURCE_DIR),
-            rel_path=self.RESOURCE_DIR
+            os.path.join(self.save_dir, REPORT_RESOURCE_DIR),
+            rel_path=REPORT_RESOURCE_DIR
         )
         report.load_resources(rm)
         return report
