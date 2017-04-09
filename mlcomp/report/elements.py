@@ -43,6 +43,9 @@ class HTML(ReportObject, _Element):
     ----------
     html : str
         The HTML source.
+
+    **kwargs
+        Other arguments passed to `ReportObject`.
     """
 
     def __init__(self, html, **kwargs):
@@ -57,6 +60,9 @@ class Text(ReportObject, _Element):
     ----------
     text : str
         The plain text.
+
+    **kwargs
+        Other arguments passed to `ReportObject`.
     """
 
     def __init__(self, text, **kwargs):
@@ -83,6 +89,9 @@ class _MathEquation(ReportObject):
     ----------
     latex : str
         The latex source of this math equation.
+
+    **kwargs
+        Other arguments passed to `ReportObject`.
     """
 
     def __init__(self, latex, **kwargs):
@@ -195,12 +204,20 @@ class Attachment(_ResourceWithTitle, _Element):
         Optional title of this attachment.
         If not specified, will use the filename, or its name as title.
         
+    link_only : bool
+        Whether or not to show only the link of attachment?
+        
+        By default this argument is set to False.  In such case, the
+        attachment is rendered as a block.  The content of this block
+        is determined by display backend.
+
     **kwargs
         Other arguments passed to `Resource`.
     """
 
-    def __init__(self, data=None, title=None, **kwargs):
+    def __init__(self, data=None, title=None, link_only=False, **kwargs):
         super(Attachment, self).__init__(data=data, title=title, **kwargs)
+        self.link_only = link_only
 
 
 class TableCell(Container, _Element):
@@ -216,6 +233,9 @@ class TableCell(Container, _Element):
         
     colspan : int
         The columns for this cell to span.
+
+    **kwargs
+        Other arguments passed to `Container`.
     """
 
     def __init__(self, children=None, rowspan=None, colspan=None, **kwargs):
@@ -231,6 +251,9 @@ class TableRow(Container, _Element):
     ----------
     cells
         The table cells contained in this row.
+
+    **kwargs
+        Other arguments passed to `Container`.
     """
 
     def __init__(self, cells=None, **kwargs):
@@ -326,6 +349,9 @@ class BokehFigure(ReportObject, _Element):
     js : Resource
         The JS resource file for figure.
         Required only if deserialized from JSON.
+
+    **kwargs
+        Other arguments passed to `ReportObject`.
     """
 
     def __init__(self, figure=None, title=None, html=None, js=None, **kwargs):
@@ -364,6 +390,9 @@ class Section(Block):
         
     children
         The report object(s) contained in this section.
+
+    **kwargs
+        Other arguments passed to `Group`.
     """
 
     def __init__(self, title, children=None, **kwargs):

@@ -316,3 +316,26 @@ class Storage(object):
             except Exception:
                 getLogger(__name__).info(
                     'Failed to write update time of %r.', self, exc_info=True)
+
+    def save_report(self, report, path='default', overwrite=False):
+        """Save a report object into the storage.
+        
+        Parameters
+        ----------
+        report : mlcomp.report.ReportObject
+            The report object to be saved.
+            
+        path : str
+            Where to store the report object.
+            
+            The report file will be actually placed at `'report/' + path`. 
+            Default value for this argument is 'default'.
+            
+        overwrite : bool
+            Whether or not to overwrite existing files?  Default is False.
+        """
+        if not path:
+            raise ValueError('`path` must be non-empty.')
+        from mlcomp.report import ReportSaver
+        s = ReportSaver(self.resolve_path('report', path), overwrite=overwrite)
+        s.save(report)

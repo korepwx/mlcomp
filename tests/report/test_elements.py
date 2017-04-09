@@ -155,7 +155,7 @@ class ElementsTestCase(unittest.TestCase):
             ReportSaver(tempdir).save(r)
             self.assertEqual(
                 r.to_json(sort_keys=True),
-                '{"__id__": 0, "__type__": "Attachment", "content_type": "image/png", "extension": ".txt", "name": "the_attach", "name_scope": "attach", "path": "res/attach.txt", "title": "my attach"}'
+                '{"__id__": 0, "__type__": "Attachment", "content_type": "image/png", "extension": ".txt", "link_only": false, "name": "the_attach", "name_scope": "attach", "path": "res/attach.txt", "title": "my attach"}'
             )
 
     def test_Table(self):

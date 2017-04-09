@@ -8,13 +8,13 @@ Vue.use(MuseUI);
 // Initialize the App
 import Main from './App.vue';
 import Board from './board/Board.vue';
-import Report from './report/Report.vue';
+import Storage from './storage/Storage.vue';
 
 // The vue routes and router
 const routes = [
   // List of experiments, with different filters applied
   { path: '/', component: Board },
-  { path: '/s/*', component: Report }
+  { path: '/s/*', component: Storage }
 ];
 const router = new VueRouter({
   routes,
