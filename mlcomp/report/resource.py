@@ -110,12 +110,12 @@ class Resource(ReportObject):
 
 class ResourceManager(object):
     """Resources saver and loader.
-    
+
     Parameters
     ----------
     save_dir : str
         The directory where to save the resources.
-        
+
     rel_path : str
         The relative path of `save_dir`, when the resources are included
         in a report file.  Default is '', which suggests the file should
@@ -134,18 +134,18 @@ class ResourceManager(object):
 
     def save(self, data, name_scope, extension):
         """Save `data` at specified `name_scope`.
-        
+
         Parameters
         ----------
         data : bytes
             Binary data to be saved.
-            
+
         name_scope : str
             The name scope of the resource.
-            
+
         extension : str
             Optional extension for the save path.
-            
+
         Returns
         -------
         str
@@ -170,20 +170,20 @@ class ResourceManager(object):
 
     def load(self, path):
         """Load data at specified save `path`.
-        
+
         Parameters
         ----------
         path : str
             The save path, which is expected to start with `rel_path`.
-            
+
         Raises
         ------
         IOError
             If the path cannot be found, or cannot be loaded.
-            
+
         ValueError
             If `path` does not start with `rel_path`.
-            
+
         Returns
         -------
         bytes

@@ -70,7 +70,7 @@ class BaseTestCase(unittest.TestCase):
             obj = ReportObject.from_json(self.MY_REPORT[1])
             obj.assign_name_scopes()
             self.assertEqual(
-                repr(obj), 
+                repr(obj),
                 "MyReportObject(name='My Report',name_scope='my_report',value=MyReportObject(children=[MyReportObject(name_scope='my_report/child/my_report_object',value=1), MyReportObject(name_scope='my_report/child/my_report_object_1',value=2), MyReportObject(name='list_child',name_scope='my_report/child/list_child',value=3), MyReportObject(name='list_child',name_scope='my_report/child/list_child_1',value=4)],name='Child',name_scope='my_report/child',value=12345678))"
             )
 

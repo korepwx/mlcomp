@@ -14,22 +14,22 @@ __all__ = [
 
 class ReportObject(object):
     """Base class for all report objects.
-    
-    A report object contains a piece of experiment results.  Such objects 
+
+    A report object contains a piece of experiment results.  Such objects
     can be further composed up to form richer report objects.
-    
+
     By default, a report object must only use public attributes for its
     serializable members.  Besides, all these serializable members should
     also be its construction arguments.  This behaviour could be override
     via `to_config` and `from_config` methods.
-    
+
     Parameters
     ----------
     name : str
         Name of this report object.  If specified, it might be used as
         title in rendered page, and it would also be considered when
         determining the scope name of this report object.
-        
+
     name_scope : str
         The name scope of this report object.  Name scope is the unique
         name that distinguishes every report object in a saved report
@@ -44,12 +44,12 @@ class ReportObject(object):
 
     def to_config(self, sort_keys=False):
         """Get the config values of this report object.
-        
+
         Parameters
         ----------
         sort_keys : bool
             Whether or not to sort the keys?
-        
+
         Returns
         -------
         dict[str, any]
@@ -78,7 +78,7 @@ class ReportObject(object):
 
     def to_json(self, **kwargs):
         """Serialize the report object into JSON.
-        
+
         Parameters
         ----------
         **kwargs
@@ -89,12 +89,12 @@ class ReportObject(object):
     @staticmethod
     def from_json(json, **kwargs):
         """Deserialize the report object from JSON.
-        
+
         Parameters
         ----------
         json : str
             The serialized JSON source of the report object.
-        
+
         **kwargs
             Additional arguments passed to the JsonDecoder.
         """
@@ -102,11 +102,11 @@ class ReportObject(object):
 
     def gather_children(self):
         """Gather all the children directly belonging to this report object.
-        
+
         The children gathered by this method should be in deterministic order,
         i.e., calling this method of identical report object should result in
         identical children list.
-        
+
         Returns
         -------
         list[ReportObject]
@@ -153,11 +153,11 @@ class ReportObject(object):
 
     def save_resources(self, rm):
         """Save the resources of this object as well as its descendants.
-        
+
         The scope names must be assigned before this method is executed.
         Default behavior of this method is to call `save_resources` of
         all its direct children.
-        
+
         Parameters
         ----------
         rm : mlcomp.report.ResourceManager
@@ -171,11 +171,11 @@ class ReportObject(object):
 
     def load_resources(self, rm):
         """Load the resources of this object as well as its descendants.
-        
+
         The scope names must be assigned before this method is executed.
-        Default behavior of this method is to call `load_resources` of 
+        Default behavior of this method is to call `load_resources` of
         all its direct children.
-        
+
         Parameters
         ----------
         rm : mlcomp.report.ResourceManager

@@ -13,7 +13,7 @@ __all__ = [
 
 class JsonBinary(six.binary_type):
     """Wrapper class for binary objects.
-    
+
     In Python2, ordinary strings are binary strings, thus we cannot encode
     the binary strings into base64 strings directly.  In this case, one
     may explicitly wrap such a binary string in this class to inform the
@@ -28,17 +28,17 @@ class JsonEncoder(json.JSONEncoder):
             {'__type__': 'binary', 'data': base64 encoded}
     *   numpy.integer ->
             int
-    *   numpy.ndarray -> 
+    *   numpy.ndarray ->
             {'__type__': 'ndarray', 'data': o.tolist(), 'dtype': o.dtype}
     *   datetime.datetime ->
             {'__type__': 'datetime', 'value': o.timestamp() * 1000}
-            
+
     Besides, if the same (customized) object is referenced for multiple
     times, and if `object_ref` is set to True, it will only be serialized
     only at its first occurrence.  All later occurrences will be saved as:
-    
+
         {'__type__': 'ObjectRef', 'id': ...}.
-        
+
     Parameters
     ----------
     object_ref : bool

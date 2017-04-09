@@ -8,7 +8,7 @@ __all__ = ['Container', 'Group', 'Report']
 
 class Container(ReportObject):
     """Report container object.
-    
+
     A container object contains other report objects as children.
     It is usually inherited by more complicated report object types.
 
@@ -51,7 +51,7 @@ class Container(ReportObject):
 
 class Group(Container):
     """A report group.
-    
+
     A report group is a container whose children can be further changed
     via public method `add` and `remove`.
     """
@@ -83,17 +83,17 @@ class Group(Container):
 
 class Report(Group):
     """The top-most report object.
-    
+
     A Report object is a specialized report Group, which often represents
     a whole report file.  It carries additional information, for example,
     `title` of the report.
-    
+
     Parameters
     ----------
     children
         The child report objects of this container.
         If a nested list is provided, it will be flatten.
-        
+
     title : str
         Optional title for this report.
     """

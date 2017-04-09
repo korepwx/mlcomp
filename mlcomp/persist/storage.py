@@ -91,7 +91,7 @@ class Storage(object):
         self._meta = StorageMeta(self, meta_file)
         self._running_status = self._load_running_status()
         self._logging_captured = False
-        
+
     # the read-only properties of this class
     name = property(lambda self: self._name)
     path = property(lambda self: self._path)
@@ -319,18 +319,18 @@ class Storage(object):
 
     def save_report(self, report, path='default', overwrite=False):
         """Save a report object into the storage.
-        
+
         Parameters
         ----------
         report : mlcomp.report.ReportObject
             The report object to be saved.
-            
+
         path : str
             Where to store the report object.
-            
-            The report file will be actually placed at `'report/' + path`. 
+
+            The report file will be actually placed at `'report/' + path`.
             Default value for this argument is 'default'.
-            
+
         overwrite : bool
             Whether or not to overwrite existing files?  Default is False.
         """
