@@ -2,7 +2,7 @@
 import os
 import click
 import six
-from .application import MainApp
+from .application import BoardApp
 
 __all__ = ['main']
 
@@ -84,5 +84,5 @@ def run(ip, port, log_file, log_level, log_format, storage):
     # initialize the logging
     init_logging(log_file, log_level, log_format)
     # start the server
-    server = MainApp(mappings)
+    server = BoardApp(mappings)
     server.run(host=ip, port=port)

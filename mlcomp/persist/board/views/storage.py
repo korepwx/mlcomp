@@ -68,13 +68,14 @@ if is_testing():
 
 
 @storage_bp.route('/')
+@parse_request_storage
+def storage_index(storage, path=None):
+    return render_template('storage.html', storage=storage)
+
+
+@storage_bp.route('/')
 @storage_bp.route('/<path:path>')
 @parse_request_storage
 def resources(storage, path):
     """Get resources from the storage directory."""
-    # the index of a storage, show the web app
-    if path in ('/', ''):
-        return render_template('report.html', storage=storage)
-
-    # request for some resource in the storage
     return send_from_directory(storage.path, path)

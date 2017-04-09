@@ -62,7 +62,7 @@
   }
 </script>
 
-<style lang="sass" rel="stylesheet/scss" scoped>
+<style lang="scss" scoped>
   .group-detail {
     .storage-title {
       font-weight: bold;

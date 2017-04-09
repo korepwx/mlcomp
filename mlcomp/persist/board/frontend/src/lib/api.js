@@ -1,6 +1,5 @@
 import $ from "jquery";
 
-
 function norm_timestamp(tm) {
   if (tm)
     tm = Math.round(tm * 1000);
@@ -27,7 +26,6 @@ export class Storage {
     this.name = name;
     this.description = data['description'] || '';
     this.tags = data['tags'] || [];
-    this.joined_tags = this.tags.join(',');
     this.create_time = norm_timestamp(data['create_time'] || 0);
     this.update_time = norm_timestamp(data['update_time'] || 0);
     this.running_status = running_status;
@@ -94,8 +92,7 @@ export class APIClient {
     $.ajax({
       url: this._endpoint + "/all",
       success(data) {
-        if (!success) {
-        } else {
+        if (success) {
           try {
             function dfs(groups, pa_path, parent) {
               if (parent) {

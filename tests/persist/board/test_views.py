@@ -7,7 +7,7 @@ import unittest
 import six
 
 from mlcomp.persist import Storage
-from mlcomp.persist.board.application import MainApp
+from mlcomp.persist.board.application import BoardApp
 from mlcomp.utils import TemporaryDirectory
 
 
@@ -34,7 +34,7 @@ class ViewsTestCase(unittest.TestCase):
                 storage_dict[name] = s
 
             # construct the application
-            app = MainApp({
+            app = BoardApp({
                 '/': os.path.join(tempdir, 'a'),
                 '/b/': os.path.join(tempdir, 'b'),
                 '/c/': os.path.join(tempdir, 'c'),
@@ -120,7 +120,7 @@ class ViewsTestCase(unittest.TestCase):
             s = Storage(tempdir, mode='create')
 
             # construct the application
-            app = MainApp({'/': tempdir})
+            app = BoardApp({'/': tempdir})
 
             with app.test_client() as c:
                 # test the routes

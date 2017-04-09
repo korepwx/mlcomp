@@ -1,5 +1,5 @@
 <template>
-  <div id="board" class="page-wrapper">
+  <div id="Board" class="page-wrapper">
     <!-- the navigation bar -->
     <mu-appbar title="ML Board" class="appbar" :class="{'side-panel-hided': !sidePanelOpen}">
       <mu-icon-button icon="menu" slot="left" @click="toggleSidePanel" />
@@ -34,7 +34,7 @@
   import { APIClient, ALL_STATUS } from '../lib/api.js';
   import { GroupFilter } from '../lib/query.js';
   import { isDesktop } from '../lib/utils.js';
-  import persistStorage from '../lib/storage.js';
+  import persist from '../lib/persist.js';
   import SidePanel from './SidePanel.vue';
   import GroupList from './GroupList.vue';
 
@@ -47,14 +47,14 @@
 
     data() {
       return {
-        sidePanelOpen: isDesktop() && persistStorage.boardConfig.sidePanelOpen,
+        sidePanelOpen: isDesktop() && persist.boardConfig.sidePanelOpen,
         sidePanelDocked: isDesktop(),
         desktop: isDesktop(),
         isLoading: false,
         errorMessage: null,
         storageGroups: null,
-        statusFilter: persistStorage.boardConfig.statusFilter,
-        queryString: persistStorage.boardConfig.queryString,
+        statusFilter: persist.boardConfig.statusFilter,
+        queryString: persist.boardConfig.queryString,
       }
     },
 
@@ -101,7 +101,7 @@
           this.sidePanelOpen = false
         }
         if (desktop && !this.desktop && !this.sidePanelOpen) {
-          this.sidePanelOpen = persistStorage.boardConfig.sidePanelOpen;
+          this.sidePanelOpen = persist.boardConfig.sidePanelOpen;
         }
         this.desktop = desktop
       },
@@ -161,19 +161,19 @@
             }
           }
         }
-        persistStorage.boardConfig.statusFilter = this.statusFilter;
+        persist.boardConfig.statusFilter = this.statusFilter;
       }, // changeStatusFilter
 
       changeQueryString(value) {
         this.queryString = value;
-        persistStorage.boardConfig.queryString = this.queryString;
+        persist.boardConfig.queryString = this.queryString;
       }, // changeQueryString
     }, // methods
 
     watch: {
       sidePanelOpen(value) {
         if (this.sidePanelDocked) {
-          persistStorage.boardConfig.sidePanelOpen = value;
+          persist.boardConfig.sidePanelOpen = value;
         }
       }
     }, // watch
@@ -185,7 +185,7 @@
   }
 </script>
 
-<style lang="sass" rel="stylesheet/scss" scoped>
+<style lang="scss" scoped>
   $easeOut: cubic-bezier(0.23, 1, 0.32, 1);
 
   .appbar {

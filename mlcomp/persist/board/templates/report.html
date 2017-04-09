@@ -1,3 +1,11 @@
 {% extends "skeleton/base.html" %}
 
-{% block subtitle %}{{ storage.name }}{% endblock %}
+{% block subtitle %}Report{% endblock %}
+
+{% block app_stylesheets %}
+  <link rel="stylesheet" type="text/css" href="{{ asset_url_for('report/css') }}" />
+{% endblock %}
+
+{% block app_scripts %}
+  <script type="text/javascript" src="{{ asset_url_for('report/js') }}"></script>
+{% endblock %}

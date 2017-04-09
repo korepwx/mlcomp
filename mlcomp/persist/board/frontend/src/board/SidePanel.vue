@@ -73,7 +73,7 @@
   };
 </script>
 
-<style lang="sass" rel="stylesheet/scss" scoped>
+<style lang="scss" scoped>
   .option-box {
     margin-top: 8px;
     padding-left: 16px;

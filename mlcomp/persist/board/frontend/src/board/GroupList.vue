@@ -56,7 +56,7 @@
   }
 </script>
 
-<style lang="sass" rel="stylesheet/scss" scoped>
+<style lang="scss" scoped>
   .group-entry {
     .group-title {
       font-weight: bold;

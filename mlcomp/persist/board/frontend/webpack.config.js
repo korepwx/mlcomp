@@ -40,9 +40,13 @@ const plugins = [
 // config the webpack
 module.exports = {
   entry: {
-    main: [
+    board: [
       './sass/board.scss',
-      './src/main.js'
+      './src/board.js'
+    ],
+    report: [
+      './sass/report.scss',
+      './src/report.js'
     ]
   },
   output: {
@@ -57,18 +61,27 @@ module.exports = {
   },
   plugins: plugins,
   module: {
-    loaders: [
-      // Vue and JavaScript Loader
+    rules: [
+      // Vue Loader
       {
         test: /\.vue$/,
-        loader: 'babel-loader!vue-loader',
-        include: [path.resolve(__dirname, './src')]
+        loader: 'vue-loader',
+        include: [path.resolve(__dirname, './src')],
+        options: {
+          loaders: {
+            'js': 'babel-loader',
+            'scss': 'css-loader!postcss-loader!resolve-url-loader!sass-loader?sourceMap'
+          }
+        }
       },
+
+      // JavaScript Loader
       {
         test: /\.js$/,
         loader: 'babel-loader',
         include: [path.resolve(__dirname, './src')]
       },
+
       // CSS, SASS, Fonts and Resources Loader
       {
         test: /\.css$/,
@@ -93,6 +106,6 @@ module.exports = {
       },
       { test: /\.(woff2?|svg|ttf|eot)$/, loader: 'url-loader?limit=10000' },
       { test: /\.(png|jpg|gif)$/, loader: 'file-loader'},
-    ]
+    ],
   }
 };

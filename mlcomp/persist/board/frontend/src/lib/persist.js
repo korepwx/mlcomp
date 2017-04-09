@@ -38,5 +38,5 @@ class PersistStorage {
   get boardConfig() { return this._boardConfig; }
 }
 
-const persistStorage = new PersistStorage();
-export default persistStorage;
+const persist = new PersistStorage();
+export default persist;

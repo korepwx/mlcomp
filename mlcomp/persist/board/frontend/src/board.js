@@ -8,7 +8,7 @@ Vue.use(MuseUI);
 // Initialize the App
 import Main from './App.vue';
 import Board from './board/Board.vue';
-import Storage from './storage/Storage.vue';
+import Storage from './report/Storage.vue';
 
 // The vue routes and router
 const routes = [
