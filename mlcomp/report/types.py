@@ -14,22 +14,22 @@ __all__ = [
 
 class ReportTypes(object):
     """Context to hold report object type configs.
-    
-    When "safe-mode" is enabled (which is by default turned on), a report 
+
+    When "safe-mode" is enabled (which is by default turned on), a report
     object of customized type cannot be loaded by its full class name.
     Instead, it must be configured in a `ReportTypes` context.
-    
+
     Note that all report types in `mlcomp.report` package are configured
     implicitly.
-    
+
     Parameters
     ----------
     mappings : dict[str, class]
         The mapping from type name to type object.
-        
+
         If multiple names are mapped to a same class, the inverse mapping
         will choose any one of the configured classes.
-        
+
     safe_mode : bool
         Whether or not the enable the safe mode? (Default True)
     """
@@ -62,17 +62,17 @@ class ReportTypes(object):
 
     def name_to_type(self, name):
         """Find a report object type according to its type name.
-        
+
         Parameters
         ----------
         name : str
             The type name of the report object.
-            
+
         Raises
         ------
         KeyError
             If the name is not configured.
-            
+
         TypeError
             If the loaded type is not a report object type.
         """
@@ -99,17 +99,17 @@ class ReportTypes(object):
 
     def type_to_name(self, rtype):
         """Find a report object type name according to its type.
-        
+
         Parameters
         ----------
         rtype : class
             The type of the report object.
-            
+
         Raises
         ------
         TypeError
             If `rtype` is not a report object.
-    
+
         KeyError
             If the report object type is not configured.
         """
@@ -129,7 +129,7 @@ class ReportTypes(object):
 
 def get_default_report_types():
     """Get the `ObjectTypes` instance at the top of context stack.
-    
+
     Returns
     -------
     ReportTypes

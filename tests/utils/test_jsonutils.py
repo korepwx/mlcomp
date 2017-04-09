@@ -69,7 +69,7 @@ class JsonUtilsTestCase(unittest.TestCase):
 
     def test_JsonEncoder(self):
         # test basic json encoder
-        e = ReportJsonEncoder(sort_keys=True)
+        e = JsonEncoder(sort_keys=True)
         self.assertEqual(e.encode(self.BASIC_OBJECT[0]), self.BASIC_OBJECT[1])
 
         # test customized json encoder
@@ -78,7 +78,7 @@ class JsonUtilsTestCase(unittest.TestCase):
 
     def test_JsonDecoder(self):
         # test basic json decoder
-        d = ReportJsonDecoder()
+        d = JsonDecoder()
         self.assertEqual(repr(d.decode(self.BASIC_OBJECT[1])),
                          repr(self.BASIC_OBJECT[0]))
 
@@ -88,13 +88,13 @@ class JsonUtilsTestCase(unittest.TestCase):
                          repr(self.MY_OBJECT[0]))
 
     def test_BinaryObject(self):
-        e = ReportJsonEncoder(sort_keys=True)
+        e = JsonEncoder(sort_keys=True)
         self.assertEqual(e.encode(self.BINARY_OBJECT[0]), self.BINARY_OBJECT[1])
         if six.PY3:
             self.assertEqual(e.encode(self.PLAIN_BINARY_OBJECT[0]),
                              self.PLAIN_BINARY_OBJECT[1])
 
-        d = ReportJsonDecoder()
+        d = JsonDecoder()
         self.assertEqual(d.decode(self.BINARY_OBJECT[1]), self.BINARY_OBJECT[0])
         if six.PY3:
             self.assertEqual(d.decode(self.PLAIN_BINARY_OBJECT[1]),

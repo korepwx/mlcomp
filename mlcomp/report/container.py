@@ -110,7 +110,7 @@ class Report(Group):
         save_dir : str
             The directory where to store JSON serialized file of report,
             as well as to put the resources.
-            
+
         overwrite : bool
             Whether or not to overwrite existing files at `save_dir`?
             (default is False)

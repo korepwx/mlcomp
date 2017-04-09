@@ -21,14 +21,14 @@ class Resource(ReportObject):
     ----------
     data
         Data of this resource.
-        
+
     path : str
         Save path of this resource.
 
     extension : str
         Specify file extension of this resource.
         If not specified, will be inferred from `path` and `content_type`.
-        
+
     content_type : str
         Content-type of this resource.
     """

@@ -38,7 +38,7 @@ def is_report_element(o):
 
 class HTML(ReportObject, _Element):
     """HTML element.
-    
+
     Parameters
     ----------
     html : str
@@ -72,7 +72,7 @@ class Text(ReportObject, _Element):
 
 class ParagraphText(Text):
     """Paragraph text.
-    
+
     Different from `Text`, the text of a `Paragraph` is guaranteed
     to be displayed in a dedicated paragraph.
     """
@@ -132,23 +132,23 @@ class _ResourceWithTitle(Resource):
 
 class Image(_ResourceWithTitle, _Element):
     """Image resource.
-    
+
     Parameters
     ----------
     data : bytes | PIL.Image.Image
         The binary data of the image, or a PIL image object.
         If an image object is provided, it will be encoded as PNG.
-        
+
     title : str
         Optional title of this image.
         If not specified, will use the filename, or its name as title.
-        
+
     extension : str
         The extension of the image.
-        
+
     content_type : str
         The content-type of the image.
-        
+
     **kwargs
         Other arguments passed to `Resource`.
     """
@@ -194,19 +194,19 @@ class Image(_ResourceWithTitle, _Element):
 
 class Attachment(_ResourceWithTitle, _Element):
     """Attachment resource.
-    
+
     Parameters
     ----------
     data : bytes
         Binary data of this attachment.
-    
+
     title : str
         Optional title of this attachment.
         If not specified, will use the filename, or its name as title.
-        
+
     link_only : bool
         Whether or not to show only the link of attachment?
-        
+
         By default this argument is set to False.  In such case, the
         attachment is rendered as a block.  The content of this block
         is determined by display backend.
@@ -222,15 +222,15 @@ class Attachment(_ResourceWithTitle, _Element):
 
 class TableCell(Container, _Element):
     """Table cell element.
-    
+
     Parameters
     ----------
     children
         The report objects which is contained in this table cell.
-        
+
     rowspan : int
         The rows for this cell to span.
-        
+
     colspan : int
         The columns for this cell to span.
 
@@ -246,7 +246,7 @@ class TableCell(Container, _Element):
 
 class TableRow(Container, _Element):
     """Table row element.
-    
+
     Parameters
     ----------
     cells
@@ -276,24 +276,24 @@ class TableRow(Container, _Element):
 
 class Table(ReportObject, _Element):
     """Table element.
-    
+
     Parameters
     ----------
     rows
         The row(s) of the table.
         If a nested list is provided, it will be flatten.
-        
+
     header
         Optional row(s) of the table header.
         If a nested list is provided, it will be flatten.
-        
+
     footer
         Optional row(s) of the table header.
         If a nested list is provided, it will be flatten.
-        
+
     title : str
         Optional title of the table.
-        
+
     name, name_scope : str
         Name and the name scope of this table.
     """
@@ -332,20 +332,20 @@ class Table(ReportObject, _Element):
 
 class BokehFigure(ReportObject, _Element):
     """Bokeh figure element.
-    
+
     Parameters
     ----------
     figure
         The bokeh figure object.
         Required when constructed from fresh.
-        
+
     title : str
         Optional title of this figure.
-        
+
     html : str
         The HTML source for figure containers.
         Required only if deserialized from JSON.
-        
+
     js : Resource
         The JS resource file for figure.
         Required only if deserialized from JSON.
@@ -372,7 +372,7 @@ class BokehFigure(ReportObject, _Element):
 
 class Block(Group, _Element):
     """Block element.
-    
+
     A block is a report group which is guaranteed to be placed in
     a dedicated block (even if adjacent elements are inline elements).
     """
@@ -380,14 +380,14 @@ class Block(Group, _Element):
 
 class Section(Block):
     """Section element.
-    
+
     A section is a report block with a title.
-    
+
     Parameters
     ----------
     title : str
         The title of the section.
-        
+
     children
         The report object(s) contained in this section.
 
