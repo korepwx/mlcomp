@@ -10,6 +10,7 @@ from mlcomp.persist.board.application import BoardApp, ReportApp
 from mlcomp.report.demo import demo_report
 from mlcomp.utils import TemporaryDirectory
 
+config['DEBUG'] = True
 basicConfig(level='DEBUG')
 
 
@@ -51,3 +52,4 @@ def debug_report():
 
 if __name__ == '__main__':
     debug_report()
+    # debug_board()

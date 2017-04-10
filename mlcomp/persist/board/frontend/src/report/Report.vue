@@ -11,15 +11,14 @@
       </div>
 
       <!-- the main list group -->
-      <div v-if="!errorMessage" class="main-content report">
-        {{ reportObject }}
-      </div>
+      <dispatch v-if="!errorMessage && reportFile" class="main-content report-body" :data="reportFile.data" :level="1"></dispatch>
     </div> <!-- div.main-wrapper -->
   </div> <!-- div.page-wrapper -->
 </template>
 
 <script>
   import { getReportObject } from '../lib/report.js';
+  import Dispatch from './elements/Dispatch.vue';
 
   export default {
     props: {
@@ -30,11 +29,15 @@
       }
     },
 
+    components: {
+      dispatch: Dispatch
+    },
+
     data() {
       return {
         isLoading: false,
         errorMessage: null,
-        reportObject: null,
+        reportFile: null,
       };
     },
 
@@ -63,13 +66,13 @@
         getReportObject({
           url: self.root_url + 'report.json',
           success: function (report) {
-            self.reportObject = report;
+            self.reportFile = report;
             self.errorMessage = null;
             console.log('loaded report.');
             clearLoadingFlag();
           },
           error: function (e) {
-            self.reportObject = null;
+            self.reportFile = null;
             self.errorMessage = e;
             console.log(`error when loading report: ${e}.`);
             clearLoadingFlag();
@@ -79,7 +82,3 @@
     }
   }
 </script>
-
-<style lang="scss" scoped>
-
-</style>

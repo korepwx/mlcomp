@@ -57,7 +57,9 @@ module.exports = {
   resolve: {
     extensions: ['*', '.js', '.vue'],
     modules: ['node_modules', 'src', 'themes'],
-    alias: { vue: 'vue/dist/vue.js' }
+    alias: { 
+      'vue$': 'vue/dist/vue.js'
+    }
   },
   plugins: plugins,
   module: {
@@ -69,8 +71,10 @@ module.exports = {
         include: [path.resolve(__dirname, './src')],
         options: {
           loaders: {
-            'js': 'babel-loader',
-            'scss': 'css-loader!postcss-loader!resolve-url-loader!sass-loader?sourceMap'
+            scss: 'vue-style-loader!css-loader!postcss-loader!resolve-url-loader!sass-loader?sourceMap'
+          },
+          postLoaders: {
+            html: 'babel-loader'
           }
         }
       },
