@@ -1,11 +1,11 @@
 <template>
-  <div class="report-canvasjs">
+  <figure class="report-canvasjs">
     <div class="figure-wrapper">
       <div :id="container_id">Loading, please wait ...</div>
     </div>
     <div class="clear"></div>
     <figcaption v-if="title">Figure: {{ title }}</figcaption>
-  </div>
+  </figure>
 </template>
 
 <script>
@@ -38,9 +38,9 @@
             if (!data['height']) {
               data['height'] = 300;
             }
-            $(self.$el).children('.figure-wrapper').height(data['height']);
             const chart = new CanvasJS.Chart(self.container_id, data);
             chart.render();
+            $(self.$el).children('.figure-wrapper').height(data['height']);
           } catch (e) {
             console.log(e);
             $(self.$el).html('Failed to render figure: ' + e);
@@ -60,6 +60,8 @@
 </script>
 
 <style lang="scss" scoped>
+  @import './settings.scss';
+
   .report-canvasjs {
     .figure-wrapper {
       width: 100%;
@@ -73,7 +75,7 @@
     }
 
     width: 100%;
-    max-width: 600px;
+    max-width: $figure-max-width;
     display: block;
   }
 </style>

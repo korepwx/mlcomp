@@ -31,6 +31,8 @@
 </script>
 
 <style lang="scss" scoped>
+  @import './settings.scss';
+
   .report-image {
     img {
       width: 100%;
@@ -41,7 +43,7 @@
     }
 
     width: 100%;
-    max-width: 600px;
+    max-width: $figure-max-width;
     display: block;
   }
 </style>
