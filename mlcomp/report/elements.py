@@ -22,7 +22,7 @@ __all__ = [
     'Image', 'Attachment',
     'TableCell', 'TableRow', 'Table',
     'Block', 'Section',
-    'DynamicContent',
+    'DynamicContent', 'CanvasJS',
 ]
 
 
@@ -399,7 +399,7 @@ class DynamicContent(ReportObject, _Element):
         'var el=document.getElementById("%(el)s");'
         'var data=el.getAttribute("dynamic-content-data");'
         'try{(function($,$el,$data){%(script)s})(window.jQuery,el,data);}'
-        'catch(e){el.innerHTML="Failed to execute script: "+e.statusText;}'
+        'catch(e){el.innerHTML="Failed to execute script: "+e;}'
         '})();'
     )
 
@@ -430,3 +430,33 @@ class DynamicContent(ReportObject, _Element):
         self.script = script
         self.data = data
         super(DynamicContent, self).__init__(**kwargs)
+
+
+class CanvasJS(ReportObject, _Element):
+    """CanvasJS figure element.
+    
+    Parameters
+    ----------
+    data : dict
+        The chart data as JSON serializable dict.
+        
+    title : str
+        Optional title of this figure.
+        
+    **kwargs
+        Other arguments passed to `ReportObject`.
+    """
+
+    def __init__(self, data, title=None, container_id=None, **kwargs):
+        if container_id is None:
+            container_id = str(uuid.uuid4())
+
+        if not isinstance(data, Resource):
+            data = json.dumps(data, cls=JsonEncoder)
+            data = data.encode('utf-8')
+            data = Resource(data, extension='.json', name='Data')
+
+        self.data = data
+        self.title = title
+        self.container_id = container_id
+        super(CanvasJS, self).__init__(**kwargs)

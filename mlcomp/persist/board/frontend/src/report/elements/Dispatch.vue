@@ -14,6 +14,7 @@
     <r-attachment v-if="typeName === 'Attachment'" :data="data"></r-attachment>
 
     <r-dynamic-content v-if="typeName === 'DynamicContent'" :data="data"></r-dynamic-content>
+    <r-canvas-js v-if="typeName === 'CanvasJS'" :data="data"></r-canvas-js>
 
     <r-container v-if="!isKnownElement(typeName) && data['children']" :data="data" :level="level"></r-container>
   </div>
@@ -25,7 +26,7 @@
     'Text', 'ParagraphText', 'HTML', 'LineBreak',
     'InlineMath', 'BlockMath',
     'Image', 'Attachment',
-    'DynamicContent',
+    'DynamicContent', 'CanvasJS',
   ];
 
   export default {
@@ -37,6 +38,7 @@
       this.$options.components.RImage = require('./Image.vue');
       this.$options.components.RAttachment = require('./Attachment.vue');
       this.$options.components.RDynamicContent = require('./DynamicContent.vue');
+      this.$options.components.RCanvasJs = require('./CanvasJS.vue');
       this.$options.components.RContainer = require('./Container.vue');
     },
 

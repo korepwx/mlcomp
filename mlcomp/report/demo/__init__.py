@@ -117,6 +117,22 @@ def demo_report():
                     script='setTimeout(function(){$($el).html($data);}, 3000);',
                     data='hello, dynamic element!'
                 )
+            ),
+            Section(
+                title='CanvasJS Figure',
+                children=CanvasJS(title='Figure Caption', data={
+                    'title': {
+                        'text': 'Columns Figure',
+                    },
+                    'data': [{
+                        'type': 'column',
+                        'dataPoints': [
+                            {'label': 'a', 'y': 1},
+                            {'label': 'b', 'y': 3},
+                            {'label': 'c', 'y': 2},
+                        ]
+                    }]
+                })
             )
         ]
     ))
