@@ -12,7 +12,6 @@
 
     <r-image v-if="typeName === 'Image'" :data="data"></r-image>
     <r-attachment v-if="typeName === 'Attachment'" :data="data"></r-attachment>
-    <r-bokeh-figure v-if="typeName === 'BokehFigure'" :data="data"></r-bokeh-figure>
 
     <r-container v-if="!isKnownElement(typeName) && data['children']" :data="data" :level="level"></r-container>
   </div>
@@ -23,7 +22,7 @@
     'Section',
     'Text', 'ParagraphText', 'HTML', 'LineBreak',
     'InlineMath', 'BlockMath',
-    'Image', 'Attachment', 'BokehFigure',
+    'Image', 'Attachment',
   ];
 
   export default {
@@ -34,7 +33,6 @@
       this.$options.components.RMath = require('./Math.vue');
       this.$options.components.RImage = require('./Image.vue');
       this.$options.components.RAttachment = require('./Attachment.vue');
-      this.$options.components.RBokehFigure = require('./BokehFigure.vue');
       this.$options.components.RContainer = require('./Container.vue');
     },
 

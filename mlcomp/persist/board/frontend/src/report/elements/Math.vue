@@ -3,6 +3,8 @@
 </template>
 
 <script>
+  import katex from 'katex';
+
   export default {
     props: ['latex', 'inline'],
 

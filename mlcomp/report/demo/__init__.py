@@ -114,13 +114,4 @@ def demo_report():
             ])
         ]
     ))
-    r.add(Section(
-        title='Bokeh Figures',
-        children=[
-            BokehFigure(
-                bokeh_figure(),
-                title='Circles Figure',
-            )
-        ]
-    ))
     return r

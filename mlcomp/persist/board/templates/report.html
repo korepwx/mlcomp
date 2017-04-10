@@ -3,15 +3,9 @@
 {% block subtitle %}Report{% endblock %}
 
 {% block stylesheets %}
-  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bokeh/bokeh-0.12.5.min.css') }}" />
-  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bokeh/bokeh-widgets-0.12.5.min.css') }}" />
-  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='katex/katex.min.css') }}" />
   <link rel="stylesheet" type="text/css" href="{{ asset_url_for('report/css') }}" />
 {% endblock %}
 
 {% block scripts %}
-  <script type="text/javascript" src="{{ url_for('static', filename='bokeh/bokeh-0.12.5.min.js') }}"></script>
-  <script type="text/javascript" src="{{ url_for('static', filename='bokeh/bokeh-widgets-0.12.5.min.js') }}"></script>
-  <script type="text/javascript" src="{{ url_for('static', filename='katex/katex.min.js') }}"></script>
   <script type="text/javascript" src="{{ asset_url_for('report/js') }}"></script>
 {% endblock %}

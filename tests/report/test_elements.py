@@ -1,13 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import json
-import os
 import unittest
 from io import BytesIO
 
 from magic import Magic
 from PIL import Image as PILImage
-from bokeh.plotting import figure
 
 from mlcomp.report import ReportSaver, Report
 from mlcomp.report.elements import *
@@ -22,7 +19,6 @@ class ElementsTestCase(unittest.TestCase):
             HTML, Text, ParagraphText, LineBreak, InlineMath, BlockMath,
             Image, Attachment,
             TableCell, TableRow, Table,
-            BokehFigure,
             Block, Section,
         ]
         for cls in element_classes:
@@ -222,31 +218,6 @@ class ElementsTestCase(unittest.TestCase):
             repr(Report.from_json(r.to_json(sort_keys=True))),
             repr(r)
         )
-
-    def test_BokehFigure(self):
-        self.maxDiff = None
-        p = figure(plot_width=400, plot_height=400)
-        p.circle([1, 2, 3, 4, 5], [6, 7, 2, 4, 5], size=20, color="navy",
-                 alpha=0.5)
-
-        # test construct the figure object
-        r = BokehFigure(p, title='Circle Figure', name='Circles')
-        self.assertTrue(is_report_element(r))
-        self.assertEqual(r.js.content_type, 'application/javascript')
-        self.assertEqual(r.js.extension, '.js')
-
-        with TemporaryDirectory() as tempdir:
-            html_source = json.dumps(r.html)
-            ReportSaver(tempdir).save(r)
-            self.assertEqual(
-                r.to_json(sort_keys=True),
-                '{"__id__": 0, "__type__": "BokehFigure", "html": %s, "js": {"__id__": 1, "__type__": "Resource", "extension": ".js", "name": "PlotData", "name_scope": "circles/plotdata", "path": "res/circles/plotdata.js"}, "name": "Circles", "name_scope": "circles", "title": "Circle Figure"}' % (html_source,)
-            )
-            with open(os.path.join(tempdir, r.js.path), 'rb') as f:
-                self.assertEqual(f.read(), r.js.data)
-
-            r2 = ReportSaver(tempdir).load()
-            self.assertEqual(repr(r2), repr(r))
 
     def test_Block(self):
         r = Block([Text('text')], name='Block element')

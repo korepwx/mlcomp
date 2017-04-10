@@ -19,7 +19,6 @@ __all__ = [
     'HTML', 'Text', 'ParagraphText', 'LineBreak', 'InlineMath', 'BlockMath',
     'Image', 'Attachment',
     'TableCell', 'TableRow', 'Table',
-    'BokehFigure',
     'Block', 'Section',
 ]
 
@@ -328,46 +327,6 @@ class Table(ReportObject, _Element):
         if self.footer:
             ret.extend(self.footer)
         return ret
-
-
-class BokehFigure(ReportObject, _Element):
-    """Bokeh figure element.
-
-    Parameters
-    ----------
-    figure
-        The bokeh figure object.
-        Required when constructed from fresh.
-
-    title : str
-        Optional title of this figure.
-
-    html : str
-        The HTML source for figure containers.
-        Required only if deserialized from JSON.
-
-    js : Resource
-        The JS resource file for figure.
-        Required only if deserialized from JSON.
-
-    **kwargs
-        Other arguments passed to `ReportObject`.
-    """
-
-    def __init__(self, figure=None, title=None, html=None, js=None, **kwargs):
-        if figure is None:
-            if html is None or js is None:
-                raise ValueError('`html` and `js` are required if `figure` '
-                                 'is not specified.')
-        else:
-            from bokeh.embed import components
-            js, html = components(figure, wrap_script=False)
-            js = Resource(js.encode('utf-8'), extension='.js', name='PlotData')
-
-        self.title = title
-        self.html = html
-        self.js = js
-        super(BokehFigure, self).__init__(**kwargs)
 
 
 class Block(Group, _Element):
