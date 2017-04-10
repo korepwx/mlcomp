@@ -46,15 +46,6 @@ def source_code():
         return f.read()
 
 
-def bokeh_figure():
-    """Get a Bokeh figure for demonstration."""
-    from bokeh.plotting import figure
-    p = figure(responsive=True, height=300)
-    p.circle([1, 2, 3, 4, 5], [6, 7, 2, 4, 5], size=20, color="navy",
-             alpha=0.5)
-    return p
-
-
 def demo_report():
     """Create a report object with demonstration contents."""
     r = Report(title='Demontration Report')
@@ -112,6 +103,21 @@ def demo_report():
                     link_only=True,
                 )
             ])
+        ]
+    ))
+    r.add(Section(
+        title='Dynamic Elements',
+        children=[
+            ParagraphText('In this section we will demonstrate various '
+                          'dynamic elements.'),
+            Section(
+                title='Basic Dynamic Element',
+                children=DynamicContent(
+                    html='<p>Loading, please wait for 3 seconds ...</p>',
+                    script='setTimeout(function(){$($el).html($data);}, 3000);',
+                    data='hello, dynamic element!'
+                )
+            )
         ]
     ))
     return r

@@ -13,6 +13,8 @@
     <r-image v-if="typeName === 'Image'" :data="data"></r-image>
     <r-attachment v-if="typeName === 'Attachment'" :data="data"></r-attachment>
 
+    <r-dynamic-content v-if="typeName === 'DynamicContent'" :data="data"></r-dynamic-content>
+
     <r-container v-if="!isKnownElement(typeName) && data['children']" :data="data" :level="level"></r-container>
   </div>
 </template>
@@ -23,6 +25,7 @@
     'Text', 'ParagraphText', 'HTML', 'LineBreak',
     'InlineMath', 'BlockMath',
     'Image', 'Attachment',
+    'DynamicContent',
   ];
 
   export default {
@@ -33,6 +36,7 @@
       this.$options.components.RMath = require('./Math.vue');
       this.$options.components.RImage = require('./Image.vue');
       this.$options.components.RAttachment = require('./Attachment.vue');
+      this.$options.components.RDynamicContent = require('./DynamicContent.vue');
       this.$options.components.RContainer = require('./Container.vue');
     },
 

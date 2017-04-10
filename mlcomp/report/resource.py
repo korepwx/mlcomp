@@ -97,11 +97,12 @@ class Resource(ReportObject):
     def save_resources(self, rm):
         if not self.has_loaded:
             raise RuntimeError('`data` has not been loaded.')
-        self.path = rm.save(
-            data=self._data,
-            name_scope=self.name_scope,
-            extension=self.extension,
-        )
+        if not rm.has_saved(self.name_scope):
+            self.path = rm.save(
+                data=self._data,
+                name_scope=self.name_scope,
+                extension=self.extension,
+            )
 
     def load_resources(self, rm):
         if not self.has_loaded and self.has_saved:
@@ -128,9 +129,24 @@ class ResourceManager(object):
             rel_path += '/'
         self.save_dir = os.path.abspath(save_dir)
         self.rel_path = rel_path
+        self._saved = {}
 
     def __repr__(self):
         return 'ResourceManager(%r)' % (self.save_dir,)
+
+    def clear_saved(self):
+        """Clear the dict of saved resources."""
+        self._saved.clear()
+
+    def has_saved(self, name_scope):
+        """Check whether or not the resource at `name_scope` has been saved.
+        
+        Parameters
+        ----------
+        name_scope : str
+            The name scope of the resource.
+        """
+        return name_scope in self._saved
 
     def save(self, data, name_scope, extension):
         """Save `data` at specified `name_scope`.
@@ -153,10 +169,9 @@ class ResourceManager(object):
         """
         if not isinstance(data, six.binary_type):
             raise TypeError('`data` must be binary object.')
-        name_scope = name_scope.strip('/')
-        if not name_scope:
-            raise ValueError('`name_scope` must be a non-empty path.')
-        path = name_scope
+        path = name_scope.strip('/')
+        if not path:
+            raise ValueError('`name_scope` must not be empty.')
         if extension:
             path += extension
 
@@ -166,7 +181,9 @@ class ResourceManager(object):
 
         with open(file_path, 'wb') as f:
             f.write(data)
-        return self.rel_path + path
+
+        self._saved[name_scope] = self.rel_path + path
+        return self._saved[name_scope]
 
     def load(self, path):
         """Load data at specified save `path`.

@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 """Various types of basic report elements."""
+import json
+import uuid
 from io import BytesIO
 
 import six
 
-from mlcomp.utils import flatten_list
+from mlcomp.utils import flatten_list, JsonEncoder
 from .base import ReportObject
 from .container import Container, Group
 from .resource import Resource
@@ -20,6 +22,7 @@ __all__ = [
     'Image', 'Attachment',
     'TableCell', 'TableRow', 'Table',
     'Block', 'Section',
+    'DynamicContent',
 ]
 
 
@@ -357,3 +360,73 @@ class Section(Block):
     def __init__(self, title, children=None, **kwargs):
         super(Section, self).__init__(children=children, **kwargs)
         self.title = title
+
+
+class DynamicContent(ReportObject, _Element):
+    """Dynamic content element.
+    
+    Sometimes it is needed to generate dynamic contents via JavaScript.
+    And when large amount of data is required for generating the content,
+    it is an ideal practice to store the data as JSON resource file.
+    `DynamicContent` provide such a framework to do so.
+     
+    Parameters
+    ----------
+    html : str
+        The HTML content, as the basic skeleton of the element.
+        
+        All these HTML code will be wrapped in an inline DIV with
+        a unique ID as soon as the report is rendered.
+        
+    script : str
+        The JavaScript to render the dynamic content.
+
+        It will be wrapped in a function, with the wrapper DIV as the
+        first argument named `$el`, and loaded data as the second
+        named `$data`.  In addition to these two arguments, it is
+        guaranteed that the jQuery selector `$` is available.
+
+    data : any
+        Additional JSON data which should be loaded before rendering.
+        It must be serializable via `mlcomp.utils.JsonEncoder`.
+
+    **kwargs
+        Other arguments passed to `ReportObject`.
+    """
+
+    _SCRIPT = (
+        '(function(){'
+        'var el=document.getElementById("%(el)s");'
+        'var data=el.getAttribute("dynamic-content-data");'
+        'try{(function($,$el,$data){%(script)s})(window.jQuery,el,data);}'
+        'catch(e){el.innerHTML="Failed to execute script: "+e.statusText;}'
+        '})();'
+    )
+
+    def __init__(self, html=None, script=None, data=None, element_id=None,
+                 **kwargs):
+        if not html and not script:
+            raise ValueError(
+                'At least one of `html`, `scrpit` should be specified.')
+
+        if element_id is None:
+            element_id = str(uuid.uuid4())
+
+        if script is not None and not isinstance(script, Resource):
+            if isinstance(script, six.text_type):
+                script = self._SCRIPT % {'el': element_id, 'script': script}
+                script = Resource(script.encode('utf-8'), extension='.js',
+                                  name='Script')
+            else:
+                raise TypeError('`script` must be string type.')
+
+        if data is not None and not isinstance(data, Resource):
+            data = json.dumps(data, cls=JsonEncoder)
+            data = data.encode('utf-8')
+            data = Resource(data, extension='.json', name='Data')
+
+        self.html = html
+        self.element_id = element_id
+        self.script = script
+        self.data = data
+        super(DynamicContent, self).__init__(**kwargs)

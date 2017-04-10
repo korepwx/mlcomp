@@ -1,5 +1,4 @@
 # Anaconda Supported Packages
-bokeh == 0.12.5
 click >= 6.6
 filelock >= 2.0
 numpy >= 1.11

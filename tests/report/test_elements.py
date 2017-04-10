@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import codecs
 import unittest
 from io import BytesIO
 
@@ -20,6 +21,7 @@ class ElementsTestCase(unittest.TestCase):
             Image, Attachment,
             TableCell, TableRow, Table,
             Block, Section,
+            DynamicContent,
         ]
         for cls in element_classes:
             self.assertTrue(is_report_element(cls))
@@ -240,6 +242,48 @@ class ElementsTestCase(unittest.TestCase):
             repr(Report.from_json(r.to_json(sort_keys=True))),
             repr(r)
         )
+
+    def test_DynamicContent(self):
+        self.maxDiff = None
+        with self.assertRaises(ValueError):
+            DynamicContent()
+
+        with TemporaryDirectory() as tempdir:
+            # test HTML only element
+            r = DynamicContent('HTML only')
+            ReportSaver(tempdir + '/1').save(r)
+            self.assertTrue(is_report_element(r))
+            self.assertEqual(
+                r.to_json(sort_keys=True),
+                '{"__id__": 0, "__type__": "DynamicContent", "element_id": "%s", "html": "HTML only", "name_scope": "dynamic_content"}' % (r.element_id,)
+            )
+
+            # test JavaScript only element
+            r = DynamicContent(script='alert($data);')
+            ReportSaver(tempdir + '/2').save(r)
+            self.assertTrue(is_report_element(r))
+            self.assertEqual(
+                r.to_json(sort_keys=True),
+                '{"__id__": 0, "__type__": "DynamicContent", "element_id": "%s", "name_scope": "dynamic_content", "script": {"__id__": 1, "__type__": "Resource", "extension": ".js", "name": "Script", "name_scope": "dynamic_content/script", "path": "res/dynamic_content/script.js"}}' % (r.element_id,)
+            )
+
+            # test HTML, JavaScript and data
+            r = DynamicContent(html='html content', script='alert($data);',
+                               data=[1, 2, 3])
+            ReportSaver(tempdir + '/3').save(r)
+            self.assertTrue(is_report_element(r))
+            self.assertEqual(
+                r.to_json(sort_keys=True),
+                '{"__id__": 0, "__type__": "DynamicContent", "data": {"__id__": 1, "__type__": "Resource", "extension": ".json", "name": "Data", "name_scope": "dynamic_content/data", "path": "res/dynamic_content/data.json"}, "element_id": "%s", "html": "html content", "name_scope": "dynamic_content", "script": {"__id__": 2, "__type__": "Resource", "extension": ".js", "name": "Script", "name_scope": "dynamic_content/script", "path": "res/dynamic_content/script.js"}}' % (r.element_id,)
+            )
+            with codecs.open(tempdir + '/3/res/dynamic_content/script.js') as f:
+                self.assertEqual(
+                    f.read(),
+                    '(function(){var el=document.getElementById("%s");var data=el.getAttribute("dynamic-content-data");try{(function($,$el,$data){alert($data);})(window.jQuery,el,data);}catch(e){el.innerHTML="Failed to execute script: "+e.statusText;}})();' % (r.element_id,)
+                )
+            with codecs.open(tempdir + '/3/res/dynamic_content/data.json') as f:
+                self.assertEqual(f.read(), '[1, 2, 3]')
+
 
 if __name__ == '__main__':
     unittest.main()
