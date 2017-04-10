@@ -1,6 +1,7 @@
 <template>
   <div class="report-dispatch">
     <r-section v-if="typeName === 'Section'" :data="data" :level="level"></r-section>
+    <r-table v-if="typeName === 'Table'" :data="data" :level="level"></r-table>
 
     <span v-if="typeName === 'Text'">{{ data['text'] }}</span>
     <p v-if="typeName === 'ParagraphText'">{{ data['text'] }}</p>
@@ -16,13 +17,14 @@
     <r-dynamic-content v-if="typeName === 'DynamicContent'" :data="data"></r-dynamic-content>
     <r-canvas-js v-if="typeName === 'CanvasJS'" :data="data"></r-canvas-js>
 
-    <r-container v-if="!isKnownElement(typeName) && data['children']" :data="data" :level="level"></r-container>
+    <r-container v-if="!isKnownElement(typeName) && data['children']" :data="data" :level="level" :inline="inline">
+    </r-container>
   </div>
 </template>
 
 <script>
   const knownElements = [
-    'Section',
+    'Section', 'Table',
     'Text', 'ParagraphText', 'HTML', 'LineBreak',
     'InlineMath', 'BlockMath',
     'Image', 'Attachment',
@@ -30,10 +32,11 @@
   ];
 
   export default {
-    props: ['data', 'level'],
+    props: ['data', 'level', 'inline'],
 
     beforeCreate() {
       this.$options.components.RSection = require('./Section.vue');
+      this.$options.components.RTable = require('./Table.vue');
       this.$options.components.RMath = require('./Math.vue');
       this.$options.components.RImage = require('./Image.vue');
       this.$options.components.RAttachment = require('./Attachment.vue');

@@ -46,6 +46,46 @@ def source_code():
         return f.read()
 
 
+def make_table():
+    """Make a demonstration table."""
+    return Table(
+        rows=[
+            TableRow([
+                TableCell(Text('1')),
+                TableCell(Text('2')),
+                TableCell(Text('3')),
+                TableCell(Text('4')),
+            ]),
+            TableRow([
+                TableCell(Text('5')),
+                TableCell(Text('6')),
+                TableCell(Text('7')),
+                TableCell(Text('8')),
+            ])
+        ],
+        header=[
+            TableRow([
+                TableCell(Text('a'), rowspan=2),
+                TableCell(Text('b'), colspan=3),
+            ]),
+            TableRow([
+                TableCell(Text('c')),
+                TableCell(Text('d')),
+                TableCell(Text('e')),
+            ])
+        ],
+        footer=[
+            TableRow([
+                TableCell(Text('w')),
+                TableCell(Text('x')),
+                TableCell(Text('y')),
+                TableCell(Text('z')),
+            ])
+        ],
+        title='Demo Table'
+    )
+
+
 def demo_report():
     """Create a report object with demonstration contents."""
     r = Report(title='Demontration Report')
@@ -77,18 +117,27 @@ def demo_report():
                     ParagraphText('Above HTML block will be repeated below.'),
                     html_block,
                 ]
+            ),
+            Section(
+                title='Structured Elements',
+                children=[
+                    make_table()
+                ]
             )
         ]
     ))
+    mandelbrot_image = mandelbrot()
     r.add(Section(
         title='Resource Elements',
         children=[
             ParagraphText('In this section we will demonstrate report '
                           'elements with resources.'),
             Image(
-                mandelbrot(),
+                mandelbrot_image,
                 title='Mandelbrot Set',
             ),
+            ParagraphText('And image without title:'),
+            Image(mandelbrot_image),
             Attachment(
                 source_code(),
                 title='Script Source Code',
@@ -105,35 +154,40 @@ def demo_report():
             ])
         ]
     ))
+    chart_data = {
+        'title': {
+            'text': 'Columns Figure',
+        },
+        'data': [{
+            'type': 'column',
+            'dataPoints': [
+                {'label': 'a', 'y': 1},
+                {'label': 'b', 'y': 3},
+                {'label': 'c', 'y': 2},
+            ]
+        }]
+    }
     r.add(Section(
-        title='Dynamic Elements',
+        title='JavaScript Elements',
         children=[
             ParagraphText('In this section we will demonstrate various '
-                          'dynamic elements.'),
+                          'JavaScript enabled elements.'),
             Section(
-                title='Basic Dynamic Element',
+                title='CanvasJS Figure',
+                children=[
+                    CanvasJS(title='Figure Caption', data=chart_data),
+                    ParagraphText('And chart without title:'),
+                    CanvasJS(data=chart_data)
+                ]
+            ),
+            Section(
+                title='Dynamic Element',
                 children=DynamicContent(
                     html='<p>Loading, please wait for 3 seconds ...</p>',
                     script='setTimeout(function(){$($el).html($data);}, 3000);',
                     data='hello, dynamic element!'
                 )
             ),
-            Section(
-                title='CanvasJS Figure',
-                children=CanvasJS(title='Figure Caption', data={
-                    'title': {
-                        'text': 'Columns Figure',
-                    },
-                    'data': [{
-                        'type': 'column',
-                        'dataPoints': [
-                            {'label': 'a', 'y': 1},
-                            {'label': 'b', 'y': 3},
-                            {'label': 'c', 'y': 2},
-                        ]
-                    }]
-                })
-            )
         ]
     ))
     return r

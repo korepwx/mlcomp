@@ -1,11 +1,17 @@
 <template>
-  <figure class="report-canvasjs">
-    <div class="figure-wrapper">
-      <div :id="container_id">Loading, please wait ...</div>
+  <div class="figure-wrapper">
+    <figure class="report-canvasjs" v-if="title">
+      <div class="figure-container">
+        <div :id="container_id">Loading, please wait ...</div>
+      </div>
+      <figcaption>Figure: {{ title }}</figcaption>
+    </figure>
+    <div class="report-canvasjs" v-if="!title">
+      <div class="figure-container">
+        <div :id="container_id">Loading, please wait ...</div>
+      </div>
     </div>
-    <div class="clear"></div>
-    <figcaption v-if="title">Figure: {{ title }}</figcaption>
-  </figure>
+  </div>
 </template>
 
 <script>
@@ -40,7 +46,7 @@
             }
             const chart = new CanvasJS.Chart(self.container_id, data);
             chart.render();
-            $(self.$el).children('.figure-wrapper').height(data['height']);
+            $('#' + self.container_id).parent().height(data['height']);
           } catch (e) {
             console.log(e);
             $(self.$el).html('Failed to render figure: ' + e);
@@ -62,20 +68,30 @@
 <style lang="scss" scoped>
   @import './settings.scss';
 
+  .figure-wrapper {
+    display: inline;
+  }
+
+  // apply to both situations
   .report-canvasjs {
-    .figure-wrapper {
+    display: block;
+    width: 100%;
+    max-width: $figure-max-width;
+    border: 1px solid #ccc;
+    border-radius: 2px;
+    padding: 2px;
+    margin: 1em 0;
+
+    .figure-container {
       width: 100%;
     }
-    .clear {
-      clear: both;
-    }
+  }
+
+  // apply only if the image is wrapped in figure
+  .report-canvasjs {
     figcaption {
       width: 100%;
       text-align: center;
     }
-
-    width: 100%;
-    max-width: $figure-max-width;
-    display: block;
   }
 </style>

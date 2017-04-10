@@ -1,8 +1,11 @@
 <template>
-  <figure class="report-image">
-    <img :src="url" :alt="url" :title="title" />
-    <figcaption v-if="title">Figure: {{ title }}</figcaption>
-  </figure>
+  <div class="image-wrapper">
+    <figure class="report-image" v-if="title">
+      <img :src="url" :alt="url" :title="title" />
+      <figcaption>Figure: {{ title }}</figcaption>
+    </figure>
+    <img v-if="!title" class="report-image" :src="url" :alt="url" />
+  </div>
 </template>
 
 <script>
@@ -33,17 +36,31 @@
 <style lang="scss" scoped>
   @import './settings.scss';
 
+  .image-wrapper {
+    display: inline;
+  }
+
+  // apply to both situations
+  .report-image {
+    display: block;
+    width: 100%;
+    max-width: $figure-max-width;
+    border: 1px solid #ccc;
+    border-radius: 2px;
+    padding: 2px;
+    margin: 1em 0;
+  }
+
+  // apply only if the image is wrapped in figure
   .report-image {
     img {
       width: 100%;
+      margin: 0;
+      padding: 0;
     }
     figcaption {
       width: 100%;
       text-align: center;
     }
-
-    width: 100%;
-    max-width: $figure-max-width;
-    display: block;
   }
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <div class="report-container">
+  <div class="report-container" :class="{'container-inline': inline, 'container-block': !inline}">
     <dispatch v-for="child in children" :key="child['__id__']" :data="child" :level="level"></dispatch>
   </div>
 </template>
@@ -8,7 +8,7 @@
   import Dispatch from './Dispatch.vue';
 
   export default {
-    props: ['data', 'level'],
+    props: ['data', 'level', 'inline'],
 
     components: {
       dispatch: Dispatch
@@ -27,7 +27,11 @@
 </script>
 
 <style lang="scss" scoped>
-  .report-container {
+  .container-inline {
+    display: inline;
+  }
+  .container-block {
+    display: block;
     margin: 1em 0;
   }
 </style>
