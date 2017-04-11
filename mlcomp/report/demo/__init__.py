@@ -3,8 +3,11 @@ import os
 import time
 from logging import getLogger
 
+import numpy as np
+import pandas as pd
 from PIL import Image as PILImage
 
+from ..components import dataframe_to_table
 from ..container import Report
 from ..elements import *
 
@@ -86,6 +89,19 @@ def make_table():
     )
 
 
+def make_dataframe_table():
+    """Get a table object from dataframe."""
+    arrays = [
+        ['bar', 'bar', 'baz', 'baz', 'foo', 'foo', 'qux', 'qux'],
+        ['one', 'two', 'one', 'two', 'one', 'two', 'one', 'two']
+    ]
+    tuples = list(zip(*arrays))
+    index = pd.MultiIndex.from_tuples(tuples, names=['first', 'second'])
+    df = pd.DataFrame(
+        np.arange(16).reshape([8, 2]), index=index, columns=['A', 'B'])
+    return dataframe_to_table(df, title='My Table', name='the-table')
+
+
 def demo_report():
     """Create a report object with demonstration contents."""
     r = Report(title='Demontration Report')
@@ -121,7 +137,9 @@ def demo_report():
             Section(
                 title='Structured Elements',
                 children=[
-                    make_table()
+                    make_table(),
+                    ParagraphText('The below table is created from DataFrame.'),
+                    make_dataframe_table(),
                 ]
             )
         ]
