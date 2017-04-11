@@ -7,7 +7,7 @@ import unittest
 import six
 
 from mlcomp.persist import Storage
-from mlcomp.persist.board.application import BoardApp
+from mlcomp.board.application import BoardApp
 from mlcomp.utils import TemporaryDirectory
 
 

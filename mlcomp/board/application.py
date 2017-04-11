@@ -8,11 +8,11 @@ from flask import Flask
 
 from mlcomp import __version__
 from mlcomp.utils import object_to_dict
+from mlcomp.persist.storage_tree import StorageTree, StorageTreeWatcher
 from . import config
 from .views import api_bp, main_bp, storage_bp, report_bp
 from .utils import MountTree
 from .webpack import Webpack
-from ..storage_tree import StorageTree, StorageTreeWatcher
 
 __all__ = ['BoardApp', 'ReportApp']
 

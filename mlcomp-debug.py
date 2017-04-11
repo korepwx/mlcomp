@@ -5,8 +5,8 @@ from logging import basicConfig
 import six
 
 from mlcomp.persist import Storage
-from mlcomp.persist.board import config
-from mlcomp.persist.board.application import BoardApp, ReportApp
+from mlcomp.board import config
+from mlcomp.board.application import BoardApp, ReportApp
 from mlcomp.report.demo import demo_report
 from mlcomp.utils import TemporaryDirectory
 
