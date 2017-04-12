@@ -7,7 +7,7 @@ import six
 from mlcomp.persist import Storage
 from mlcomp.board import config
 from mlcomp.board.application import BoardApp, ReportApp
-from mlcomp.report.demo import demo_report
+from mlcomp.report.demo import demo_report, Text
 from mlcomp.utils import TemporaryDirectory
 
 config['DEBUG'] = True
@@ -30,6 +30,7 @@ def debug_board():
 
         # create a demo report under 'c'
         storage_dict['c'].save_report(demo_report())
+        storage_dict['c'].save_report(Text('This is the test report.'), 'test')
 
         # construct the application
         config['DEBUG'] = True

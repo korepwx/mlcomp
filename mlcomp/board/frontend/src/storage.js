@@ -15,7 +15,7 @@ import StorageLog from './storage/StorageLog.vue';
 const routes = [
   { path: '/', component: StorageInfo },
   { path: '/report/', component: StorageReport },
-  { path: '/_logging/', component: StorageLog },
+  { path: '/logs/', component: StorageLog },
 ];
 const router = new VueRouter({
   routes,

@@ -132,7 +132,7 @@
 
         // start to load the data
         getStorageGroups({
-          endpoint: '/_api',
+          url: '/_api/all',
           success: function (groups) {
             self.storageGroups = groups;
             self.errorMessage = null;

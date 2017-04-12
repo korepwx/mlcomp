@@ -25,17 +25,17 @@
 
     <!-- the bottom navigation -->
     <mu-paper class="bottom-nav">
-      <mu-bottom-nav :value="$route.path">
-        <mu-bottom-nav-item value="/" to="/" title="Home" icon="home" exact/>
-        <mu-bottom-nav-item value="/report/" to="/report/" title="Report" icon="assignment"/>
-        <mu-bottom-nav-item value="/_logging/" to="/_logging/" title="Log" icon="access_time"/>
+      <mu-bottom-nav :value="bottom_nav_value">
+        <mu-bottom-nav-item value="/" to="/" title="Home" icon="home" exact />
+        <mu-bottom-nav-item value="/report/" to="/report/" title="Report" icon="assignment" />
+        <mu-bottom-nav-item value="/logs/" to="/logs/" title="Log" icon="access_time"/>
       </mu-bottom-nav>
     </mu-paper>
   </div> <!-- div.page-wrapper -->
 </template>
 
 <script>
-  import { getStorageInfo } from '../lib/api.js';
+  import $ from 'jquery';
 
   export default {
     data() {
@@ -57,7 +57,15 @@
           url += '/';
         }
         return url;
-      }
+      },
+
+      bottom_nav_value() {
+        let val = this.$route.path;
+        if (val.startsWith('/report/')) {
+          val = '/report/';
+        }
+        return val;
+      },
     },
 
     methods: {
@@ -78,8 +86,9 @@
         }
 
         // start to load the data
-        getStorageInfo({
-          root_url: self.root_url,
+        $.ajax({
+          url: self.root_url + 'info',
+          cache: false,
           success: function (data) {
             if (data['__type__'] !== 'StorageInfo') {
               self.storageInfo = null;
@@ -96,7 +105,7 @@
           },
           error: function (e) {
             self.storageInfo = null;
-            self.errorMessage = e;
+            self.errorMessage = e.statusText;
             console.log(`error when loading storage info: ${e}`);
             clearLoadingFlag();
           }

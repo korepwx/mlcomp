@@ -79,14 +79,14 @@ export class StorageGroup {
 /**
  * Get storage groups.
  *
- * @param endpoint The URL of the API endpoint.
+ * @param url The URL of the API endpoint.
  * @param success Callback that receives the data on success.
  * @param error Callback that receives the error message.
  * @returns A list of storage groups, sorted in reverse order of "create_time".
  */
-export function getStorageGroups({ endpoint, success, error }) {
+export function getStorageGroups({ url, success, error }) {
   $.ajax({
-    url: endpoint + '/all',
+    url: url,
     cache: false,
     success(data) {
       if (success) {
@@ -155,32 +155,3 @@ export function getStorageGroups({ endpoint, success, error }) {
     }
   });
 }
-
-/**
- * Get storage information.
- *
- * @param root_url The URL of the storage.
- * @param success
- * @param error
- */
-export function getStorageInfo({ root_url, success, error }) {
-  $.ajax({
-    url: root_url + '?res=info',
-    cache: false,
-    success(data) {
-      if (success) {
-        try {
-          success(data);
-        } catch (e) {
-          console.log(e);
-          if (error) error(e);
-        }
-      }
-    },
-    error(e) {
-      console.log(e);
-      if (error) error(e.statusText);
-    }
-  });
-}
-

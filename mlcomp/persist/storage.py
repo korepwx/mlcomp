@@ -270,7 +270,6 @@ class Storage(object):
         update_interval : float
             Number of seconds between two update of the status file.
         """
-
         self.check_write()
         filepath = self.ensure_parent_exists(STORAGE_RUNNING_STATUS)
         status = StorageRunningStatus.generate()
@@ -344,6 +343,7 @@ class Storage(object):
             raise ValueError('`dir_name` must be non-empty.')
         if '/' in dir_name or '\\' in dir_name:
             raise ValueError('`dir_name` must not contain "/" or "\\".')
+        self.check_write()
         from mlcomp.report import ReportSaver
         s = ReportSaver(self.resolve_path(STORAGE_REPORT_DIR, dir_name),
                         overwrite=overwrite)

@@ -77,31 +77,23 @@ if is_testing():
         ])
 
 
-def handle_storage_index(storage, root, path):
-    """Handle request of a storage index page."""
-    root_url = url_for('.resources', path=root)
-    if not root_url.endswith('/'):
-        root_url += '/'
-
-    if request.method == 'POST':
-        pass
-
-    elif request.method == 'GET':
-        res = request.args.get('res', None)
-        if not res:
-            return render_template('storage.html', storage=storage,
-                                   root_url=json.dumps(root_url))
-        elif res == 'info':
-            s_dict = storage.to_dict()
-            s_dict['__type__'] = 'StorageInfo'
-            s_dict['reports'] = storage.list_reports()
-            s_dict['root_url'] = root_url
-            return jsonify(s_dict)
-
+def handle_storage_index(storage, root_url, path):
+    if request.method == 'GET':
+        return render_template('storage.html', storage=storage,
+                               root_url=json.dumps(root_url))
     else:
         raise MethodNotAllowed()
 
-    raise NotFound()
+
+def handle_storage_info(storage, root_url, path):
+    if request.method == 'GET':
+        s_dict = storage.to_dict()
+        s_dict['__type__'] = 'StorageInfo'
+        s_dict['reports'] = storage.list_reports()
+        s_dict['root_url'] = root_url
+        return jsonify(s_dict)
+    else:
+        raise MethodNotAllowed()
 
 
 @storage_bp.route('/', methods=['GET', 'POST'])
@@ -109,13 +101,32 @@ def handle_storage_index(storage, root, path):
 @parse_request_storage
 def resources(storage, root, path):
     """Get resources from the storage directory."""
-    if STORAGE_INDEX_URL.match(path):
-        return handle_storage_index(storage, root, path)
+    root_url = url_for('.resources', path=root)
+    if not root_url.endswith('/'):
+        root_url += '/'
 
-    # if no route matches, send the resource for GET request
-    if request.method == 'GET':
+    # if the storage index page is requested
+    if STORAGE_INDEX_URL.match(path):
+        return handle_storage_index(storage, root_url, path)
+
+    # all of the remaining routes do not accept POST requests
+    if request.method != 'GET':
+        raise MethodNotAllowed()
+
+    # if the storage info JSON is requested
+    if path == 'info':
+        return handle_storage_info(storage, root_url, path)
+
+    # if some static resources displayed at storage index are requested
+    if path.startswith('report/') or path == 'console.log':
         return send_from_directory(storage.path, path)
 
-    raise MethodNotAllowed()
+    # if the files are requested
+    if path.startswith('files/'):
+        return send_from_directory(storage.path, path[6:])
 
-STORAGE_INDEX_URL = re.compile(r'^(/?|report/?|_logging/?)$')
+    # no route is matched
+    raise NotFound()
+
+
+STORAGE_INDEX_URL = re.compile(r'^(/?|report(/[^/]+)?/?|logs/?)$')

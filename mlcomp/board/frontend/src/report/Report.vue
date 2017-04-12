@@ -79,6 +79,13 @@
           }
         });
       }
+    },
+
+    watch: {
+      root_url(val) {
+        this.reportFile = null;
+        this.loadReportObject();
+      }
     }
   }
 </script>
