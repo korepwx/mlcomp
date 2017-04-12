@@ -10,7 +10,7 @@
 
 <script>
   export default {
-    props: ['data'],
+    props: ['root_url', 'data'],
 
     computed: {
       title() {
@@ -23,7 +23,7 @@
       },
 
       url() {
-        return this.data['path'];
+        return this.root_url + this.data['path'];
       }
     },
 

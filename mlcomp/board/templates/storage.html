@@ -1,3 +1,12 @@
 {% extends "skeleton/base.html" %}
 
 {% block subtitle %}{{ storage.name }}{% endblock %}
+
+{% block headScripts %}
+  <link rel="stylesheet" type="text/css" href="{{ asset_url_for('storage/css') }}" />
+  <script>var root_url = {{ root_url | safe }};</script>
+{% endblock %}
+
+{% block tailScripts %}
+  <script type="text/javascript" src="{{ asset_url_for('storage/js') }}"></script>
+{% endblock %}

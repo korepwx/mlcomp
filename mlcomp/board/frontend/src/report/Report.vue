@@ -11,7 +11,7 @@
       </div>
 
       <!-- the main list group -->
-      <dispatch v-if="!errorMessage && reportFile" class="main-content report-body" :data="reportFile.data" :level="1"></dispatch>
+      <dispatch v-if="!errorMessage && reportFile" class="main-content report-body" :root_url="root_url" :data="reportFile.data" :level="1"></dispatch>
     </div> <!-- div.main-wrapper -->
   </div> <!-- div.page-wrapper -->
 </template>

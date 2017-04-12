@@ -86,7 +86,7 @@ export function getReportObject({ url, success, error }) {
           success(new ReportFile(data));
         } catch (e) {
           console.log(e);
-          if (error) error(e.statusText);
+          if (error) error(e);
         }
       }
     },
@@ -94,5 +94,5 @@ export function getReportObject({ url, success, error }) {
       console.log(e);
       if (error) error(e.statusText);
     }
-  })
+  });
 }

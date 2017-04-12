@@ -42,6 +42,7 @@ class ViewsTestCase(unittest.TestCase):
 
             # test the routes
             with app.test_client() as c:
+                self.maxDiff = None
                 # test the main routes
                 rv = c.get('/_hello/')
                 self.assertEqual(rv.status_code, 200)
@@ -61,7 +62,7 @@ class ViewsTestCase(unittest.TestCase):
                 self.assertEqual(rv.status_code, 200)
                 self.assertEqual(
                     f(rv.data),
-                    'storage greeting\n%s\n' % (storage_dict['a/1'].path,)
+                    'storage greeting\n%s\n1\n' % (storage_dict['a/1'].path,)
                 )
 
                 rv = c.get('/s/1/storage.json')
@@ -72,7 +73,7 @@ class ViewsTestCase(unittest.TestCase):
                 self.assertEqual(rv.status_code, 200)
                 self.assertEqual(
                     f(rv.data),
-                    'storage greeting\n%s\n' % (storage_dict['a/2'].path,)
+                    'storage greeting\n%s\n2\n' % (storage_dict['a/2'].path,)
                 )
 
                 rv = c.get('/s/b/_greeting/')
@@ -85,7 +86,7 @@ class ViewsTestCase(unittest.TestCase):
                 self.assertEqual(rv.status_code, 200)
                 self.assertEqual(
                     f(rv.data),
-                    'storage greeting\n%s\n' % (storage_dict['b/1'].path,)
+                    'storage greeting\n%s\nb/1\n' % (storage_dict['b/1'].path,)
                 )
 
                 rv = c.get('/s/b/1/storage.json')
@@ -96,14 +97,14 @@ class ViewsTestCase(unittest.TestCase):
                 self.assertEqual(rv.status_code, 200)
                 self.assertEqual(
                     f(rv.data),
-                    'storage greeting\n%s\n' % (storage_dict['b/2'].path,)
+                    'storage greeting\n%s\nb/2\n' % (storage_dict['b/2'].path,)
                 )
 
                 rv = c.get('/s/c/_greeting/')
                 self.assertEqual(rv.status_code, 200)
                 self.assertEqual(
                     f(rv.data),
-                    'storage greeting\n%s\n' % (storage_dict['c'].path,)
+                    'storage greeting\n%s\nc\n' % (storage_dict['c'].path,)
                 )
 
                 rv = c.get('/s/c/storage.json')
@@ -128,7 +129,7 @@ class ViewsTestCase(unittest.TestCase):
                 self.assertEqual(rv.status_code, 200)
                 self.assertEqual(
                     f(rv.data),
-                    'storage greeting\n%s\n' % (s.path,)
+                    'storage greeting\n%s\n\n' % (s.path,)
                 )
 
                 rv = c.get('/s/storage.json')

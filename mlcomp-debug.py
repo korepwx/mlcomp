@@ -39,7 +39,7 @@ def debug_board():
             '/c/': os.path.join(tempdir, 'c'),
         })
 
-        with storage_dict['a/1'].with_context():
+        with storage_dict['c'].with_context():
             app.run(debug=True, use_reloader=False, port=8888)
 
 
@@ -51,5 +51,5 @@ def debug_report():
 
 
 if __name__ == '__main__':
-    debug_report()
-    # debug_board()
+    # debug_report()
+    debug_board()

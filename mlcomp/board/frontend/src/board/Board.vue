@@ -31,7 +31,7 @@
   </div> <!-- div.page-wrapper -->
 </template>
 <script>
-  import { APIClient, ALL_STATUS } from '../lib/api.js';
+  import { getStorageGroups, ALL_STATUS } from '../lib/api.js';
   import { GroupFilter } from '../lib/query.js';
   import { isDesktop } from '../lib/utils.js';
   import persist from '../lib/persist.js';
@@ -116,7 +116,6 @@
 
       loadStorageGroups() {
         const self = this;
-        const apiClient = new APIClient('/_api');
 
         // show the loading flag if the resource cannot be retrieved within half a second
         const loadingFlag = [true];
@@ -132,7 +131,8 @@
         }
 
         // start to load the data
-        apiClient.getStorageGroups({
+        getStorageGroups({
+          endpoint: '/_api',
           success: function (groups) {
             self.storageGroups = groups;
             self.errorMessage = null;

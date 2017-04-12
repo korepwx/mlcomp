@@ -1,8 +1,10 @@
 <template>
   <mu-dialog :open="!!group" :title="group ? '/' + group.path : ''" scrollable @close="handleClose">
-    <mu-list class="group-detail" v-if="group" @itemClick="handleSelectStorage">
+    <mu-list class="group-detail" v-if="group">
       <mu-list-item v-for="storage in group.items" titleClass="storage-title"
-                    :value="storage" :data="storage" :key="storage.name">
+                    :value="storage" :data="storage" :key="storage.name"
+                    :href="getStorageURL(storage)"
+      >
         <!-- storage status as left icon -->
         <mu-icon v-if="storage.is_active" value="update" slot="left"/>
         <mu-icon v-if="!storage.is_active && !storage.has_error" value="done" slot="left"/>
@@ -53,10 +55,9 @@
         this.$emit('close');
       },
 
-      handleSelectStorage(item) {
-        const storage = item.value;
+      getStorageURL(storage) {
         const path = this.group.path ? this.group.path + '/' + storage.name : storage.name;
-        this.$router.push({ path: `/s/${path}/` });
+        return `/s/${path}/`;
       }
     }
   }

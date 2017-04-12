@@ -9,19 +9,13 @@
   <title>{% block title %}{% block subtitle %}{% endblock %} - ML Board{% endblock %}</title>
 
   <!-- Stylesheets -->
-{% block stylesheets %}
-  <link rel="stylesheet" type="text/css" href="{{ asset_url_for('board/css') }}" />
-{% endblock %}
-  <script type="text/javascript">
-    var __system__ = {{ __system__.to_json() | safe }};
-  </script>
+{% block headScripts %}{% endblock %}
+  <script>var __system__ = {{ __system__.to_json() | safe }};</script>
 </head>
 <body>
   {% block body %}<div id="app"></div>{% endblock %}
 
   <!-- Tail scripts -->
-{% block scripts %}
-  <script type="text/javascript" src="{{ asset_url_for('board/js') }}"></script>
-{% endblock %}
+{% block tailScripts %}{% endblock %}
 </body>
 </html>

@@ -19,7 +19,7 @@
   const CanvasJS = require('canvasjs/dist/canvasjs.js');
 
   export default {
-    props: ['data'],
+    props: ['root_url', 'data'],
 
     computed: {
       title() {
@@ -31,7 +31,7 @@
       },
 
       data_url() {
-        return this.data['data'].path;
+        return this.root_url + this.data['data'].path;
       }
     },
 

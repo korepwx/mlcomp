@@ -76,86 +76,111 @@ export class StorageGroup {
   }
 }
 
-export class APIClient {
-  constructor(endpoint) {
-    this._endpoint = endpoint;
-  }
+/**
+ * Get storage groups.
+ *
+ * @param endpoint The URL of the API endpoint.
+ * @param success Callback that receives the data on success.
+ * @param error Callback that receives the error message.
+ * @returns A list of storage groups, sorted in reverse order of "create_time".
+ */
+export function getStorageGroups({ endpoint, success, error }) {
+  $.ajax({
+    url: endpoint + '/all',
+    cache: false,
+    success(data) {
+      if (success) {
+        try {
+          function dfs(groups, pa_path, parent) {
+            if (parent) {
+              for (const child of parent) {
+                // If the node is a directory node
+                if (Array.isArray(child[1])) {
+                  if (pa_path)
+                    pa_path += '/';
+                  dfs(groups, pa_path + child[0], child[1]);
+                }
 
-  /**
-   * Get storage groups from API backend.
-   *
-   * @param success Callback that receives the data on success.
-   * @param error Callback that receives the error message.
-   * @returns A list of storage groups, sorted in reverse order of "create_time".
-   */
-  getStorageGroups({ success, error }) {
-    $.ajax({
-      url: this._endpoint + "/all",
-      success(data) {
-        if (success) {
-          try {
-            function dfs(groups, pa_path, parent) {
-              if (parent) {
-                for (const child of parent) {
-                  // If the node is a directory node
-                  if (Array.isArray(child[1])) {
-                    if (pa_path)
-                      pa_path += '/';
-                    dfs(groups, pa_path + child[0], child[1]);
+                // Otherwise if the node is a storage node
+                else {
+                  // construct the storage object
+                  const name = child[0];
+                  const data = child[1];
+                  const storage = new Storage(pa_path, name, data);
+
+                  // add to the group, and update group properties
+                  if (!groups[pa_path]) {
+                    groups[pa_path] = new StorageGroup(pa_path);
                   }
-
-                  // Otherwise if the node is a storage node
-                  else {
-                    // construct the storage object
-                    const name = child[0];
-                    const data = child[1];
-                    const storage = new Storage(pa_path, name, data);
-
-                    // add to the group, and update group properties
-                    if (!groups[pa_path]) {
-                      groups[pa_path] = new StorageGroup(pa_path);
-                    }
-                    const group = groups[pa_path];
-                    group.push(storage);
-                  }
+                  const group = groups[pa_path];
+                  group.push(storage);
                 }
               }
-              return groups;
             }
+            return groups;
+          }
 
-            function cmp_int(x, y) {
-              return x - y;
-            }
+          function cmp_int(x, y) {
+            return x - y;
+          }
 
-            function cmp_str(x, y) {
-              return x > y ? 1 : (x < y ? -1 : 0);
-            }
+          function cmp_str(x, y) {
+            return x > y ? 1 : (x < y ? -1 : 0);
+          }
 
-            const gathered = dfs({}, '', data);
-            const groups = [];
-            for (const key of Object.keys(gathered)) {
-              groups.push(gathered[key]);
-            }
-            groups.sort(function (x, y) {
-              return (-cmp_int(x.update_time, y.update_time)) || (cmp_str(x.path, y.path));
+          const gathered = dfs({}, '', data);
+          const groups = [];
+          for (const key of Object.keys(gathered)) {
+            groups.push(gathered[key]);
+          }
+          groups.sort(function (x, y) {
+            return (-cmp_int(x.update_time, y.update_time)) || (cmp_str(x.path, y.path));
+          });
+          for (let i = 0; i < groups.length; ++i) {
+            groups[i].items.sort(function (x, y) {
+              return (-cmp_int(x.create_time, y.create_time)) || (cmp_str(x.name, y.name));
             });
-            for (let i = 0; i < groups.length; ++i) {
-              groups[i].items.sort(function (x, y) {
-                return (-cmp_int(x.create_time, y.create_time)) || (cmp_str(x.name, y.name));
-              });
-            }
-            success(groups);
+          }
+          success(groups);
 
-          } catch (e) {
-            console.log(e);
-            if (error) error(e.message);
-          } // try
-        } // if (success)
-      },
-      error(e) {
-        console.log(e);
-        if (error) error(e.statusText);
-      }
-    });
-  }
+        } catch (e) {
+          console.log(e);
+          if (error) error(e.message);
+        } // try
+      } // if (success)
+    },
+    error(e) {
+      console.log(e);
+      if (error) error(e.statusText);
+    }
+  });
 }
+
+/**
+ * Get storage information.
+ *
+ * @param root_url The URL of the storage.
+ * @param success
+ * @param error
+ */
+export function getStorageInfo({ root_url, success, error }) {
+  $.ajax({
+    url: root_url + '?res=info',
+    cache: false,
+    success(data) {
+      if (success) {
+        try {
+          success(data);
+        } catch (e) {
+          console.log(e);
+          if (error) error(e);
+        }
+      }
+    },
+    error(e) {
+      console.log(e);
+      if (error) error(e.statusText);
+    }
+  });
+}
+

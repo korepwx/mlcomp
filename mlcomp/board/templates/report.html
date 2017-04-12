@@ -2,10 +2,10 @@
 
 {% block subtitle %}Report{% endblock %}
 
-{% block stylesheets %}
+{% block headScripts %}
   <link rel="stylesheet" type="text/css" href="{{ asset_url_for('report/css') }}" />
 {% endblock %}
 
-{% block scripts %}
+{% block tailScripts %}
   <script type="text/javascript" src="{{ asset_url_for('report/js') }}"></script>
 {% endblock %}

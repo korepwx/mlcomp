@@ -8,7 +8,9 @@ from mlcomp import __version__
 from .base import ReportJsonEncoder, ReportJsonDecoder
 from .resource import ResourceManager
 
-__all__ = ['ReportSaver']
+__all__ = [
+    'ReportSaver', 'REPORT_RESOURCE_DIR', 'REPORT_JSON_FILE',
+]
 
 REPORT_RESOURCE_DIR = 'res/'
 REPORT_JSON_FILE = 'report.json'

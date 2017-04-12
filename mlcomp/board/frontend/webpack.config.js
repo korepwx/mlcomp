@@ -44,6 +44,10 @@ module.exports = {
       './sass/board.scss',
       './src/board.js'
     ],
+    storage: [
+      './sass/storage.scss',
+      './src/storage.js'
+    ],
     report: [
       './sass/report.scss',
       './src/report.js'

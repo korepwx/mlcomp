@@ -40,7 +40,10 @@ class StorageTreeTestCase(unittest.TestCase):
 
             # test find the nodes
             for name in names:
-                self.assertEqual(tree.find_storage(name), storage_dict[name])
+                self.assertEqual(
+                    tree.find_storage(name),
+                    (storage_dict[name], name)
+                )
             self.assertIsNone(tree.find_storage('0/999'))
             self.assertIsNone(tree.find_storage('999'))
             self.assertIsNone(tree.find_storage(''))
@@ -48,10 +51,10 @@ class StorageTreeTestCase(unittest.TestCase):
             # test to reload a storage
             s = Storage(os.path.join(tempdir, '0/0'), 'write')
             s.description = '0/0 description'
-            self.assertIsNone(tree.find_storage('0/0').description)
+            self.assertIsNone(tree.find_storage('0/0')[0].description)
             tree.set_reload('0/0')
-            self.assertEqual(tree.find_storage('0/0').description,
-                              '0/0 description')
+            self.assertEqual(tree.find_storage('0/0')[0].description,
+                             '0/0 description')
 
             # test to reload a renamed storage
             os.rename(

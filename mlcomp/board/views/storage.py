@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
+import json
 import os
 
+import re
 import six
-from flask import Blueprint, current_app, send_from_directory, render_template
-from werkzeug.exceptions import NotFound
+from flask import (Blueprint, current_app, send_from_directory, render_template,
+                   jsonify, request, url_for, redirect)
+from werkzeug.exceptions import NotFound, MethodNotAllowed
 
 from .utils import is_testing
 
@@ -36,15 +39,21 @@ def parse_request_storage(method):
                 path = ''
         # now we've get the path inside the tree, continue to get the storage
         tree = node.data
-        storage = tree.find_storage(path)
-        if not storage:
+        storage_and_path = tree.find_storage(path)
+        if not storage_and_path:
             raise NotFound()
+        storage, storage_path = storage_and_path
+        # get the path of the storage
+        if pop_items:
+            storage_path = '/'.join(pop_items) + '/' + storage_path
+        storage_path = storage_path.strip('/')
         # and get the path inside the storage
         path = os.path.abspath(os.path.join(tree.path, path))
         path = os.path.relpath(path, storage.path).replace('\\', '/')
         path = '/'.join(v for v in path.split('/') if v not in ('', '.'))
         # finally, call the method
         kwargs.setdefault('storage', storage)
+        kwargs.setdefault('root', storage_path)
         kwargs.setdefault('path', path)
         return method(*args, **kwargs)
     return wrapped
@@ -59,23 +68,54 @@ if is_testing():
     @storage_bp.route('/_greeting/')
     @storage_bp.route('/<path:path>/_greeting/')
     @parse_request_storage
-    def storage_greeting(storage, path):
+    def storage_greeting(storage, root, path):
         return '\n'.join([
             'storage greeting',
             storage.path,
+            root,
             path
         ])
 
 
-@storage_bp.route('/')
-@parse_request_storage
-def storage_index(storage, path=None):
-    return render_template('storage.html', storage=storage)
+def handle_storage_index(storage, root, path):
+    """Handle request of a storage index page."""
+    root_url = url_for('.resources', path=root)
+    if not root_url.endswith('/'):
+        root_url += '/'
+
+    if request.method == 'POST':
+        pass
+
+    elif request.method == 'GET':
+        res = request.args.get('res', None)
+        if not res:
+            return render_template('storage.html', storage=storage,
+                                   root_url=json.dumps(root_url))
+        elif res == 'info':
+            s_dict = storage.to_dict()
+            s_dict['__type__'] = 'StorageInfo'
+            s_dict['reports'] = storage.list_reports()
+            s_dict['root_url'] = root_url
+            return jsonify(s_dict)
+
+    else:
+        raise MethodNotAllowed()
+
+    raise NotFound()
 
 
-@storage_bp.route('/')
-@storage_bp.route('/<path:path>')
+@storage_bp.route('/', methods=['GET', 'POST'])
+@storage_bp.route('/<path:path>', methods=['GET', 'POST'])
 @parse_request_storage
-def resources(storage, path):
+def resources(storage, root, path):
     """Get resources from the storage directory."""
-    return send_from_directory(storage.path, path)
+    if STORAGE_INDEX_URL.match(path):
+        return handle_storage_index(storage, root, path)
+
+    # if no route matches, send the resource for GET request
+    if request.method == 'GET':
+        return send_from_directory(storage.path, path)
+
+    raise MethodNotAllowed()
+
+STORAGE_INDEX_URL = re.compile(r'^(/?|report/?|_logging/?)$')

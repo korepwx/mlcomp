@@ -180,20 +180,26 @@ class StorageTree(object):
 
         Returns
         -------
-        Storage
-            The storage, or None if the storage does not exist.
+        (Storage, str)
+            The storage and the path of the storage, or None if 
+            the storage does not exist.
         """
         names = re.split(r'[/\\]+', path)
+        storage_path = []
         node = self.root
         for name in filter(lambda v: v, names):
             storage = node.storage
             if storage:
-                return storage
+                return storage, '/'.join(storage_path)
             children = node.children
             if not children or name not in children:
                 return None
             node = children[name]
-        return node.storage
+            storage_path.append(name)
+
+        storage = node.storage
+        if storage is not None:
+            return storage, '/'.join(storage_path)
 
     def set_reload(self, path):
         """Set a given path to be reloaded later.

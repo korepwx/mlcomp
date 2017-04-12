@@ -15,13 +15,18 @@ from .storage_meta import StorageMeta
 from .storage_status import StorageRunningStatus
 from .utils import duplicate_console_output, BackgroundWorker
 
-__all__ = ['Storage']
+__all__ = [
+    'Storage',
+    'STORAGE_META_FILE', 'STORAGE_CONSOLE_LOG', 'STORAGE_RUNNING_STATUS',
+    'STORAGE_RUNNING_STATUS_INTERVAL', 'STORAGE_REPORT_DIR',
+]
 
 # Constants for storage classes
 STORAGE_META_FILE = 'storage.json'
 STORAGE_CONSOLE_LOG = 'console.log'
 STORAGE_RUNNING_STATUS = 'running.json'
 STORAGE_RUNNING_STATUS_INTERVAL = 2 * 60
+STORAGE_REPORT_DIR = 'report'
 
 
 def storage_property(name):
@@ -202,6 +207,7 @@ class Storage(object):
     def to_dict(self):
         """Get the information of this storage as a dict."""
         ret = copy.copy(self._meta.values)
+        ret['name'] = self.name
         if self._running_status:
             ret['running_status'] = self._running_status.to_dict()
         ret['is_active'] = self.is_active
@@ -339,6 +345,26 @@ class Storage(object):
         if '/' in dir_name or '\\' in dir_name:
             raise ValueError('`dir_name` must not contain "/" or "\\".')
         from mlcomp.report import ReportSaver
-        s = ReportSaver(self.resolve_path('report', dir_name),
+        s = ReportSaver(self.resolve_path(STORAGE_REPORT_DIR, dir_name),
                         overwrite=overwrite)
         s.save(report)
+
+    def list_reports(self):
+        """List the report directories of this storage.
+        
+        Returns
+        -------
+        list[str]
+            The report directories under "report/" of this storage.
+        """
+        from mlcomp.report import REPORT_JSON_FILE
+        report_dir = self.resolve_path(STORAGE_REPORT_DIR)
+        try:
+            ret = []
+            for fname in os.listdir(report_dir):
+                fpath = os.path.join(report_dir, fname, REPORT_JSON_FILE)
+                if os.path.isfile(fpath):
+                    ret.append(fname)
+            return ret
+        except IOError:
+            return []

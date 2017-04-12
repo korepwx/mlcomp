@@ -6,7 +6,7 @@
     <h5 v-if="level === 4" class="section-title">{{ title }}</h5>
     <h6 v-if="level >= 5" class="section-title">{{ title }}</h6>
 
-    <dispatch v-for="child in children" :key="child['name_scope']" :data="child" :level="level + 1"></dispatch>
+    <dispatch v-for="child in children" :key="child['name_scope']" :root_url="root_url" :data="child" :level="level + 1"></dispatch>
   </div>
 </template>
 
@@ -14,7 +14,7 @@
   import Dispatch from './Dispatch.vue';
 
   export default {
-    props: ['data', 'level'],
+    props: ['root_url', 'data', 'level'],
 
     components: {
       dispatch: Dispatch

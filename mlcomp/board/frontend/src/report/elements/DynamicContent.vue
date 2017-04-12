@@ -6,7 +6,7 @@
   import $ from 'jquery';
 
   export default {
-    props: ['data'],
+    props: ['root_url', 'data'],
 
     computed: {
       html() {
@@ -19,12 +19,12 @@
 
       script_url() {
         const o = this.data['script'];
-        return o && o.path;
+        return o && (this.root_url + o.path);
       },
 
       data_url() {
         const o = this.data['data'];
-        return o && o.path;
+        return o && (this.root_url + o.path);
       }
     },
 
