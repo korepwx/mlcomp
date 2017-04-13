@@ -1,30 +1,31 @@
 <template>
-  <div class="report-dynamic-content" v-html="html" :id="element_id"></div>
+  <div class="report-dynamic-content" v-html="html" :id="elementId"></div>
 </template>
 
 <script>
   import $ from 'jquery';
+  import { getJSON } from '../../lib/utils.js';
 
   export default {
-    props: ['root_url', 'data'],
+    props: ['rootUrl', 'data'],
 
     computed: {
       html() {
         return this.data['html'] || "";
       },
 
-      element_id() {
+      elementId() {
         return this.data['element_id'];
       },
 
-      script_url() {
+      scriptUrl() {
         const o = this.data['script'];
-        return o && (this.root_url + o.path);
+        return o && (this.rootUrl + o.path);
       },
 
-      data_url() {
+      dataUrl() {
         const o = this.data['data'];
-        return o && (this.root_url + o.path);
+        return o && (this.rootUrl + o.path);
       }
     },
 
@@ -32,32 +33,31 @@
       const self = this;
 
       function getData() {
-        $.ajax({
-          url: self.data_url,
+        getJSON({
+          url: self.dataUrl,
           success(data) {
-            $('#' + self.element_id).attr('dynamic-content-data', data);
+            $('#' + self.elementId).attr('dynamic-content-data', data);
             executeScript();
           },
           error(e) {
-            console.log(e);
-            $(self.$el).html('Failed to load data: ' + e.statusText);
+            $(self.$el).html('Failed to load data: ' + e);
           }
         })
       }
 
       function executeScript() {
         window.jQuery = $;
-        $.getScript(self.script_url).fail(function(jqxhr, settings, e) {
+        $.getScript(self.scriptUrl).fail(function(jqxhr, settings, e) {
           console.log(e);
           $(self.$el).html('Failed to execute script: ' + e.statusText);
         });
       }
 
-      if (self.script_url) {
-        if (self.data_url) {
+      if (self.scriptUrl) {
+        if (self.dataUrl) {
           getData();
         } else {
-          $('#' + self.element_id).attr('dynamic-content-data', null);
+          $('#' + self.elementId).attr('dynamic-content-data', null);
           executeScript();
         }
       }

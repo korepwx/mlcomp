@@ -1,6 +1,6 @@
-import $ from "jquery";
+import { getJSON } from "./utils.js";
 
-function norm_timestamp(tm) {
+function normTimestamp(tm) {
   if (tm)
     tm = Math.round(tm * 1000);
   return tm;
@@ -18,7 +18,7 @@ export class Storage {
     if (running_status) {
       for (const k of ['start_time', 'active_time']) {
         if (running_status[k]) {
-          running_status[k] = norm_timestamp(running_status[k]);
+          running_status[k] = normTimestamp(running_status[k]);
         }
       }
     }
@@ -26,8 +26,8 @@ export class Storage {
     this.name = name;
     this.description = data['description'] || '';
     this.tags = data['tags'] || [];
-    this.create_time = norm_timestamp(data['create_time'] || 0);
-    this.update_time = norm_timestamp(data['update_time'] || 0);
+    this.create_time = normTimestamp(data['create_time'] || 0);
+    this.update_time = normTimestamp(data['update_time'] || 0);
     this.running_status = running_status;
     this.is_active = !!data['is_active'];
     this.has_error = !!data['has_error'];
@@ -85,7 +85,7 @@ export class StorageGroup {
  * @returns A list of storage groups, sorted in reverse order of "create_time".
  */
 export function getStorageGroups({ url, success, error }) {
-  $.ajax({
+  getJSON({
     url: url,
     cache: false,
     success(data) {
@@ -150,8 +150,7 @@ export function getStorageGroups({ url, success, error }) {
       } // if (success)
     },
     error(e) {
-      console.log(e);
-      if (error) error(e.statusText);
+      if (error) error(e);
     }
   });
 }

@@ -1,4 +1,5 @@
 import $ from "jquery";
+import { getJSON } from "./utils";
 
 /**
  * Convert the reference in JSON to actual object.
@@ -78,22 +79,20 @@ export class ReportFile {
  * @param error Callback on error.
  */
 export function getReportObject({ url, success, error }) {
-  $.ajax({
+  getJSON({
     url: url,
-    cache: false,
     success(data) {
       if (success) {
         try {
           success(new ReportFile(data));
         } catch (e) {
           console.log(e);
-          if (error) error(e);
+          if (error) error(e.message);
         }
       }
     },
     error(e) {
-      console.log(e);
-      if (error) error(e.statusText);
+      if (error) error(e);
     }
   });
 }

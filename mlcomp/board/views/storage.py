@@ -5,7 +5,7 @@ import os
 import re
 import six
 from flask import (Blueprint, current_app, send_from_directory, render_template,
-                   jsonify, request, url_for, redirect)
+                   jsonify, request, url_for)
 from werkzeug.exceptions import NotFound, MethodNotAllowed
 
 from .utils import is_testing

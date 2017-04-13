@@ -2,13 +2,13 @@
   <div class="figure-wrapper">
     <figure class="report-canvasjs" v-if="title">
       <div class="figure-container">
-        <div :id="container_id">Loading, please wait ...</div>
+        <div :id="containerId">Loading, please wait ...</div>
       </div>
       <figcaption>Figure: {{ title }}</figcaption>
     </figure>
     <div class="report-canvasjs" v-if="!title">
       <div class="figure-container">
-        <div :id="container_id">Loading, please wait ...</div>
+        <div :id="containerId">Loading, please wait ...</div>
       </div>
     </div>
   </div>
@@ -16,47 +16,65 @@
 
 <script>
   import $ from 'jquery';
-  import CanvasJS from '../../lib/canvasjs';
+  import { getJSON } from '../../lib/utils.js';
+  import CanvasJS from '../../lib/canvasjs.js';
 
   export default {
-    props: ['root_url', 'data'],
+    props: ['rootUrl', 'data'],
 
     computed: {
       title() {
         return this.data['title'];
       },
 
-      container_id() {
+      containerId() {
         return this.data['container_id'];
       },
 
-      data_url() {
-        return this.root_url + this.data['data'].path;
+      dataUrl() {
+        return this.rootUrl + this.data['data'].path;
       }
     },
 
     mounted() {
       const self = this;
-      $.ajax({
-        url: self.data_url,
-        cache: false,
-        dataType: 'json',
-        success(data) {
+      getJSON({
+        url: self.dataUrl,
+        success(chart) {
           try {
-            if (!data['height']) {
-              data['height'] = 300;
+            // regularise the data (replace NaN with null)
+            if (chart['data']) {
+              for (const data of chart['data']) {
+                const dataPoints = data['dataPoints'];
+                if (dataPoints) {
+                  for (const dataPoint of dataPoints) {
+                    for (const key of Object.keys(dataPoint)) {
+                      const val = dataPoint[key];
+                      if (isNaN(val)) {
+                        dataPoint[key] = null;
+                      }
+                    } // for (key)
+                  } // for (dataPoint)
+                } // if (dataPoints)
+              } // for (data)
             }
-            const chart = new CanvasJS.Chart(self.container_id, data);
-            chart.render();
-            $('#' + self.container_id).parent().height(data['height']);
+
+            // set the default height for figure
+            if (!chart['height']) {
+              chart['height'] = 300;
+            }
+
+            // render the chart
+            const chartObject = new CanvasJS.Chart(self.containerId, chart);
+            chartObject.render();
+            $('#' + self.containerId).parent().height(chart['height']);
           } catch (e) {
             console.log(e);
-            $('#' + self.container_id).html('Failed to render figure: ' + e);
+            $('#' + self.containerId).html('Failed to render figure: ' + e.message);
           }
         },
         error(e) {
-          console.log(e);
-          $('#' + self.container_id).html('Failed to load data: ' + e.statusText);
+          $('#' + self.containerId).html('Failed to load data: ' + e);
         }
       });
     },

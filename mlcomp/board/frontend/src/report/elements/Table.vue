@@ -4,21 +4,21 @@
       <thead v-if="data['header']">
         <tr v-for="row in data['header']" :key="row['name_scope']">
           <th v-for="col in row['cells']" :key="col['name_scope']" :rowspan="col['rowspan']" :colspan="col['colspan']">
-            <dispatch :data="col" :root_url="root_url" :level="level" :inline="true"></dispatch>
+            <dispatch :data="col" :rootUrl="rootUrl" :level="level" :inline="true"></dispatch>
           </th>
         </tr>
       </thead>
       <tbody v-if="data['rows']">
         <tr v-for="row in data['rows']" :key="row['name_scope']">
           <td v-for="col in row['cells']" :key="col['name_scope']" :rowspan="col['rowspan']" :colspan="col['colspan']">
-            <dispatch :data="col" :root_url="root_url" :level="level" :inline="true"></dispatch>
+            <dispatch :data="col" :rootUrl="rootUrl" :level="level" :inline="true"></dispatch>
           </td>
         </tr>
       </tbody>
       <tfoot v-if="data['footer']">
         <tr v-for="row in data['footer']" :key="row['name_scope']">
           <th v-for="col in row['cells']" :key="col['name_scope']" :rowspan="col['rowspan']" :colspan="col['colspan']">
-            <dispatch :data="col" :root_url="root_url" :level="level" :inline="true"></dispatch>
+            <dispatch :data="col" :rootUrl="rootUrl" :level="level" :inline="true"></dispatch>
           </th>
         </tr>
       </tfoot>
@@ -31,7 +31,7 @@
   import Dispatch from './Dispatch.vue';
 
   export default {
-    props: ['root_url', 'data', 'level'],
+    props: ['rootUrl', 'data', 'level'],
 
     components: {
       dispatch: Dispatch
@@ -48,7 +48,7 @@
       },
 
       url() {
-        return this.root_url + this.data['path'];
+        return this.rootUrl + this.data['path'];
       }
     },
 
