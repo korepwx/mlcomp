@@ -66,5 +66,4 @@ def loss_accuracy_curve(metrics, metric_name='loss', secondary_metrics=None,
             'text': title,
             'fontSize': 24,
         }
-
     return CanvasJS(chart)
