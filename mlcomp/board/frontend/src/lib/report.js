@@ -80,6 +80,7 @@ export class ReportFile {
 export function getReportObject({ url, success, error }) {
   $.ajax({
     url: url,
+    cache: false,
     success(data) {
       if (success) {
         try {

@@ -16,7 +16,7 @@
 
 <script>
   import $ from 'jquery';
-  const CanvasJS = require('canvasjs/dist/canvasjs.js');
+  import CanvasJS from '../../lib/canvasjs';
 
   export default {
     props: ['root_url', 'data'],
@@ -39,6 +39,8 @@
       const self = this;
       $.ajax({
         url: self.data_url,
+        cache: false,
+        dataType: 'json',
         success(data) {
           try {
             if (!data['height']) {
@@ -49,12 +51,12 @@
             $('#' + self.container_id).parent().height(data['height']);
           } catch (e) {
             console.log(e);
-            $(self.$el).html('Failed to render figure: ' + e);
+            $('#' + self.container_id).html('Failed to render figure: ' + e);
           }
         },
         error(e) {
           console.log(e);
-          $(self.$el).html('Failed to load data: ' + e.statusText);
+          $('#' + self.container_id).html('Failed to load data: ' + e.statusText);
         }
       });
     },

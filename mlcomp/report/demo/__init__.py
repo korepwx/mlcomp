@@ -10,9 +10,10 @@ from PIL import Image as PILImage
 from ..components import dataframe_to_table
 from ..container import Report
 from ..elements import *
+from ..components import *
 
 __all__ = [
-    'demo_report',
+    'demo_report', 'demo_loss_accuracy_report',
 ]
 
 
@@ -209,3 +210,25 @@ def demo_report():
         ]
     ))
     return r
+
+
+def demo_loss_accuracy_report():
+    """Make a demo loss-accuracy curve figure."""
+    steps = np.arange(101)
+    loss = np.exp(-steps * 0.1) * 20. + np.random.normal(size=101) * 2.
+    loss = loss - np.min(loss) + .2
+    valid_steps = np.arange(0, 101, 10)
+    valid_loss = (np.exp(-valid_steps * 0.1) * 25. +
+                  np.random.normal(size=11) * 0.5)
+    valid_loss = valid_loss - np.min(valid_loss)
+    valid_acc = np.exp(-valid_loss)
+    return loss_accuracy_curve(
+        metrics={
+            'loss': (steps, loss),
+            'valid_loss': (valid_steps, valid_loss),
+        },
+        secondary_metrics={
+            'valid_acc': (valid_steps, valid_acc),
+        },
+        title='Training Metrics'
+    )
