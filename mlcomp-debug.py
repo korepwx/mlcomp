@@ -23,7 +23,7 @@ def debug_board():
         storage_dict = {}
         for name in ['a/1', 'a/2', 'a/b', 'b/1', 'b/2', 'c']:
             s = Storage(os.path.join(tempdir, name), mode='create')
-            if name != 'c':
+            if name != 'b/1':
                 s.description = name
                 s.tags = [name, 'hello']
             storage_dict[name] = s

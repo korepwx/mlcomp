@@ -19,9 +19,7 @@
   import $ from 'jquery';
 
   export default {
-    props: [
-      'storage', 'rootUrl',
-    ],
+    props: ['rootUrl'],
 
     data() {
       return {

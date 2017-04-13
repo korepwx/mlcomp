@@ -3,6 +3,7 @@
     <!-- the navigation bar -->
     <mu-appbar :title="storageInfo ? `Experiment “${storageInfo.name}”` : 'Experiment'" class="appbar">
       <mu-icon-button icon="arrow_back" slot="left" href="/" />
+      <mu-icon-button icon="refresh" slot="right" @click="loadStorageInfo" />
     </mu-appbar>
 
     <!-- the main content -->
@@ -16,12 +17,10 @@
       </div>
 
       <!-- the main list group -->
-      <div v-if="!errorMessage" class="storage-content storage">
-        <transition name="md-router" appear>
-          <router-view :storage="storageInfo" :rootUrl="rootUrl"
-                       @selectedReportChanged="selectedReportChanged"
-          ></router-view>
-        </transition>
+      <div v-if="!errorMessage && storageInfo" class="storage-content storage">
+        <router-view :storageInfo="storageInfo" :rootUrl="rootUrl"
+                     @selectedReportChanged="selectedReportChanged"
+        ></router-view>
       </div>
     </div> <!-- div.main-wrapper -->
 
@@ -52,6 +51,17 @@
 
     created() {
       this.loadStorageInfo();
+    },
+
+    mounted() {
+      this.reloadInterval = setInterval(
+        () => this.loadStorageInfo(),
+        60 * 1000
+      )
+    },
+
+    destroyed() {
+      clearInterval(this.reloadInterval);
     },
 
     computed: {
@@ -102,7 +112,7 @@
               window.document.title = `${data['name']} - ML Board`;
               self.storageInfo = data;
               self.errorMessage = null;
-              console.log('loaded storage info.');
+              console.log(`loaded storage info ${self.rootUrl}.`);
               clearLoadingFlag();
             }
           },

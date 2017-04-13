@@ -19,7 +19,7 @@
   import Report from '../report/Report.vue';
 
   export default {
-    props: ['storage', 'rootUrl'],
+    props: ['storageInfo', 'rootUrl'],
 
     components: {
       Report
@@ -35,7 +35,7 @@
       },
 
       reportNames() {
-        return this.storage && this.storage.reports;
+        return this.storageInfo && this.storageInfo['reports'];
       },
 
       reportUrl() {
