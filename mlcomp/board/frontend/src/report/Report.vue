@@ -46,15 +46,18 @@
 
     computed: {
       reportTitle() {
-        return (this.reportFile && this.reportFile.data && this.reportFile.data.title) || 'Report';
+        const title = this.reportFile && this.reportFile.data && this.reportFile.data.title;
+        return title || 'Report';
       }
     },
 
     mounted() {
       this.loadReportObject();
-      this.onHandleReload = () => {
-        this.reportFile = null;
-        this.loadReportObject();
+      this.onHandleReload = (autoReload) => {
+        if (!autoReload) {
+          this.reportFile = null;
+          this.loadReportObject();
+        }
       };
       eventBus.$on('handleReload', this.onHandleReload);
     },

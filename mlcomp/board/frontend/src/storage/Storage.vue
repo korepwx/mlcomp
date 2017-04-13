@@ -74,7 +74,7 @@
 
       // initialize the auto-refresh interval
       this.reloadInterval = setInterval(
-        () => this.handleReload(),
+        () => this.handleReload({ autoReload: true }),
         60 * 1000
       )
     },
@@ -166,8 +166,8 @@
         this.$router.push('/report/' + val + '/');
       },
 
-      handleReload() {
-        eventBus.$emit('handleReload');
+      handleReload({ autoReload=false }) {
+        eventBus.$emit('handleReload', autoReload);
         this.loadStorageInfo();
       }
     },

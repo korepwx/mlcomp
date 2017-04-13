@@ -69,7 +69,7 @@
 
     mounted() {
       this.loadLogs();
-      this.onHandleReload = () => this.loadLogs();
+      this.onHandleReload = (autoReload) => this.loadLogs();
       eventBus.$on('handleReload', this.onHandleReload);
     },
 
