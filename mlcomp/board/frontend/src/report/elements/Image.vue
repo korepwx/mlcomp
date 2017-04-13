@@ -34,8 +34,6 @@
 </script>
 
 <style lang="scss" scoped>
-  @import './settings.scss';
-
   .image-wrapper {
     display: inline;
   }
@@ -44,7 +42,6 @@
   .report-image {
     display: block;
     width: 100%;
-    max-width: $figure-max-width;
     border: 1px solid #ccc;
     border-radius: 2px;
     padding: 2px;

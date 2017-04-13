@@ -1,23 +1,26 @@
 <template>
-  <div id="Report" class="page-wrapper">
-    <!-- the main content -->
-    <div class="main-wrapper">
-      <!-- the loading progress -->
-      <mu-linear-progress class="loading-progress" v-if="isLoading"></mu-linear-progress>
+  <!-- the main content -->
+  <div class="main-wrapper">
+    <!-- the loading progress -->
+    <mu-linear-progress class="loading-progress" v-if="isLoading"></mu-linear-progress>
 
-      <!-- the loading error message -->
-      <div v-if="errorMessage" class="main-content error">
-        Failed to load report: {{ errorMessage }}.
-      </div>
+    <!-- the loading error message -->
+    <div v-if="errorMessage" class="main-content error">
+      Failed to load report: {{ errorMessage }}.
+      <img src='asserts/404.png'/>
+    </div>
 
-      <!-- the main list group -->
-      <dispatch v-if="!errorMessage && reportFile" class="main-content report-body" :rootUrl="rootUrl" :data="reportFile.data" :level="1"></dispatch>
-    </div> <!-- div.main-wrapper -->
-  </div> <!-- div.page-wrapper -->
+    <!-- the main report body -->
+    <div v-if="!errorMessage && reportFile" class="main-content report-body">
+      <h1>{{ reportTitle }}</h1>
+      <dispatch :rootUrl="rootUrl" :data="reportFile.data" :level="1"></dispatch>
+    </div>
+  </div> <!-- div.main-wrapper -->
 </template>
 
 <script>
   import { getReportObject } from '../lib/report.js';
+  import { eventBus } from '../lib/eventBus.js';
   import Dispatch from './elements/Dispatch.vue';
 
   export default {
@@ -41,8 +44,23 @@
       };
     },
 
-    created() {
+    computed: {
+      reportTitle() {
+        return (this.reportFile && this.reportFile.data && this.reportFile.data.title) || 'Report';
+      }
+    },
+
+    mounted() {
       this.loadReportObject();
+      this.onHandleReload = () => {
+        this.reportFile = null;
+        this.loadReportObject();
+      };
+      eventBus.$on('handleReload', this.onHandleReload);
+    },
+
+    destroyed() {
+      eventBus.$off('handleReload', this.onHandleReload);
     },
 
     methods: {
@@ -89,3 +107,11 @@
     }
   }
 </script>
+
+<style lang="scss" scoped>
+  .main-wrapper {
+    padding: 5px 10px;
+    max-width: 960px;
+    margin: auto;
+  }
+</style>

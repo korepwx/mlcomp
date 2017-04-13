@@ -59,8 +59,6 @@
 </script>
 
 <style lang="scss" scoped>
-  @import './settings.scss';
-
   .report-table {
     table {
       width: 100%;
@@ -80,7 +78,6 @@
     }
 
     width: 100%;
-    max-width: $figure-max-width;
     display: block;
   }
 </style>

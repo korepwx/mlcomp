@@ -3,8 +3,18 @@
     <!-- the navigation bar -->
     <mu-appbar :title="storageInfo ? `Experiment “${storageInfo.name}”` : 'Experiment'" class="appbar">
       <mu-icon-button icon="arrow_back" slot="left" href="/" />
-      <mu-icon-button icon="refresh" slot="right" @click="loadStorageInfo" />
+      <mu-flat-button v-if="bottomNavValue === '/report/'" :label="selectedReport" slot="right" @click="toggleSelectReport" />
+      <mu-icon-button icon="refresh" slot="right" @click="handleReload" />
     </mu-appbar>
+
+    <mu-bottom-sheet :open="selectReportOpen" @close="closeSelectReport">
+      <mu-list @itemClick="closeSelectReport" @change="changeSelectReport">
+        <mu-sub-header>
+          Select a report
+        </mu-sub-header>
+        <mu-list-item v-for="report in reportNames" :title="report" :key="report" :value="report" />
+      </mu-list>
+    </mu-bottom-sheet>
 
     <!-- the main content -->
     <div class="storage-wrapper">
@@ -18,15 +28,13 @@
 
       <!-- the main list group -->
       <div v-if="!errorMessage && storageInfo" class="storage-content storage">
-        <router-view :storageInfo="storageInfo" :rootUrl="rootUrl"
-                     @selectedReportChanged="selectedReportChanged"
-        ></router-view>
+        <router-view :storageInfo="storageInfo" :rootUrl="rootUrl"></router-view>
       </div>
     </div> <!-- div.main-wrapper -->
 
     <!-- the bottom navigation -->
     <mu-paper class="bottom-nav">
-      <mu-bottom-nav :value="bottom_nav_value">
+      <mu-bottom-nav :value="bottomNavValue">
         <mu-bottom-nav-item value="/" to="/" title="Home" icon="home" exact />
         <mu-bottom-nav-item value="/report/" :to="'/report/' + selectedReport + '/'" title="Report" icon="assignment" />
         <mu-bottom-nav-item value="/logs/" to="/logs/" title="Log" icon="access_time"/>
@@ -38,6 +46,7 @@
 <script>
   import $ from 'jquery';
   import { getJSON } from '../lib/utils.js';
+  import { eventBus } from '../lib/eventBus.js';
 
   export default {
     data() {
@@ -46,6 +55,7 @@
         storageInfo: null,
         errorMessage: null,
         selectedReport: 'default',
+        selectReportOpen: false,
       };
     },
 
@@ -54,8 +64,17 @@
     },
 
     mounted() {
+      // extract the default report name
+      let initialReport = 'default';
+      const reportMatch = this.$route.path.match(/^\/report\/([^/]+)\/?$/);
+      if (reportMatch) {
+        initialReport = reportMatch[1];
+      }
+      this.selectedReport = initialReport;
+
+      // initialize the auto-refresh interval
       this.reloadInterval = setInterval(
-        () => this.loadStorageInfo(),
+        () => this.handleReload(),
         60 * 1000
       )
     },
@@ -73,7 +92,11 @@
         return url;
       },
 
-      bottom_nav_value() {
+      reportNames() {
+        return this.storageInfo && this.storageInfo['reports'];
+      },
+
+      bottomNavValue() {
         let val = this.$route.path;
         if (val.startsWith('/report/')) {
           val = '/report/';
@@ -129,9 +152,23 @@
         this.$router.push(val);
       },
 
-      selectedReportChanged(val) {
+      closeSelectReport() {
+        this.selectReportOpen = false;
+      },
+
+      toggleSelectReport() {
+        this.selectReportOpen = !this.selectReportOpen;
+      },
+
+      changeSelectReport(val) {
+        console.log(val);
         this.selectedReport = val;
         this.$router.push('/report/' + val + '/');
+      },
+
+      handleReload() {
+        eventBus.$emit('handleReload');
+        this.loadStorageInfo();
       }
     },
   }

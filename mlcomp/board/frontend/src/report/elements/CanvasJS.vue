@@ -86,8 +86,6 @@
 </script>
 
 <style lang="scss" scoped>
-  @import './settings.scss';
-
   .figure-wrapper {
     display: inline;
   }
@@ -96,7 +94,6 @@
   .report-canvasjs {
     display: block;
     width: 100%;
-    max-width: $figure-max-width;
     border: 1px solid #ccc;
     border-radius: 2px;
     padding: 2px;

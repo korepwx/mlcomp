@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="main-wrapper">
     <!-- the loading progress -->
     <mu-linear-progress class="loading-progress" v-if="isLoading"></mu-linear-progress>
 
@@ -17,6 +17,7 @@
 
 <script>
   import $ from 'jquery';
+  import { eventBus } from '../lib/eventBus.js';
 
   export default {
     props: ['rootUrl'],
@@ -68,6 +69,28 @@
 
     mounted() {
       this.loadLogs();
+      this.onHandleReload = () => this.loadLogs();
+      eventBus.$on('handleReload', this.onHandleReload);
+    },
+
+    updated() {
+      const elem = this.$el;
+      const height = $(elem).children('.main-content').height();
+      if (height) {
+        elem.scrollTop = height;
+      }
+    },
+
+    destroyed() {
+      eventBus.$off('handleReload', this.onHandleReload);
     },
   }
 </script>
+
+<style lang="scss" scoped>
+  .main-wrapper {
+    height: 100%;
+    overflow-y: scroll;
+    padding: 5px 10px;
+  }
+</style>

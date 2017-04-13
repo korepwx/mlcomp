@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="main-wrapper">
     <mu-table :showCheckbox="false">
       <mu-tbody>
         <mu-tr>
