@@ -421,7 +421,7 @@ class DynamicContent(ReportObject, _Element):
                 raise TypeError('`script` must be string type.')
 
         if data is not None and not isinstance(data, Resource):
-            data = json.dumps(data, cls=JsonEncoder, allow_nan=False)
+            data = json.dumps(data, cls=JsonEncoder)
             data = data.encode('utf-8')
             data = Resource(data, extension='.json', name='Data')
 
@@ -452,7 +452,7 @@ class CanvasJS(ReportObject, _Element):
             container_id = str(uuid.uuid4())
 
         if not isinstance(data, Resource):
-            data = json.dumps(data, cls=JsonEncoder, allow_nan=False)
+            data = json.dumps(data, cls=JsonEncoder)
             data = data.encode('utf-8')
             data = Resource(data, extension='.json', name='Data')
 

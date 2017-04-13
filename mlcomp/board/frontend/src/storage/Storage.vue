@@ -18,7 +18,9 @@
       <!-- the main list group -->
       <div v-if="!errorMessage" class="storage-content storage">
         <transition name="md-router" appear>
-          <router-view :storage="storageInfo" :root_url="root_url"></router-view>
+          <router-view :storage="storageInfo" :rootUrl="rootUrl"
+                       @selectedReportChanged="selectedReportChanged"
+          ></router-view>
         </transition>
       </div>
     </div> <!-- div.main-wrapper -->
@@ -27,7 +29,7 @@
     <mu-paper class="bottom-nav">
       <mu-bottom-nav :value="bottom_nav_value">
         <mu-bottom-nav-item value="/" to="/" title="Home" icon="home" exact />
-        <mu-bottom-nav-item value="/report/" to="/report/" title="Report" icon="assignment" />
+        <mu-bottom-nav-item value="/report/" :to="'/report/' + selectedReport + '/'" title="Report" icon="assignment" />
         <mu-bottom-nav-item value="/logs/" to="/logs/" title="Log" icon="access_time"/>
       </mu-bottom-nav>
     </mu-paper>
@@ -36,6 +38,7 @@
 
 <script>
   import $ from 'jquery';
+  import { getJSON } from '../lib/utils.js';
 
   export default {
     data() {
@@ -43,6 +46,7 @@
         isLoading: false,
         storageInfo: null,
         errorMessage: null,
+        selectedReport: 'default',
       };
     },
 
@@ -51,7 +55,7 @@
     },
 
     computed: {
-      root_url() {
+      rootUrl() {
         let url = window.root_url;
         if (!url.endsWith('/')) {
           url += '/';
@@ -86,9 +90,8 @@
         }
 
         // start to load the data
-        $.ajax({
-          url: self.root_url + 'info',
-          cache: false,
+        getJSON({
+          url: self.rootUrl + 'info',
           success: function (data) {
             if (data['__type__'] !== 'StorageInfo') {
               self.storageInfo = null;
@@ -105,7 +108,7 @@
           },
           error: function (e) {
             self.storageInfo = null;
-            self.errorMessage = e.statusText;
+            self.errorMessage = e;
             console.log(`error when loading storage info: ${e}`);
             clearLoadingFlag();
           }
@@ -114,6 +117,11 @@
 
       handleNavChange(val) {
         this.$router.push(val);
+      },
+
+      selectedReportChanged(val) {
+        this.selectedReport = val;
+        this.$router.push('/report/' + val + '/');
       }
     },
   }

@@ -1,16 +1,11 @@
 # -*- coding: utf-8 -*-
 import six
-import numpy as np
 
 from ..elements import *
 
 __all__ = [
     'loss_accuracy_curve',
 ]
-
-
-def nan_to_none(v):
-    return None if np.isnan(v) else v
 
 
 def loss_accuracy_curve(metrics, metric_name='loss', secondary_metrics=None,
@@ -24,7 +19,7 @@ def loss_accuracy_curve(metrics, metric_name='loss', secondary_metrics=None,
             'showInLegend': True,
             'type': 'line',
             'dataPoints': [
-                {'x': x, 'y': nan_to_none(y)}
+                {'x': x, 'y': y}
                 for x, y in zip(step, values)
             ]
         })
@@ -35,7 +30,7 @@ def loss_accuracy_curve(metrics, metric_name='loss', secondary_metrics=None,
                 'showInLegend': True,
                 'type': 'line',
                 'dataPoints': [
-                    {'x': x, 'y': nan_to_none(y)}
+                    {'x': x, 'y': y}
                     for x, y in zip(step, values)
                 ],
                 'axisYType': 'secondary',

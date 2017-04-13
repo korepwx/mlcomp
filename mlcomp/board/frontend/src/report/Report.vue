@@ -11,7 +11,7 @@
       </div>
 
       <!-- the main list group -->
-      <dispatch v-if="!errorMessage && reportFile" class="main-content report-body" :root_url="root_url" :data="reportFile.data" :level="1"></dispatch>
+      <dispatch v-if="!errorMessage && reportFile" class="main-content report-body" :rootUrl="rootUrl" :data="reportFile.data" :level="1"></dispatch>
     </div> <!-- div.main-wrapper -->
   </div> <!-- div.page-wrapper -->
 </template>
@@ -23,7 +23,7 @@
   export default {
     props: {
       // the root url of the report, must end with '/'.
-      root_url: {
+      rootUrl: {
         type: String,
         default: '/',
       }
@@ -64,11 +64,11 @@
 
         // start to load the data
         getReportObject({
-          url: self.root_url + 'report.json',
+          url: self.rootUrl + 'report.json',
           success: function (report) {
             self.reportFile = report;
             self.errorMessage = null;
-            console.log('loaded report.');
+            console.log(`loaded report ${self.rootUrl}.`);
             clearLoadingFlag();
           },
           error: function (e) {
@@ -82,7 +82,7 @@
     },
 
     watch: {
-      root_url(val) {
+      rootUrl(val) {
         this.reportFile = null;
         this.loadReportObject();
       }

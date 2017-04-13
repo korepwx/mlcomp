@@ -20,7 +20,7 @@
 
   export default {
     props: [
-      'storage', 'root_url',
+      'storage', 'rootUrl',
     ],
 
     data() {
@@ -50,7 +50,8 @@
 
         // start to load the data
         $.ajax({
-          url: self.root_url + 'console.log',
+          url: self.rootUrl + 'console.log',
+          dataType: 'text',
           cache: false,
           success: function (data) {
             self.logs = data;
@@ -60,7 +61,7 @@
           error: function (e) {
             self.logs = null;
             self.errorMessage = e.statusText;
-            console.log(`error when loading logs: ${e}`);
+            console.log(`error when loading logs: ${e.statusText}`);
             clearLoadingFlag();
           }
         });

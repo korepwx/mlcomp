@@ -1,15 +1,15 @@
 <template>
   <div>
-    <div v-if="reportName">
+    <div v-if="reportNames">
       <!-- The list of available report -->
-      <mu-dropDown-menu v-if="reportNames" :value="reportName" @change="handleReportNameChange">
+      <mu-dropDown-menu v-if="reportNames" :value="selectedReport" @change="handleReportNameChange">
         <mu-menu-item v-for="name in reportNames" :key="name" :value="name" :title="name" />
       </mu-dropDown-menu>
 
       <!-- The content of selected report -->
-      <report :root_url="reportUrl"></report>
+      <report :rootUrl="reportUrl"></report>
     </div>
-    <div v-if="!reportName">
+    <div v-if="!reportNames">
       No report has been generated.
     </div>
   </div>
@@ -19,31 +19,33 @@
   import Report from '../report/Report.vue';
 
   export default {
-    props: ['storage', 'root_url'],
+    props: ['storage', 'rootUrl'],
 
     components: {
       Report
     },
 
     data() {
-      return {
-        reportName: 'default',
-      };
+      return {};
     },
 
     computed: {
+      selectedReport() {
+        return this.$route.params.name;
+      },
+
       reportNames() {
         return this.storage && this.storage.reports;
       },
 
       reportUrl() {
-        return this.root_url + 'report/' + this.reportName + '/';
+        return this.rootUrl + 'report/' + this.selectedReport + '/';
       }
     },
 
     methods: {
       handleReportNameChange(val) {
-        this.reportName = val;
+        this.$emit('selectedReportChanged', val);
       }
     }
   }

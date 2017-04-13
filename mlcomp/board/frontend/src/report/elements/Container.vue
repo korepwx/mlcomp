@@ -1,6 +1,6 @@
 <template>
   <div class="report-container" :class="{'container-inline': inline, 'container-block': !inline}">
-    <dispatch v-for="child in children" :key="child['__id__']" :root_url="root_url" :data="child" :level="level"></dispatch>
+    <dispatch v-for="child in children" :key="child['__id__']" :rootUrl="rootUrl" :data="child" :level="level"></dispatch>
   </div>
 </template>
 
@@ -8,7 +8,7 @@
   import Dispatch from './Dispatch.vue';
 
   export default {
-    props: ['root_url', 'data', 'level', 'inline'],
+    props: ['rootUrl', 'data', 'level', 'inline'],
 
     components: {
       dispatch: Dispatch

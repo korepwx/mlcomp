@@ -3,7 +3,6 @@ import os
 from logging import basicConfig
 
 import six
-import numpy as np
 
 from mlcomp.persist import Storage
 from mlcomp.board import config
@@ -33,15 +32,15 @@ def debug_board():
         storage_dict['c'].save_report(demo_report())
         storage_dict['c'].save_report(demo_loss_accuracy_report(), 'training')
 
-        # construct the application
+        # run the debug server
         config['DEBUG'] = True
-        app = BoardApp({
-            '/': os.path.join(tempdir, 'a'),
-            '/b/': os.path.join(tempdir, 'b'),
-            '/c/': os.path.join(tempdir, 'c'),
-        })
-
+        storage_dict['c'].save_script(__file__)
         with storage_dict['c'].with_context():
+            app = BoardApp({
+                '/': os.path.join(tempdir, 'a'),
+                '/b/': os.path.join(tempdir, 'b'),
+                '/c/': os.path.join(tempdir, 'c'),
+            })
             app.run(debug=True, use_reloader=False, port=8888)
 
 

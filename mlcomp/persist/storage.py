@@ -4,6 +4,7 @@ import copy
 import json
 import os
 import random
+import shutil
 import stat
 import time
 from contextlib import contextmanager
@@ -19,6 +20,7 @@ __all__ = [
     'Storage',
     'STORAGE_META_FILE', 'STORAGE_CONSOLE_LOG', 'STORAGE_RUNNING_STATUS',
     'STORAGE_RUNNING_STATUS_INTERVAL', 'STORAGE_REPORT_DIR',
+    'STORAGE_SCRIPT_DIR',
 ]
 
 # Constants for storage classes
@@ -27,6 +29,7 @@ STORAGE_CONSOLE_LOG = 'console.log'
 STORAGE_RUNNING_STATUS = 'running.json'
 STORAGE_RUNNING_STATUS_INTERVAL = 2 * 60
 STORAGE_REPORT_DIR = 'report'
+STORAGE_SCRIPT_DIR = 'script'
 
 
 def storage_property(name):
@@ -322,6 +325,26 @@ class Storage(object):
                 getLogger(__name__).info(
                     'Failed to write update time of %r.', self, exc_info=True)
 
+    def list_reports(self):
+        """List the report directories of this storage.
+        
+        Returns
+        -------
+        list[str]
+            The report directories under "report/" of this storage.
+        """
+        from mlcomp.report import REPORT_JSON_FILE
+        report_dir = self.resolve_path(STORAGE_REPORT_DIR)
+        try:
+            ret = []
+            for fname in os.listdir(report_dir):
+                fpath = os.path.join(report_dir, fname, REPORT_JSON_FILE)
+                if os.path.isfile(fpath):
+                    ret.append(fname)
+            return ret
+        except IOError:
+            return []
+
     def save_report(self, report, dir_name='default', overwrite=False):
         """Save a report object into the storage.
 
@@ -349,22 +372,33 @@ class Storage(object):
                         overwrite=overwrite)
         s.save(report)
 
-    def list_reports(self):
-        """List the report directories of this storage.
+    def save_script(self, script_path):
+        """Save the specified experiment script(s) to storage.
         
-        Returns
-        -------
-        list[str]
-            The report directories under "report/" of this storage.
+        Script file(s) will be stored to "script/" directory of this
+        storage.  Existing files under "script/" will be removed.
+        
+        Parameters
+        ----------
+        script_path : str
+            The path of the experiment scripts.
+            
+            If the specified path is a file, it will be copied to 
+            "script/" with the same name.  Otherwise if the path
+            is a directory, all the contents of this directory will
+            be copied to "script/".
         """
-        from mlcomp.report import REPORT_JSON_FILE
-        report_dir = self.resolve_path(STORAGE_REPORT_DIR)
-        try:
-            ret = []
-            for fname in os.listdir(report_dir):
-                fpath = os.path.join(report_dir, fname, REPORT_JSON_FILE)
-                if os.path.isfile(fpath):
-                    ret.append(fname)
-            return ret
-        except IOError:
-            return []
+        self.check_write()
+        target_dir = self.resolve_path(STORAGE_SCRIPT_DIR)
+        if os.path.isdir(target_dir):
+            shutil.rmtree(target_dir)
+
+        script_stat = os.stat(script_path)
+        if stat.S_ISDIR(script_stat.st_mode):
+            shutil.copytree(script_path, target_dir)
+        else:
+            os.makedirs(target_dir, exist_ok=True)
+            shutil.copy(
+                script_path,
+                os.path.join(target_dir, os.path.split(script_path)[1])
+            )

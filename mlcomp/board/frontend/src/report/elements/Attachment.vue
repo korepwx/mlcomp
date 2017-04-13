@@ -7,7 +7,7 @@
 
 <script>
   export default {
-    props: ['root_url', 'data'],
+    props: ['rootUrl', 'data'],
 
     computed: {
       title() {
@@ -20,7 +20,7 @@
       },
 
       url() {
-        return this.root_url + this.data['path'];
+        return this.rootUrl + this.data['path'];
       },
 
       link_only() {
