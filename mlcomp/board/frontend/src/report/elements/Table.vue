@@ -65,7 +65,7 @@
 
   .title {
     font-weight: 300;
-    font-size: 3em;
+    font-size: 2em;
     text-align: center;
     color: $title-color;
   }
@@ -112,7 +112,6 @@
   	position: relative;
   	margin: 2em 0;
   	width: 100%;
-    color: #7c8d87;
 
     .sticky-thead, .sticky-col, .sticky-intersect {
     	opacity: 0;
