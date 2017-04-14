@@ -64,15 +64,14 @@
   @import './settings.scss';
 
   .title {
-    font-weight: 300;
-    font-size: 2em;
+    font-weight: 400;
+    font-size: 1.5em;
     text-align: center;
     color: $title-color;
   }
   .component {
     line-height: 1.5em;
-    margin: 0 auto;
-    padding: 2em 0 3em;
+    margin: 1em auto;
     width: 90%;
     max-width: 1000px;
     overflow: hidden;
@@ -82,14 +81,14 @@
   }
   .report-table {
     table {
-        border-collapse: collapse;
-        margin-bottom: 2em;
-        width: 100%;
-        background: #fff;
+      border-collapse: separate;
+      border-spacing: 1px;
+      width: 100%;
+      background: #fff;
     }
     td, th {
-        padding: 0.75em 1.5em;
-        text-align: left;
+      padding: 0.75em 1.5em;
+      text-align: left;
     }
     th {
       background-color: #7e57c2;
@@ -98,7 +97,7 @@
       white-space: nowrap;
     }
     tbody th {
-    	background-color: #2ea879;
+      background-color: #2ea879;
     }
     tbody tr:nth-child(2n-1) {
       background-color: #f5f5f5;
@@ -110,46 +109,43 @@
   	overflow-x: auto;
   	overflow-y: hidden;
   	position: relative;
-  	margin: 2em 0;
+  	margin-top: 1em;
   	width: 100%;
+    display: block;
 
     .sticky-thead, .sticky-col, .sticky-intersect {
-    	opacity: 0;
-    	position: absolute;
-    	top: 0;
-    	left: 0;
-    	z-index: 50;
-    	width: auto; /* Prevent table from stretching to full size */
+      opacity: 0;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 50;
+      width: auto; /* Prevent table from stretching to full size */
     }
   	.sticky-thead {
-  		box-shadow: 0 0.25em 0.1em -0.1em rgba(0,0,0,.125);
-  		z-index: 100;
-  		width: 100%; /* Force stretch */
+      box-shadow: 0 0.25em 0.1em -0.1em rgba(0,0,0,.125);
+      z-index: 100;
+      width: 100%; /* Force stretch */
   	}
     .sticky-intersect {
-  		opacity: 1;
-  		z-index: 150;
+      opacity: 1;
+      z-index: 150;
 
   	}
-		.sticky-intersect th {
-			background-color: #666;
-			color: #eee;
-		}
-    td,
-    th {
-    	box-sizing: border-box;
+    .sticky-intersect th {
+      background-color: #666;
+      color: #eee;
+    }
+    td, th {
+      box-sizing: border-box;
     }
 
     /* Not needed for sticky header/column functionality */
     td.user-name {
-    	text-transform: capitalize;
+      text-transform: capitalize;
     }
     .overflow-y {
-    	overflow-y: auto;
-    	max-height: 50vh;
+      overflow-y: auto;
+      max-height: 50vh;
     }
-
-    width: 100%;
-    display: block;
   }
 </style>

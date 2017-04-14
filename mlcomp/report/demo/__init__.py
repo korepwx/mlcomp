@@ -209,6 +209,14 @@ def demo_report():
             ),
         ]
     ))
+    r.add(Section(
+        title='Report Components',
+        children=[
+            ParagraphText('In this section we will demonstrate some '
+                          'experiment report components.'),
+            demo_loss_accuracy_report(),
+        ]
+    ))
     return r
 
 
@@ -221,14 +229,17 @@ def demo_loss_accuracy_report():
     valid_loss = (np.exp(-valid_steps * 0.1) * 25. +
                   np.random.normal(size=11) * 0.5)
     valid_loss = valid_loss - np.min(valid_loss)
-    valid_acc = np.exp(-valid_loss)
+    valid_acc = np.exp(-valid_loss * 0.1)
     return loss_accuracy_curve(
-        metrics={
-            'loss': (steps, loss),
-            'valid_loss': (valid_steps, valid_loss),
-        },
-        secondary_metrics={
-            'valid_acc': (valid_steps, valid_acc),
-        },
+        metrics=[
+            {'name': 'loss', 'steps': steps, 'values': loss,
+             'color': 'navy'},
+            {'name': 'valid loss', 'steps': valid_steps, 'values': valid_loss,
+             'color': 'orangered'},
+        ],
+        secondary_metrics=[
+            {'name': 'valid acc', 'steps': valid_steps, 'values': valid_acc,
+             'color': 'green'},
+        ],
         title='Training Metrics'
     )

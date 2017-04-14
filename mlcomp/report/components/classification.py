@@ -12,13 +12,13 @@ from ..components import *
 from ..elements import *
 
 __all__ = [
-    'binary_classification_curve',
+    'binary_classification_roc_curve',
     'classification_summary',
 ]
 
 
-def binary_classification_curve(truth, proba, title=None):
-    """Create a classification report.
+def binary_classification_roc_curve(truth, proba, title=None):
+    """Report of binary classification ROC curve.
     
     Parameters
     ----------
