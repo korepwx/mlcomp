@@ -85,6 +85,7 @@
 <style lang="scss" scoped>
   td.label {
     font-weight: bold;
+    width: 120px;
   }
   .tag-container {
     .tag {

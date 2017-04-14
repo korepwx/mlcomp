@@ -167,8 +167,10 @@
       },
 
       handleReload({ autoReload=false }) {
-        eventBus.$emit('handleReload', autoReload);
-        this.loadStorageInfo();
+        if (this.storageInfo.is_active) {
+          eventBus.$emit('handleReload', autoReload);
+          this.loadStorageInfo();
+        }
       }
     },
   }
@@ -190,9 +192,13 @@
       padding-top: 56px;
     }
   }
+  @media (min-width: 481px) {
+    .storage-wrapper {
+      padding-top: 64px;
+    }
+  }
   .storage-wrapper {
     height: 100%;
-    padding-top: 64px;
     padding-bottom: 56px;
     overflow-y: hidden;
 

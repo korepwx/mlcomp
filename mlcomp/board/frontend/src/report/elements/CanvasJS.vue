@@ -98,7 +98,7 @@
     width: 100%;
     border: 1px solid #ccc;
     border-radius: $block-border-radius;
-    padding: 2px;
+    padding: $figure-border-padding;
     margin: 1em 0;
 
     .figure-container {

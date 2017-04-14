@@ -112,9 +112,13 @@
 </script>
 
 <style lang="scss" scoped>
-  .main-wrapper {
+  .main-content {
     padding: 5px 10px;
     max-width: 960px;
     margin: auto;
+  }
+  h1 {
+    color: #673ab7;
+    font-weight: 400;
   }
 </style>

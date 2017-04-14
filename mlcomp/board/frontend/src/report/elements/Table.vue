@@ -1,29 +1,31 @@
 <template>
-  <div class="report-table">
+  <div class="components">
     <div v-if="title" class="title">Table: {{ title }} </div>
-    <table>
-      <thead v-if="data['header']">
-        <tr v-for="row in data['header']" :key="row['name_scope']">
-          <th v-for="col in row['cells']" :key="col['name_scope']" :rowspan="col['rowspan']" :colspan="col['colspan']">
-            <dispatch :data="col" :rootUrl="rootUrl" :level="level" :inline="true"></dispatch>
-          </th>
-        </tr>
-      </thead>
-      <tbody v-if="data['rows']">
-        <tr v-for="row in data['rows']" :key="row['name_scope']">
-          <td v-for="col in row['cells']" :key="col['name_scope']" :rowspan="col['rowspan']" :colspan="col['colspan']">
-            <dispatch :data="col" :rootUrl="rootUrl" :level="level" :inline="true"></dispatch>
-          </td>
-        </tr>
-      </tbody>
-      <tfoot v-if="data['footer']">
-        <tr v-for="row in data['footer']" :key="row['name_scope']">
-          <th v-for="col in row['cells']" :key="col['name_scope']" :rowspan="col['rowspan']" :colspan="col['colspan']">
-            <dispatch :data="col" :rootUrl="rootUrl" :level="level" :inline="true"></dispatch>
-          </th>
-        </tr>
-      </tfoot>
-    </table>
+    <div class="report-table">
+      <table id="keywords">
+        <thead v-if="data['header']">
+          <tr v-for="row in data['header']" :key="row['name_scope']">
+            <th v-for="col in row['cells']" :key="col['name_scope']" :rowspan="col['rowspan']" :colspan="col['colspan']">
+              <dispatch :data="col" :rootUrl="rootUrl" :level="level" :inline="true"></dispatch>
+            </th>
+          </tr>
+        </thead>
+        <tbody v-if="data['rows']">
+          <tr v-for="row in data['rows']" :key="row['name_scope']">
+            <td v-for="col in row['cells']" :key="col['name_scope']" :rowspan="col['rowspan']" :colspan="col['colspan']">
+              <dispatch :data="col" :rootUrl="rootUrl" :level="level" :inline="true"></dispatch>
+            </td>
+          </tr>
+        </tbody>
+        <tfoot v-if="data['footer']">
+          <tr v-for="row in data['footer']" :key="row['name_scope']">
+            <th v-for="col in row['cells']" :key="col['name_scope']" :rowspan="col['rowspan']" :colspan="col['colspan']">
+              <dispatch :data="col" :rootUrl="rootUrl" :level="level" :inline="true"></dispatch>
+            </th>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
   </div>
 </template>
 
@@ -61,62 +63,91 @@
 <style lang="scss" scoped>
   @import './settings.scss';
 
-  .report-table {
-    display: block;
-    width: 100%;
-    background: #fff;
+  .title {
+    font-weight: 300;
+    font-size: 3em;
+    text-align: center;
+    color: $title-color;
+  }
+  .component {
+    line-height: 1.5em;
     margin: 0 auto;
-    padding: 10px 17px;
-    box-shadow: 2px 2px 3px -1px rgba(0,0,0,0.35);
-
-    .title {
-      color: $title-color;
-      text-align: center;
-      font-size: 2em;
-      padding-bottom: 0.5em;
-    }
-
+    padding: 2em 0 3em;
+    width: 90%;
+    max-width: 1000px;
+    overflow: hidden;
+  }
+  .component .filler {
+    color: #d3d3d3;
+  }
+  .report-table {
     table {
-      width: 100%;
-      font-size: 1.2em;
-      margin-bottom: 15px;
+        border-collapse: collapse;
+        margin-bottom: 2em;
+        width: 100%;
+        background: #fff;
     }
-
-    thead, tfoot {
-      background: #d1c4e9;
-
-      tr th {
-        font-weight: bold;
-        padding: 5px 10px;
-      }
-      tr th span {
-        padding-right: 20px;
-        background-repeat: no-repeat;
-        background-position: 100% 100%;
-      }
-
-      tr th.headerSortUp, #keywords tr th.headerSortDown {
-        background: #acc8dd;
-      }
-    }
-
-    tbody {
-      tr {
-        color: #555;
-      }
-      tr td {
-        text-align: center;
-        padding: 15px 10px;
-      }
-      tr td.lalign {
+    td, th {
+        padding: 0.75em 1.5em;
         text-align: left;
-      }
+    }
+    th {
+      background-color: #7e57c2;
+      font-weight: bold;
+      color: #fff;
+      white-space: nowrap;
+    }
+    tbody th {
+    	background-color: #2ea879;
+    }
+    tbody tr:nth-child(2n-1) {
+      background-color: #f5f5f5;
+    }
+  }
+
+  /* For appearance */
+  .report-table {
+  	overflow-x: auto;
+  	overflow-y: hidden;
+  	position: relative;
+  	margin: 2em 0;
+  	width: 100%;
+    color: #7c8d87;
+
+    .sticky-thead, .sticky-col, .sticky-intersect {
+    	opacity: 0;
+    	position: absolute;
+    	top: 0;
+    	left: 0;
+    	z-index: 50;
+    	width: auto; /* Prevent table from stretching to full size */
+    }
+  	.sticky-thead {
+  		box-shadow: 0 0.25em 0.1em -0.1em rgba(0,0,0,.125);
+  		z-index: 100;
+  		width: 100%; /* Force stretch */
+  	}
+    .sticky-intersect {
+  		opacity: 1;
+  		z-index: 150;
+
+  	}
+		.sticky-intersect th {
+			background-color: #666;
+			color: #eee;
+		}
+    td,
+    th {
+    	box-sizing: border-box;
     }
 
-    figcaption {
-      width: 100%;
-      text-align: center;
-      margin-top: 5px;
+    /* Not needed for sticky header/column functionality */
+    td.user-name {
+    	text-transform: capitalize;
+    }
+    .overflow-y {
+    	overflow-y: auto;
+    	max-height: 50vh;
     }
 
     width: 100%;
