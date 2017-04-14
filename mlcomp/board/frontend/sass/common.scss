@@ -2,6 +2,7 @@
 @import '~muse-ui/dist/theme-default.css';
 @import '~material-design-icons/iconfont/material-icons.css';
 @import '~katex/dist/katex.css';
+@import '~normalize.css/normalize.css';
 
 // ---- Page Layout ----
 html, body {
@@ -9,6 +10,7 @@ html, body {
   padding: 0;
   width: 100%;
   height: 100%;
+  background: #eee;
 }
 .mu-dialog-wrapper {
   width: 90% !important;
@@ -26,4 +28,8 @@ html, body {
 }
 .text-info {
   color: #9e9e9e;
+}
+
+html, body, h1, h2, h3, h4, h5, h6 {
+  font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "微软雅黑", "WenQuanYi Micro Hei", "Liberation Sans", Arial, sans-serif;
 }

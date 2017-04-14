@@ -1,5 +1,6 @@
 <template>
   <div class="report-table">
+    <div v-if="title" class="title">Table: {{ title }} </div>
     <table>
       <thead v-if="data['header']">
         <tr v-for="row in data['header']" :key="row['name_scope']">
@@ -23,7 +24,6 @@
         </tr>
       </tfoot>
     </table>
-    <figcaption v-if="title">Table: {{ title }}</figcaption>
   </div>
 </template>
 
@@ -59,18 +59,60 @@
 </script>
 
 <style lang="scss" scoped>
+  @import './settings.scss';
+
   .report-table {
+    display: block;
+    width: 100%;
+    background: #fff;
+    margin: 0 auto;
+    padding: 10px 17px;
+    box-shadow: 2px 2px 3px -1px rgba(0,0,0,0.35);
+
+    .title {
+      color: $title-color;
+      text-align: center;
+      font-size: 2em;
+      padding-bottom: 0.5em;
+    }
+
     table {
       width: 100%;
+      font-size: 1.2em;
+      margin-bottom: 15px;
     }
-    table, th, td {
-      border: 1px solid black;
-      border-collapse: collapse;
+
+    thead, tfoot {
+      background: #d1c4e9;
+
+      tr th {
+        font-weight: bold;
+        padding: 5px 10px;
+      }
+      tr th span {
+        padding-right: 20px;
+        background-repeat: no-repeat;
+        background-position: 100% 100%;
+      }
+
+      tr th.headerSortUp, #keywords tr th.headerSortDown {
+        background: #acc8dd;
+      }
     }
-    th, td {
-      padding: 5px;
-      text-align: left;
+
+    tbody {
+      tr {
+        color: #555;
+      }
+      tr td {
+        text-align: center;
+        padding: 15px 10px;
+      }
+      tr td.lalign {
+        text-align: left;
+      }
     }
+
     figcaption {
       width: 100%;
       text-align: center;

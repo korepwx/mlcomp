@@ -34,6 +34,8 @@
 </script>
 
 <style lang="scss" scoped>
+  @import './settings.scss';
+
   .image-wrapper {
     display: inline;
   }
@@ -43,7 +45,7 @@
     display: block;
     width: 100%;
     border: 1px solid #ccc;
-    border-radius: 2px;
+    border-radius: $block-border-radius;
     padding: 2px;
     margin: 1em 0;
   }

@@ -35,10 +35,21 @@
 </script>
 
 <style lang="scss" scoped>
+  @import './settings.scss';
+
   .attach-inline {
     display: inline;
   }
   .attach-block {
     display: block;
+    padding: 10px;
+    border: 1px solid #bdbdbd;
+    border-left: 4px solid #bdbdbd;
+    border-radius: $block-border-radius;
+  }
+  .attach-inline, .attach-block {
+    a:hover {
+      text-decoration: underline;
+    }
   }
 </style>
