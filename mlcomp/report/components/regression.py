@@ -1,276 +1,198 @@
 # -*- coding: utf-8 -*-
 import itertools
+import json
+from collections import OrderedDict
+from gzip import GzipFile
+from io import BytesIO
 
 import numpy as np
 import pandas as pd
 from sklearn.metrics import (mean_absolute_error,
                              mean_squared_error,
-                             explained_variance_score,r2_score)
+                             explained_variance_score, r2_score)
 from sklearn.utils.multiclass import unique_labels
 
-from ..components import *
+from mlcomp.utils import wrap_text_writer, JsonEncoder
+from .table_factory import *
 from ..elements import *
 
 __all__ = [
     'regression_summary',
-    'time_series_regression_report',
+    'regression_result_attachment',
 ]
 
 
-def normalize_regression_report_args(truth, predict, label=None, targets=None,
-                                     per_target=True):
+def regression_report_data_frame(truth, predict, label, per_target=True,
+                                 target_names=None):
     # check the arguments
     if predict.shape != truth.shape:
         raise TypeError('Shape of `predict` does not match `truth`.')
     if label is not None and len(label) != len(truth):
         raise TypeError('Size of `label` != size of `truth`.')
 
-    # generate the target labels.
+    # generate the target names
+    target_shape = truth.shape[1:]
+    if not len(target_shape):
+        target_shape = (1,)
+
     if not per_target:
-        targets = None
+        target_names = None
+    elif target_names is not None:
+        target_names = np.asarray([str(t) for t in target_names])
     else:
-        if len(truth.shape) == 1:
-            if targets is None:
-                targets = ['0']
-            else:
-                if not isinstance(targets, np.ndarray):
-                    targets = np.asarray(targets)
-                if len(targets) != 1 or not isinstance(targets[0], str):
-                    raise TypeError('Shape of `targets` does not match '
-                                    '`truth`.')
-        else:
-            if targets is None:
-                targets = []
-                indices_it = (range(i) for i in truth.shape[1:])
-                for indices in itertools.product(*indices_it):
-                    targets.append('-'.join(str(s) for s in indices))
-                targets = np.asarray(targets)
-            else:
-                if not isinstance(targets, np.ndarray):
-                    targets = np.asarray(targets)
-                if targets.shape != truth.shape[1:]:
-                    raise TypeError('Shape of `targets` does not match '
-                                    '`truth`.')
-                targets = targets.reshape([-1])
+        target_names = np.asarray([
+            '[%s]' % ','.join(str(s) for s in indices)
+            for indices in itertools.product(
+                *(range(i) for i in target_shape)
+            )
+        ])
+
+    if target_names is not None and target_names.shape != target_shape:
+        raise TypeError('Shape of `targets` does not match that of `truth`.')
 
     # flatten the dimensions in truth and target data to match the targets
     truth = truth.reshape([len(truth), -1])
     predict = predict.reshape([len(predict), -1])
 
-    return truth, predict, label, targets
-
-
-def regression_summary(truth, predict, label=None, targets=None,
-                       per_target_summary=True):
-    def mkrow(y_true, y_pred):
-        return np.asarray([
-            mean_squared_error(y_true, y_pred),
-            mean_absolute_error(y_true, y_pred),
-            r2_score(y_true, y_pred, multioutput='uniform_average'),
-            explained_variance_score(y_true, y_pred),
-            len(y_true),
-        ])
-
-    columns = (
-        'Mean Squared Error', 'Mean Absolute Error',
-        'R2 Score', 'Explained Variance Score', '#Points'
+    # generate the data frame
+    MSE, MAE, R2, EVS, SUPPORT = (
+        'Squared Error',
+        'Absolute Error',
+        'R2 Score',
+        'Explained Variance',
+        'Support'
     )
+    data = OrderedDict([
+        (MSE, []),
+        (MAE, []),
+        (R2, []),
+        (EVS, []),
+        (SUPPORT, [])
+    ])
+    index = []
 
-    truth, predict, label, targets = normalize_regression_report_args(
-        truth, predict, label, targets, per_target_summary
-    )
-
-    # compose the data and the index
-    data = []
-    if targets is None:
-        if label is None:
-            data = [mkrow(truth, predict)]
-            index = pd.Index(['total'])
+    def add_row(y_true, y_pred, target=None, label=None):
+        names = tuple(v for v in (target, label) if v is not None)
+        if len(names) > 1:
+            index.append(names)
         else:
-            ulabels = list(unique_labels(label))
-            for lbl in ulabels:
+            index.append(names[0])
+        data[MSE].append(mean_squared_error(y_true, y_pred))
+        data[MAE].append(mean_absolute_error(y_true, y_pred))
+        data[R2].append(r2_score(
+            y_true, y_pred, multioutput='uniform_average'))
+        data[EVS].append(explained_variance_score(y_true, y_pred))
+        data[SUPPORT].append(len(y_true))
+
+    if target_names is None:
+        if label is None:
+            add_row(truth, predict, label='total')
+            index = pd.Index(index)
+        else:
+            for lbl in unique_labels(label):
                 mask = (label == lbl)
-                data.append(mkrow(truth[mask], predict[mask]))
-            data.append(mkrow(truth, predict))
-            ulabels.append('total')
-            index = pd.Index(ulabels, name='Label')
+                add_row(truth[mask], predict[mask], label=lbl)
+            add_row(truth, predict, label='total')
+            index = pd.Index(index, name='Label')
     else:
         if label is None:
-            data = [mkrow(truth[:, i], predict[:, i])
-                    for i in range(len(targets))]
-            data.append(mkrow(truth, predict))
-            index = pd.Index(list(targets) + ['total'], name='Target')
+            for i, t in enumerate(target_names):
+                add_row(truth[:, i], predict[:, i], target=t)
+            add_row(truth, predict, target='total')
+            index = pd.Index(index, name='Target')
         else:
-            target_index = []
-            label_index = []
-            for i in range(len(targets)):
-                for lbl in list(unique_labels(label)):
+            for i, t in enumerate(target_names):
+                for lbl in unique_labels(label):
                     mask = (label == lbl)
-                    target_index.append(targets[i])
-                    label_index.append(lbl)
-                    data.append(mkrow(truth[mask][:, i], predict[mask][:, i]))
-            target_index.append('')
-            label_index.append('total')
-            data.append(mkrow(truth, predict))
-            index = pd.MultiIndex.from_tuples(
-                [tuple(v) for v in zip(target_index, label_index)],
-                names=['Target', 'Label']
-            )
+                    add_row(truth[mask][:, i], predict[mask][:, i],
+                            target=t, label=lbl)
+            add_row(truth, predict, target='', label='total')
+            index = pd.MultiIndex.from_tuples(index, names=['Target', 'Label'])
 
-    summary = pd.DataFrame(data=data, columns=columns, index=index)
-    return dataframe_to_table(summary, title='Regression Summary')
+    return pd.DataFrame(data=data, index=index)
 
 
-def time_series_regression_report(truth, predict, timestamp,
-                                  stddev=None, label=None,
-                                  log_likelihood=None):
-    TRUTH_LINE_COLOR = '#aaa'
-    PREDICT_LINE_COLOR = 'navy'
-    STDDEV_RANGE_COLOR = 'rgba(0,0,255,0.2)'
-    LIKELIHOOD_COLOR = 'orange'
-
-    # re-arrange the data so that the timestamp are sorted
-    ts_index = np.argsort(timestamp)
-    ts = timestamp[ts_index]
-    truth = truth[ts_index]
-    predict = predict[ts_index]
-
-    if label is not None:
-        label = label[ts_index]
-    if stddev is not None:
-        stddev = stddev[ts_index]
-    if log_likelihood is not None:
-        log_likelihood = log_likelihood[ts_index]
-
-    intervals = ts[1:] - ts[:-1]
-    int_items, int_count = np.unique(intervals, return_counts=True)
-    interval = int_items[np.argsort(-int_count)[0]]
-    if np.any(int_items % interval > 0):
-        raise ValueError('%s: non-homogeneous time intervals.' % ts)
-
-    # split the data frame into continuous chunks, and fill the gap
-    def fill_break(start_ts, end_ts):
-        assert ((end_ts - start_ts) % interval == 0)
-        gap_size = (end_ts - start_ts) // interval
-        col_ts = np.arange(start_ts, end_ts, interval)
-        col_ts = col_ts.astype(df['timestamp'].dtype)
-        fill = {'timestamp': col_ts}
-        for k in df:
-            if k != 'timestamp':
-                if k == 'label':
-                    fill[k] = np.zeros(gap_size, dtype=np.int32)
-                else:
-                    fill[k] = np.full(gap_size, np.nan, dtype=df[k].dtype)
-        return pd.DataFrame.from_dict(fill)
-
-    buf = []
-    breaks = np.where(ts[1:] - ts[:-1] > interval)[0] + np.asarray(1)
-    last_pos = 0
-    nan_count = 0
-
-    df = pd.DataFrame(
-        data={'timestamp': ts, 'truth': truth, 'predict': predict,
-              'label': label, 'stddev': stddev, 'likelihood': log_likelihood}
+def regression_summary(truth, predict, label=None, per_target=True,
+                       target_names=None, title=None):
+    """Regression result summary table.
+    
+    Parameters
+    ----------
+    truth : np.ndarray
+        Ground truth (correct) target values.
+        
+    predict : np.ndarray
+        Predicted target values.
+        
+    label : np.ndarray | list
+        If specified, will compute the regression scores for each label class.
+        
+    per_target : bool
+        Whether or not to compute the regression score for each dimension?
+        (default True)
+        
+    target_names : np.ndarray | list
+        Name of each dimension in regression results.
+        
+        If not specified, will use the coordinate of each dimension, e.g.,
+        "(0,0,0)".
+        
+    title : str
+        Optional title of this regression summary table.
+    """
+    ret = dataframe_to_table(
+        regression_report_data_frame(
+            truth=truth,
+            predict=predict,
+            label=label,
+            per_target=per_target,
+            target_names=target_names,
+        ),
+        title=title
     )
-    for b in breaks:
-        buf.append(df.iloc[last_pos: b])
-        fill = fill_break(df['timestamp'].iloc[b - 1] + interval,
-                          df['timestamp'].iloc[b])
-        buf.append(fill)
-        nan_count += len(fill)
-        last_pos = b
+    # make the total row as footer
+    if len(ret.rows) > 1:
+        ret.footer = [ret.rows.pop()]
+        if ret.header[0].children[0].colspan == 2:
+            # when 'Target' and 'Label' both exists,
+            # we should make the 'total' colspan as 2
+            ret.footer[0].children[1].colspan = 2
+            del ret.footer[0].children[0]
+    return ret
 
-    buf.append(df.iloc[last_pos:])
 
-    # concatenate the chunks
-    if len(buf) == 1:
-        df = buf[0]
-    else:
-        df = pd.concat(buf, ignore_index=True)
+def regression_result_attachment(truth, predict, title=None, link_only=False):
+    """Regression result attachment.
+    
+    Parameters
+    ----------
+    truth : np.ndarray
+        Ground truth (correct) target values.
+        
+    predict : np.ndarray
+        Predicted target values.
+        
+    title : str
+        Optional title of this attachment.
 
-    # generate the CanvasJS figure
-    data = []
-    data.append({
-        'name': 'truth',
-        'showInLegend': True,
-        'type': 'line',
-        'color': TRUTH_LINE_COLOR,
-        'dataPoints': [
-            {'x': x * 1000, 'y': y}
-            for x, y in zip(df['timestamp'].values, df['truth'].values)
-        ]
-    })
-    data.append({
-        'name': 'predict',
-        'showInLegend': True,
-        'type': 'line',
-        'color': PREDICT_LINE_COLOR,
-        'dataPoints': [
-            {'x': x * 1000, 'y': y}
-            for x, y in zip(df['timestamp'].values, df['predict'].values)
-        ]
-    })
-
-    if stddev is not None:
-        stddev_values = (
-            df['predict'].values.reshape([-1, 1]) +
-            np.stack([-stddev, stddev], axis=1)
-        )
-        data.append({
-            'name': 'stddev',
-            'showInLegend': True,
-            'type': 'rangeArea',
-            'color': STDDEV_RANGE_COLOR,
-            'dataPoints': [
-                {'x': x * 1000, 'y': list(y)}
-                for x, y in zip(df['timestamp'].values, stddev_values)
-                ]
-        })
-
-    if log_likelihood is not None:
-        likelihood_max = np.max(log_likelihood)
-        likelihood_std = np.std(log_likelihood)
-        likelihood_min = max(
-            np.min(log_likelihood), likelihood_max - 4. * likelihood_std)
-        likelihood_span = max(likelihood_max - likelihood_min, 1e-3)
-        likelihood_max += likelihood_span * 0.05
-        likelihood_min -= likelihood_span * 0.05
-        data.append({
-            'name': 'log-likelihood',
-            'showInLegend': True,
-            'type': 'line',
-            'color': LIKELIHOOD_COLOR,
-            'axisYType': 'secondary',
-            'dataPoints': [
-                {'x': x * 1000, 'y': y}
-                for x, y in zip(df['timestamp'].values, log_likelihood)
-            ]
-        })
-
-    chart = {
-        'title': {
-            'text': 'Regressin Truth and Predict Values',
-        },
-        'legend': {
-            'horizontalAlign': 'center',
-            'verticalAlign': 'top',
-            'fontSize': 12
-        },
-        'zoomEnabled': True,
-        'zoomType': 'xy',
-        'axisX': {
-            'title': 'Time',
-
-        },
-        'axisY': {
-            'title': 'KPI',
-            'includeZero': 'false',
-        },
-        'data': data
-    }
-    if log_likelihood is not None:
-        chart['axisY2'] = {
-            'title': 'log-likelihood',
-        }
-
-    return CanvasJS(data=chart)
+    link_only : bool
+        Whether or not to render only link of this attachment?
+        (default False)
+        
+    Returns
+    -------
+    Attachment
+        The regression result as an attachment of gzipped JSON file.
+    """
+    with BytesIO() as f:
+        with GzipFile(fileobj=f, mode='w') as gz:
+            writer = wrap_text_writer(gz, 'utf-8', manage=False)
+            json.dump(
+                {'truth': truth.tolist(), 'predict': predict.tolist()},
+                writer,
+                cls=JsonEncoder,
+            )
+        f.seek(0)
+        cnt = f.read()
+    return Attachment(
+        cnt, title=title, link_only=link_only, extension='.json.gz')

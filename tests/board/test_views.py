@@ -42,7 +42,6 @@ class ViewsTestCase(unittest.TestCase):
 
             # test the routes
             with app.test_client() as c:
-                self.maxDiff = None
                 # test the main routes
                 rv = c.get('/_hello/')
                 self.assertEqual(rv.status_code, 200)

@@ -44,7 +44,6 @@ class BaseTestCase(unittest.TestCase):
     )
 
     def test_ReportObject(self):
-        self.maxDiff = None
         with default_report_types({'MyReport': MyReportObject}):
             # test serialization and deserialization
             self.assertEqual(

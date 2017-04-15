@@ -12,7 +12,7 @@
       </div>
     </div>
     <div class="report-data-download">
-      Download the chart data: <a :href="dataUrl" :title="title">data.json</a>
+      Download the chart data: <a :href="dataUrl + '?attachment'" :title="title">data.json</a>
     </div>
   </div>
 </template>

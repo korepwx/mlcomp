@@ -139,13 +139,17 @@ def classification_summary(y_true, y_pred, labels=None, target_names=None,
     ])
 
     summary = pd.DataFrame(data=data, columns=list(data.keys()),
-                           index=target_names + ['avg / total'])
-    return dataframe_to_table(summary, title=title)
+                           index=target_names + ['total'])
+    ret = dataframe_to_table(summary, title=title)
+
+    # make the total row as footer
+    ret.footer = [ret.rows.pop()]
+    return ret
 
 
 def classification_result_attachment(y_true, y_pred, y_prob, title=None,
                                      link_only=False):
-    """Cassification result attachment.
+    """Classification result attachment.
     
     Parameters
     ----------
@@ -164,6 +168,11 @@ def classification_result_attachment(y_true, y_pred, y_prob, title=None,
     link_only : bool
         Whether or not to render only link of this attachment?
         (default False)
+        
+    Returns
+    -------
+    Attachment
+        The classification result as an attachment of gzipped CSV file.
     """
     df = pd.DataFrame(OrderedDict([
         ('y_true', y_true),
@@ -177,5 +186,4 @@ def classification_result_attachment(y_true, y_pred, y_prob, title=None,
         f.seek(0)
         cnt = f.read()
     return Attachment(
-        cnt, title=title, link_only=link_only, extension='.csv.gz'
-    )
+        cnt, title=title, link_only=link_only, extension='.csv.gz')

@@ -5,4 +5,5 @@
 from .classification import *
 from .regression import *
 from .table_factory import *
+from .time_series import *
 from .training_metrics import *

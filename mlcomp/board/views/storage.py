@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import json
+import mimetypes
 import os
 
 import re
@@ -96,6 +97,21 @@ def handle_storage_info(storage, root_url, path):
         raise MethodNotAllowed()
 
 
+def send_from_directory_ex(directory, filename, **kwargs):
+    is_gzipped_attachment = filename.endswith('.gz')
+    if is_gzipped_attachment:
+        mimetype = mimetypes.guess_type(filename)[0]
+        if mimetype:
+            kwargs['mimetype'] = mimetype
+        else:
+            kwargs['mimetype'] = 'application/octet-stream'
+        kwargs['attachment_filename'] = os.path.split(filename[:-3])[-1]
+    ret = send_from_directory(directory, filename, **kwargs)
+    if is_gzipped_attachment:
+        ret.headers['Content-Encoding'] = 'gzip'
+    return ret
+
+
 @storage_bp.route('/', methods=['GET', 'POST'])
 @storage_bp.route('/<path:path>', methods=['GET', 'POST'])
 @parse_request_storage
@@ -118,12 +134,15 @@ def resources(storage, root, path):
         return handle_storage_info(storage, root_url, path)
 
     # if some static resources displayed at storage index are requested
+    as_attachment = request.query_string == b'attachment'
     if path.startswith('report/') or path in ('console.log', 'storage.json'):
-        return send_from_directory(storage.path, path)
+        return send_from_directory_ex(
+            storage.path, path, as_attachment=as_attachment)
 
     # if the files are requested
     if path.startswith('files/'):
-        return send_from_directory(storage.path, path[6:])
+        return send_from_directory_ex(
+            storage.path, path[6:], as_attachment=as_attachment)
 
     # no route is matched
     raise NotFound()

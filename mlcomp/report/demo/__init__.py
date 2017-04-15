@@ -216,6 +216,7 @@ def demo_report():
                           'experiment report components.'),
             demo_loss_accuracy_curve(),
             demo_classification_report(),
+            demo_regression_report(),
         ]
     ))
     return r
@@ -231,20 +232,25 @@ def demo_loss_accuracy_curve():
                   np.random.normal(size=11) * 0.5)
     valid_loss = valid_loss - np.min(valid_loss)
     valid_acc = np.exp(-valid_loss * 0.1)
-    return loss_accuracy_curve(
-        metrics=[
-            {'name': 'loss', 'steps': steps, 'values': loss},
-            {'name': 'valid loss', 'steps': valid_steps, 'values': valid_loss},
-        ],
-        secondary_metrics=[
-            {'name': 'valid acc', 'steps': valid_steps, 'values': valid_acc},
-        ],
-        title='Training Metrics'
+    return Section(
+        'Training Metrics',
+        loss_accuracy_curve(
+            metrics=[
+                {'name': 'loss', 'steps': steps, 'values': loss},
+                {'name': 'valid loss', 'steps': valid_steps,
+                 'values': valid_loss},
+            ],
+            secondary_metrics=[
+                {'name': 'valid acc', 'steps': valid_steps,
+                 'values': valid_acc},
+            ],
+            title='Training Loss & Validation Loss / Accuracy'
+        )
     )
 
 
 def demo_classification_report():
-    """Make a demo classification AUC curve figure."""
+    """Make a demo classification report."""
     y_true = np.random.binomial(n=1, p=.4, size=200)
     x = (
         (1 - y_true) * np.random.normal(-1., scale=1., size=y_true.shape) +
@@ -256,4 +262,26 @@ def demo_classification_report():
     return classification_report(
         y_true=y_true, y_pred=y_pred, y_prob=y_prob,
         title='Classification Report'
+    )
+
+
+def demo_regression_report():
+    """Make a demo regression report."""
+    x = np.linspace(0, np.pi * 4, 1001)
+    truth = np.stack([np.sin(x), np.cos(x)], axis=-1)
+    label = np.random.binomial(1, .2, size=x.shape)
+    predict = np.stack([
+        truth[:, 0] + (
+            (1 - label) * np.random.normal(0., scale=.1, size=x.shape) +
+            label * np.random.normal(0., scale=1., size=x.shape)
+        ),
+        truth[:, 1] + (
+            (1 - label) * np.random.normal(0, scale=1., size=x.shape) +
+            label * np.random.normal(0., scale=.1, size=x.shape)
+        )
+    ], axis=-1)
+
+    return regression_report(
+        truth=truth, predict=predict, label=label, per_target=True,
+        target_names=['cos(x)', 'sin(x)'], title='Regression Report'
     )

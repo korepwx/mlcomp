@@ -39,7 +39,6 @@ class MyTestCase(unittest.TestCase):
             ]
         )
         with default_report_types({'MyReport': MyReport}):
-            self.maxDiff = None
             c.assign_name_scopes()
             self.assertEqual(
                 c.to_json(sort_keys=True),
