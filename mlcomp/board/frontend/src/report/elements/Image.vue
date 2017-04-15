@@ -44,7 +44,7 @@
   .report-image {
     display: block;
     width: 100%;
-    border: 1px solid #ccc;
+    border: 1px solid $figure-border-color;
     border-radius: $block-border-radius;
     padding: $figure-border-padding;
     margin: 1em 0;

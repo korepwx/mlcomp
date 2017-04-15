@@ -7,7 +7,7 @@ import six
 from mlcomp.persist import Storage
 from mlcomp.board import config
 from mlcomp.board.application import BoardApp, ReportApp
-from mlcomp.report.demo import demo_report, demo_loss_accuracy_report
+from mlcomp.report.demo import demo_report, demo_loss_accuracy_curve
 from mlcomp.utils import TemporaryDirectory
 
 config['DEBUG'] = True
@@ -30,7 +30,7 @@ def debug_board():
 
         # create a demo report under 'c'
         storage_dict['c'].save_report(demo_report())
-        storage_dict['c'].save_report(demo_loss_accuracy_report(), 'training')
+        storage_dict['c'].save_report(demo_loss_accuracy_curve(), 'training')
 
         # run the debug server
         config['DEBUG'] = True

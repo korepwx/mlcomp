@@ -11,7 +11,7 @@ __all__ = [
 def loss_accuracy_curve(metrics, metric_name='loss', secondary_metrics=None,
                         secondary_metric_name='accuracy', step_name='step',
                         title=None):
-    """Report of training loss and accuracy curve.
+    """Training loss and accuracy curve.
     
     This method generates a CanvasJS report object, which plots
     the training loss and accuracy curve.

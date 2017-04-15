@@ -118,7 +118,7 @@ def resources(storage, root, path):
         return handle_storage_info(storage, root_url, path)
 
     # if some static resources displayed at storage index are requested
-    if path.startswith('report/') or path == 'console.log':
+    if path.startswith('report/') or path in ('console.log', 'storage.json'):
         return send_from_directory(storage.path, path)
 
     # if the files are requested

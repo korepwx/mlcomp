@@ -11,6 +11,9 @@
         <div :id="containerId">Loading, please wait ...</div>
       </div>
     </div>
+    <div class="report-data-download">
+      Download the chart data: <a :href="dataUrl" :title="title">data.json</a>
+    </div>
   </div>
 </template>
 
@@ -92,11 +95,24 @@
     display: inline;
   }
 
+  .report-data-download {
+    display: block;
+    padding: 10px;
+    border: 1px solid $figure-border-color;
+    border-left: 4px solid $figure-border-color;
+    border-radius: $block-border-radius;
+    margin: 1em 0;
+
+    a:hover {
+      text-decoration: underline;
+    }
+  }
+
   // apply to both situations
   .report-canvasjs {
     display: block;
     width: 100%;
-    border: 1px solid #ccc;
+    border: 1px solid $figure-border-color;
     border-radius: $block-border-radius;
     padding: $figure-border-padding;
     margin: 1em 0;

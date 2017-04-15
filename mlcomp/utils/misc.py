@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import io
 import re
 import sys
 import threading
@@ -11,7 +12,7 @@ import six
 __all__ = [
     'unique', 'sorted_unique', 'AutoReprObject', 'object_to_dict',
     'camel_to_underscore', 'import_string', 'ContextStack',
-    'flatten_list',
+    'flatten_list', 'wrap_text_writer',
 ]
 
 NON_OBJECT_TYPES = (
@@ -251,3 +252,52 @@ def flatten_list(nested_list, list_types=(list, tuple), return_type=list):
         else:
             ret.append(top)
     return return_type(ret)
+
+
+def wrap_text_writer(out, encoding, manage=True):
+    """Wrap a binary output stream as a text writer.
+    
+    Parameters
+    ----------
+    out : io.IOBase
+        The binary output stream.
+        
+    encoding : str
+        The encoding of the text writer.
+        
+    manage : bool
+        If set to True, will close the underlying binary stream when
+        the text writer has been closed.
+    """
+    if isinstance(out, io.TextIOBase):
+        return out
+    elif isinstance(out, io.RawIOBase):
+        buffer = io.BufferedIOBase(out)
+        if not manage:
+            buffer.close = lambda: None
+    else:
+        # This is to handle passed objects that aren't in the
+        # IOBase hierarchy, but just have a write method
+        buffer = io.BufferedIOBase()
+        buffer.writable = lambda: True
+        buffer.write = out.write
+        if manage:
+            buffer.close = out.close
+        try:
+            # TextIOWrapper uses this methods to determine
+            # if BOM (for UTF-16, etc) should be added
+            buffer.seekable = out.seekable
+            buffer.tell = out.tell
+        except AttributeError:
+            pass
+
+            # wrap a binary writer with TextIOWrapper
+
+    class UnbufferedTextIOWrapper(io.TextIOWrapper):
+        def write(self, s):
+            super(UnbufferedTextIOWrapper, self).write(s)
+            self.flush()
+
+    return UnbufferedTextIOWrapper(buffer, encoding=encoding,
+                                   errors='xmlcharrefreplace',
+                                   newline='\n')

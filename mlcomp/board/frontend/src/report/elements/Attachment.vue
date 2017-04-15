@@ -43,9 +43,10 @@
   .attach-block {
     display: block;
     padding: 10px;
-    border: 1px solid #bdbdbd;
-    border-left: 4px solid #bdbdbd;
+    border: 1px solid $figure-border-color;
+    border-left: 4px solid $figure-border-color;
     border-radius: $block-border-radius;
+    margin: 1em 0;
   }
   .attach-inline, .attach-block {
     a:hover {

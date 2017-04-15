@@ -71,7 +71,7 @@
   }
   .component {
     line-height: 1.5em;
-    margin: 1em auto;
+    margin: 1em 0;
     width: 90%;
     max-width: 1000px;
     overflow: hidden;

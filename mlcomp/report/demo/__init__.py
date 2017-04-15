@@ -7,13 +7,13 @@ import numpy as np
 import pandas as pd
 from PIL import Image as PILImage
 
-from ..components import dataframe_to_table
-from ..container import Report
+from ..bundle import *
+from ..container import *
 from ..elements import *
 from ..components import *
 
 __all__ = [
-    'demo_report', 'demo_loss_accuracy_report',
+    'demo_report', 'demo_loss_accuracy_curve',
 ]
 
 
@@ -214,13 +214,14 @@ def demo_report():
         children=[
             ParagraphText('In this section we will demonstrate some '
                           'experiment report components.'),
-            demo_loss_accuracy_report(),
+            demo_loss_accuracy_curve(),
+            demo_classification_report(),
         ]
     ))
     return r
 
 
-def demo_loss_accuracy_report():
+def demo_loss_accuracy_curve():
     """Make a demo loss-accuracy curve figure."""
     steps = np.arange(101)
     loss = np.exp(-steps * 0.1) * 20. + np.random.normal(size=101) * 2.
@@ -232,14 +233,27 @@ def demo_loss_accuracy_report():
     valid_acc = np.exp(-valid_loss * 0.1)
     return loss_accuracy_curve(
         metrics=[
-            {'name': 'loss', 'steps': steps, 'values': loss,
-             'color': 'navy'},
-            {'name': 'valid loss', 'steps': valid_steps, 'values': valid_loss,
-             'color': 'orangered'},
+            {'name': 'loss', 'steps': steps, 'values': loss},
+            {'name': 'valid loss', 'steps': valid_steps, 'values': valid_loss},
         ],
         secondary_metrics=[
-            {'name': 'valid acc', 'steps': valid_steps, 'values': valid_acc,
-             'color': 'green'},
+            {'name': 'valid acc', 'steps': valid_steps, 'values': valid_acc},
         ],
         title='Training Metrics'
+    )
+
+
+def demo_classification_report():
+    """Make a demo classification AUC curve figure."""
+    y_true = np.random.binomial(n=1, p=.4, size=200)
+    x = (
+        (1 - y_true) * np.random.normal(-1., scale=1., size=y_true.shape) +
+        y_true * np.random.normal(1., scale=1., size=y_true.shape)
+    )
+    y_prob = 1. / (1 + np.exp(-x))
+    y_pred = (y_prob >= 0.5).astype(np.int32)
+
+    return classification_report(
+        y_true=y_true, y_pred=y_pred, y_prob=y_prob,
+        title='Classification Report'
     )

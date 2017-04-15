@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from .base import *
+from .bundle import *
 from .components import *
+from .base import *
 from .container import *
 from .elements import *
 from .persist import *

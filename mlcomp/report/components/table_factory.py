@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import copy
 
+import numpy as np
 import pandas as pd
 
 from ..elements import *
@@ -29,7 +30,12 @@ def dataframe_to_table(df, title=None, name=None, name_scope=None):
     Table
         Table report object.
     """
-    to_str = lambda v: (str(v) if v is not None else '')
+    def to_str(v):
+        return (
+            '' if v is None else (
+                '%.7g' % v if isinstance(v, (float, np.float)) else str(v)
+            )
+        )
 
     # inspect the index names
     if isinstance(df.index, pd.MultiIndex):
