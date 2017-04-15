@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
+import json
 from collections import OrderedDict
-from gzip import GzipFile
-from io import BytesIO
 
 import numpy as np
 import pandas as pd
@@ -10,7 +9,7 @@ from sklearn.metrics import (average_precision_score,
                              precision_recall_fscore_support)
 from sklearn.utils.multiclass import unique_labels
 
-from mlcomp.utils import wrap_text_writer
+from mlcomp.utils import JsonEncoder
 from .table_factory import *
 from ..elements import *
 
@@ -174,16 +173,12 @@ def classification_result_attachment(y_true, y_pred, y_prob, title=None,
     Attachment
         The classification result as an attachment of gzipped CSV file.
     """
-    df = pd.DataFrame(OrderedDict([
-        ('y_true', y_true),
-        ('y_pred', y_pred),
-        ('y_prob', y_prob),
-    ]))
-    with BytesIO() as f:
-        with GzipFile(fileobj=f, mode='w') as gz:
-            writer = wrap_text_writer(gz, 'utf-8', manage=False)
-            df.to_csv(writer, encoding='utf-8', mode='wb', index=False)
-        f.seek(0)
-        cnt = f.read()
+    cnt = json.dumps(
+        {'y_true': y_true.tolist(), 'y_pred': y_pred.tolist(),
+         'y_prob': y_prob.tolist()},
+        cls=JsonEncoder,
+    )
     return Attachment(
-        cnt, title=title, link_only=link_only, extension='.csv.gz')
+        cnt.encode('utf-8'), title=title, link_only=link_only,
+        extension='.json', gzip_compress=True, name='classification_result'
+    )

@@ -1,7 +1,7 @@
 <template>
   <div class="report-attachment" :class="{ 'attach-inline': link_only, 'attach-block': !link_only }">
     <span v-if="!link_only">Download the attachment: </span>
-    <a :href="url + '?attachment'" :title="title">{{ title || url }}</a>
+    <a :href="url" :title="title">{{ title || url }}</a>
   </div>
 </template>
 

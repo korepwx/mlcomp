@@ -13,3 +13,4 @@ watchdog >= 0.8.3
 qualname >= 0.1.0
 awesome-slugify >= 1.6.5
 python-magic >= 0.4.13
+six >= 1.10.0

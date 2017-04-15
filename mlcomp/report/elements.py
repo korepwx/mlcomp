@@ -423,7 +423,8 @@ class DynamicContent(ReportObject, _Element):
         if data is not None and not isinstance(data, Resource):
             data = json.dumps(data, cls=JsonEncoder)
             data = data.encode('utf-8')
-            data = Resource(data, extension='.json', name='Data')
+            data = Resource(data, extension='.json', name='Data',
+                            gzip_compress=True)
 
         self.html = html
         self.element_id = element_id
@@ -454,7 +455,8 @@ class CanvasJS(ReportObject, _Element):
         if not isinstance(data, Resource):
             data = json.dumps(data, cls=JsonEncoder)
             data = data.encode('utf-8')
-            data = Resource(data, extension='.json', name='Data')
+            data = Resource(data, extension='.json', name='Data',
+                            gzip_compress=True)
 
         self.data = data
         self.title = title

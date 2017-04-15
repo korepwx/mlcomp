@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import codecs
+import gzip
 import json
 import unittest
 from io import BytesIO
@@ -274,15 +274,17 @@ class ElementsTestCase(unittest.TestCase):
             self.assertTrue(is_report_element(r))
             self.assertEqual(
                 r.to_json(sort_keys=True),
-                '{"__id__": 0, "__type__": "DynamicContent", "data": {"__id__": 1, "__type__": "Resource", "extension": ".json", "name": "Data", "name_scope": "dynamic_content/data", "path": "res/dynamic_content/data.json"}, "element_id": "%s", "html": "html content", "name_scope": "dynamic_content", "script": {"__id__": 2, "__type__": "Resource", "extension": ".js", "name": "Script", "name_scope": "dynamic_content/script", "path": "res/dynamic_content/script.js"}}' % (r.element_id,)
+                '{"__id__": 0, "__type__": "DynamicContent", "data": {"__id__": 1, "__type__": "Resource", "extension": ".json", "gzip_compress": true, "name": "Data", "name_scope": "dynamic_content/data", "path": "res/dynamic_content/data.json"}, "element_id": "%s", "html": "html content", "name_scope": "dynamic_content", "script": {"__id__": 2, "__type__": "Resource", "extension": ".js", "name": "Script", "name_scope": "dynamic_content/script", "path": "res/dynamic_content/script.js"}}' % (r.element_id,)
             )
-            with codecs.open(tempdir + '/3/res/dynamic_content/script.js') as f:
+            script_path = tempdir + '/3/res/dynamic_content/script.js'
+            with open(script_path, 'rb') as f:
                 self.assertEqual(
-                    f.read(),
+                    f.read().decode('utf-8'),
                     '(function(){var el=document.getElementById("%s");var data=el.getAttribute("dynamic-content-data");try{(function($,$el,$data){alert($data);})(window.jQuery,el,data);}catch(e){el.innerHTML="Failed to execute script: "+e;}})();' % (r.element_id,)
                 )
-            with codecs.open(tempdir + '/3/res/dynamic_content/data.json') as f:
-                self.assertEqual(f.read(), '[1, 2, 3]')
+            data_path = tempdir + '/3/res/dynamic_content/data.json.gz'
+            with gzip.open(data_path) as f:
+                self.assertEqual(f.read().decode('utf-8'), '[1, 2, 3]')
 
     def test_CanvasJS(self):
         with TemporaryDirectory() as tempdir:
@@ -298,11 +300,11 @@ class ElementsTestCase(unittest.TestCase):
             self.assertTrue(is_report_element(r))
             self.assertEqual(
                 r.to_json(sort_keys=True),
-                '{"__id__": 0, "__type__": "CanvasJS", "container_id": "%s", "data": {"__id__": 1, "__type__": "Resource", "extension": ".json", "name": "Data", "name_scope": "canvas_js/data", "path": "res/canvas_js/data.json"}, "name_scope": "canvas_js"}' % (r.container_id,)
+                '{"__id__": 0, "__type__": "CanvasJS", "container_id": "%s", "data": {"__id__": 1, "__type__": "Resource", "extension": ".json", "gzip_compress": true, "name": "Data", "name_scope": "canvas_js/data", "path": "res/canvas_js/data.json"}, "name_scope": "canvas_js"}' % (r.container_id,)
             )
-            with codecs.open(tempdir + '/res/canvas_js/data.json') as f:
+            with gzip.open(tempdir + '/res/canvas_js/data.json.gz') as f:
                 self.assertEqual(
-                    json.loads(f.read()),
+                    json.loads(f.read().decode('utf-8')),
                     {"data": [{"type": "column", "dataPoints": [{"y": 1, "label": "a"}, {"y": 3, "label": "b"}, {"y": 2, "label": "c"}]}]}
                 )
 

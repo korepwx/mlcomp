@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 import copy
+import gzip
+import os
 import unittest
 
 from mlcomp.report import (Resource, ResourceManager, ReportObject,
-                           default_report_types)
+                           default_report_types, Report)
 from mlcomp.utils import TemporaryDirectory
 
 
@@ -151,6 +153,27 @@ class ResourceTestCase(unittest.TestCase):
             self.assertEqual(report2.children[1].data, b'456')
             self.assertEqual(report2.children[2].data, b'789')
 
+            # test save and load gzip compressed data
+            r = Resource(data=b'123', extension='.txt', gzip_compress=True)
+            with TemporaryDirectory() as tempdir:
+                r.assign_name_scopes()
+                r.save_resources(ResourceManager(tempdir))
+                self.assertEqual(
+                    r.to_json(sort_keys=True),
+                    '{"__id__": 0, "__type__": "Resource", "extension": ".txt", "gzip_compress": true, "name_scope": "resource", "path": "resource.txt"}'
+                )
+                r_path = os.path.join(tempdir, 'resource.txt.gz')
+                self.assertTrue(os.path.exists(r_path))
+                with gzip.open(r_path, 'rb') as f:
+                    self.assertEqual(f.read(), b'123')
+
+                r2 = Report.from_json(r.to_json(sort_keys=True))
+                self.assertEqual(
+                    r2.to_json(sort_keys=True),
+                    '{"__id__": 0, "__type__": "Resource", "extension": ".txt", "gzip_compress": true, "name_scope": "resource", "path": "resource.txt"}'
+                )
+                r2.load_resources(ResourceManager(tempdir))
+                self.assertEqual(r2.data, b'123')
 
 if __name__ == '__main__':
     unittest.main()

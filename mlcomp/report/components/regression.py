@@ -2,8 +2,6 @@
 import itertools
 import json
 from collections import OrderedDict
-from gzip import GzipFile
-from io import BytesIO
 
 import numpy as np
 import pandas as pd
@@ -12,7 +10,7 @@ from sklearn.metrics import (mean_absolute_error,
                              explained_variance_score, r2_score)
 from sklearn.utils.multiclass import unique_labels
 
-from mlcomp.utils import wrap_text_writer, JsonEncoder
+from mlcomp.utils import JsonEncoder
 from .table_factory import *
 from ..elements import *
 
@@ -184,15 +182,11 @@ def regression_result_attachment(truth, predict, title=None, link_only=False):
     Attachment
         The regression result as an attachment of gzipped JSON file.
     """
-    with BytesIO() as f:
-        with GzipFile(fileobj=f, mode='w') as gz:
-            writer = wrap_text_writer(gz, 'utf-8', manage=False)
-            json.dump(
-                {'truth': truth.tolist(), 'predict': predict.tolist()},
-                writer,
-                cls=JsonEncoder,
-            )
-        f.seek(0)
-        cnt = f.read()
+    cnt = json.dumps(
+        {'truth': truth.tolist(), 'predict': predict.tolist()},
+        cls=JsonEncoder,
+    )
     return Attachment(
-        cnt, title=title, link_only=link_only, extension='.json.gz')
+        cnt.encode('utf-8'), title=title, link_only=link_only,
+        extension='.json', gzip_compress=True, name='regression_result'
+    )

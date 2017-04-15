@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 import unittest
 import json
-from gzip import GzipFile
 from io import StringIO, BytesIO
 
 import pandas as pd
@@ -132,13 +131,14 @@ class ClassificationTestCase(unittest.TestCase):
             title='Classification Result'
         )
         with BytesIO(r.data) as f:
-            with GzipFile(fileobj=f) as gz:
-                with StringIO(gz.read().decode('utf-8')) as s:
-                    df = pd.read_csv(s)
-        np.testing.assert_almost_equal(df['y_true'].values, self.Y_TRUE)
-        np.testing.assert_almost_equal(df['y_pred'].values, self.Y_PRED)
-        np.testing.assert_almost_equal(df['y_prob'].values, self.Y_PROB)
+            data = json.loads(f.read().decode('utf-8'))
+            y_true = np.asarray(data['y_true'])
+            y_pred = np.asarray(data['y_pred'])
+            y_prob = np.asarray(data['y_prob'])
 
+        np.testing.assert_almost_equal(y_true, self.Y_TRUE)
+        np.testing.assert_almost_equal(y_pred, self.Y_PRED)
+        np.testing.assert_almost_equal(y_prob, self.Y_PROB)
 
 if __name__ == '__main__':
     unittest.main()

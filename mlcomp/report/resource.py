@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import gzip
 import mimetypes
 import os
 
@@ -31,10 +32,20 @@ class Resource(ReportObject):
 
     content_type : str
         Content-type of this resource.
+        
+    gzip_compress : bool
+        Whether or not to compress the data with gzip?
+        
+        If True, the data will be stored in `name_scope + extension + '.gz'`.
+        Meanwhile, the stored path will still be `name_scope + extension`.
+        (default is False)
+        
+    **kwargs
+        Other arguments passed to `ReportObject`.
     """
 
     def __init__(self, data=None, path=None, extension=None, content_type=None,
-                 name=None, name_scope=None):
+                 gzip_compress=False, name=None, name_scope=None):
         super(Resource, self).__init__(name=name, name_scope=name_scope)
         if data is None and path is None:
             raise ValueError(
@@ -43,6 +54,7 @@ class Resource(ReportObject):
         self._extension = extension
         self._content_type = content_type
         self.path = path
+        self.gzip_compress = gzip_compress
 
     def _repr_dict(self):
         ret = super(Resource, self)._repr_dict()
@@ -87,6 +99,8 @@ class Resource(ReportObject):
             ret['extension'] = self._extension
         if self._content_type:
             ret['content_type'] = self._content_type
+        if not ret['gzip_compress']:
+            ret.pop('gzip_compress')
         return ret
 
     def to_json(self, **kwargs):
@@ -102,11 +116,15 @@ class Resource(ReportObject):
                 data=self._data,
                 name_scope=self.name_scope,
                 extension=self.extension,
+                gzip_compress=self.gzip_compress,
             )
 
     def load_resources(self, rm):
         if not self.has_loaded and self.has_saved:
-            self._data = rm.load(path=self.path)
+            self._data = rm.load(
+                path=self.path,
+                gzip_compress=self.gzip_compress
+            )
 
 
 class ResourceManager(object):
@@ -148,7 +166,7 @@ class ResourceManager(object):
         """
         return name_scope in self._saved
 
-    def save(self, data, name_scope, extension):
+    def save(self, data, name_scope, extension, gzip_compress=False):
         """Save `data` at specified `name_scope`.
 
         Parameters
@@ -161,6 +179,10 @@ class ResourceManager(object):
 
         extension : str
             Optional extension for the save path.
+            
+        gzip_compress : bool
+            Whether or not to store the data in gzip compressed file?
+            (default is False)
 
         Returns
         -------
@@ -179,19 +201,27 @@ class ResourceManager(object):
         parent_dir = os.path.split(file_path)[0]
         os.makedirs(parent_dir, exist_ok=True)
 
-        with open(file_path, 'wb') as f:
-            f.write(data)
+        if gzip_compress:
+            with gzip.open(file_path + '.gz', 'wb') as f:
+                f.write(data)
+        else:
+            with open(file_path, 'wb') as f:
+                f.write(data)
 
         self._saved[name_scope] = self.rel_path + path
         return self._saved[name_scope]
 
-    def load(self, path):
+    def load(self, path, gzip_compress=False):
         """Load data at specified save `path`.
 
         Parameters
         ----------
         path : str
             The save path, which is expected to start with `rel_path`.
+            
+        gzip_compress : bool
+            Whether or not to load data from gzip compressed file?
+            (default is False)
 
         Raises
         ------
@@ -211,5 +241,10 @@ class ResourceManager(object):
                 '%r does not start with %r.' % (path, self.rel_path))
         path = path[len(self.rel_path):].strip('/')
         path = os.path.join(self.save_dir, path)
-        with open(path, 'rb') as f:
-            return f.read()
+
+        if gzip_compress:
+            with gzip.open(path + '.gz', 'rb') as f:
+                return f.read()
+        else:
+            with open(path, 'rb') as f:
+                return f.read()
