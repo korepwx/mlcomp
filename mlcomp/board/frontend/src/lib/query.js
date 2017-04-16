@@ -17,7 +17,7 @@ const statusMatchers = {
 export class GroupFilter {
   constructor(groups) {
     this.groups = groups;
-    if (groups) {
+    if (groups && groups.length > 0) {
       // gather all storage and build the searcher
       const storageList = Array.concat(...groups.map(g => g.items));
       const options = {
