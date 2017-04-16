@@ -147,6 +147,8 @@ def main(host, log_file, log_level, log_format, root, prefix, workers, debug):
             root = os.path.abspath(os.path.curdir)
         else:
             root = os.path.abspath(root)
+        if not os.path.exists(root):
+            raise IOError('%r does not exist.' % (root,))
         app = get_application_for_path(root)
 
     # otherwise compose a board app according to the mappings
