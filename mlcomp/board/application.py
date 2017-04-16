@@ -2,6 +2,7 @@
 import json
 import os
 import re
+from contextlib import contextmanager
 
 import six
 from flask import Flask
@@ -9,7 +10,8 @@ from flask import Flask
 from mlcomp import __version__
 from mlcomp.persist import Storage
 from mlcomp.persist.storage_tree import StorageTree, StorageTreeWatcher
-from mlcomp.utils import object_to_dict
+from mlcomp.persist.utils import BackgroundWorker
+from mlcomp.utils import object_to_dict, is_windows
 from . import config
 from .views import api_bp, main_bp, storage_bp, report_bp
 from .utils import MountTree
@@ -48,6 +50,11 @@ class BaseApp(Flask):
             '__system__': SystemInfo(),
         })
 
+    @contextmanager
+    def with_context(self):
+        """Open the context to serve this application."""
+        yield self
+
 
 class BoardApp(BaseApp):
     """The board application.
@@ -59,6 +66,8 @@ class BoardApp(BaseApp):
     """
 
     def __init__(self, mappings):
+        if is_windows():
+            raise RuntimeError('MLComp Board does not support windows yet.')
         super(BoardApp, self).__init__()
 
         # check the mappings
@@ -112,6 +121,15 @@ class StorageApp(BaseApp):
     def is_board_app(self):
         """This method is provided for `storage_bp`."""
         return False
+
+    @contextmanager
+    def with_context(self):
+        worker = BackgroundWorker(self.storage.reload, sleep_seconds=1)
+        try:
+            worker.start()
+            yield self
+        finally:
+            worker.stop()
 
 
 class ReportApp(BaseApp):

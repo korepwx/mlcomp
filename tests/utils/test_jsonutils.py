@@ -45,7 +45,7 @@ class JsonUtilsTestCase(unittest.TestCase):
 
     BASIC_OBJECT = (
         {'a': 1, 'b': datetime(2000, 1, 1), 'c': np.arange(16, dtype=np.int32),
-         'd': [np.asarray(1)], 'e': {'__type__': 'nothing'}},
+         'd': [np.asarray(1, dtype=np.int64)], 'e': {'__type__': 'nothing'}},
         '{"a": 1, "b": {"__type__": "datetime", "value": 946656000000.0}, "c": {"__id__": 0, "__type__": "ndarray", "data": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], "dtype": "int32"}, "d": [{"__id__": 1, "__type__": "ndarray", "data": 1, "dtype": "int64"}], "e": {"__type__": "nothing"}}'
     )
     MY_OBJECT = (

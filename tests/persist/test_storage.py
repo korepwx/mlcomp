@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+import time
 import unittest
 
 from mlcomp.persist import Storage, StorageReadOnlyError
@@ -69,6 +70,7 @@ class StorageTestCase(unittest.TestCase):
             with s3.keep_running_status():
                 self.assertIsNotNone(s3.running_status)
                 self.assertTrue(os.path.isfile(status_file))
+                time.sleep(0.1)
                 s1.reload()
                 self.assertIsNotNone(s1.running_status)
                 self.assertEqual(s1.running_status, s3.running_status)

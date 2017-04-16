@@ -8,12 +8,13 @@ import six
 
 from mlcomp.persist import Storage
 from mlcomp.board.application import BoardApp
-from mlcomp.utils import TemporaryDirectory
+from mlcomp.utils import TemporaryDirectory, is_windows
 
 
 class ViewsTestCase(unittest.TestCase):
     """Test cases for views."""
 
+    @unittest.skipIf(is_windows(), 'MLComp Board does not support Windows yet.')
     def test_routes(self):
         with TemporaryDirectory() as tempdir:
             f = lambda s: (
@@ -110,6 +111,7 @@ class ViewsTestCase(unittest.TestCase):
                 self.assertEqual(rv.status_code, 200)
                 self.assertEqual(f(rv.data), read_meta(storage_dict['c']))
 
+    @unittest.skipIf(is_windows(), 'MLComp Board does not support Windows yet.')
     def test_tree_root_as_storage(self):
         with TemporaryDirectory() as tempdir:
             f = lambda s: (

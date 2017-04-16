@@ -5,13 +5,17 @@ import json
 import unittest
 from io import BytesIO
 
-from magic import Magic
 from PIL import Image as PILImage
 
 from mlcomp.report import ReportSaver, Report
 from mlcomp.report.elements import *
 from mlcomp.report.elements import _ResourceWithTitle
 from mlcomp.utils import TemporaryDirectory
+
+try:
+    from magic import Magic
+except ImportError:
+    Magic = None
 
 
 class ElementsTestCase(unittest.TestCase):
@@ -105,9 +109,10 @@ class ElementsTestCase(unittest.TestCase):
         # test construct from PIL image
         r = Image(image)
         self.assertTrue(is_report_element(r))
-        self.assertEqual(r.content_type, 'image/png')
         self.assertEqual(r.extension, '.png')
-        self.assertEqual(Magic(mime=True).from_buffer(r.data), 'image/png')
+        if Magic:
+            self.assertEqual(r.content_type, 'image/png')
+            self.assertEqual(Magic(mime=True).from_buffer(r.data), 'image/png')
         with PILImage.open(BytesIO(r.data)) as im:
             self.assertEqual(
                 im.tobytes(),
@@ -138,9 +143,10 @@ class ElementsTestCase(unittest.TestCase):
 
         with TemporaryDirectory() as tempdir:
             ReportSaver(tempdir).save(r)
+            r_content_type = '"content_type": "image/jpeg"' if Magic else ''
             self.assertEqual(
                 r.to_json(sort_keys=True),
-                '{"__id__": 0, "__type__": "Image", "content_type": "image/jpeg", "extension": ".jpg", "name_scope": "image", "path": "res/image.jpg"}'
+                '{"__id__": 0, "__type__": "Image", %s"extension": ".jpg", "name_scope": "image", "path": "res/image.jpg"}' % r_content_type
             )
 
     def test_Attachment(self):

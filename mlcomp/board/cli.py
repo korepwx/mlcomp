@@ -4,12 +4,16 @@ import os
 
 import click
 import six
-from gunicorn.app.base import BaseApplication
 
 from mlcomp.board import config
 from mlcomp.persist import STORAGE_META_FILE
 from mlcomp.report import REPORT_JSON_FILE
 from .application import BoardApp, StorageApp, ReportApp
+
+try:
+    from gunicorn.app.base import BaseApplication
+except ImportError:
+    BaseApplication = None
 
 __all__ = ['main']
 
@@ -81,24 +85,27 @@ def get_application_for_path(path):
         return BoardApp({'/': path})
 
 
-class GUnicornWrapper(BaseApplication):
+if BaseApplication:
+    class GUnicornWrapper(BaseApplication):
 
-    def __init__(self, app, options=None):
-        self.options = options or {}
-        self.app = app
-        super(GUnicornWrapper, self).__init__()
+        def __init__(self, app, options=None):
+            self.options = options or {}
+            self.app = app
+            super(GUnicornWrapper, self).__init__()
 
-    def load_config(self):
-        cfg = dict([
-            (key, value)
-            for key, value in six.iteritems(self.options)
-            if key in self.cfg.settings and value is not None
-        ])
-        for key, value in six.iteritems(cfg):
-            self.cfg.set(key.lower(), value)
+        def load_config(self):
+            cfg = dict([
+                (key, value)
+                for key, value in six.iteritems(self.options)
+                if key in self.cfg.settings and value is not None
+            ])
+            for key, value in six.iteritems(cfg):
+                self.cfg.set(key.lower(), value)
 
-    def load(self):
-        return self.app
+        def load(self):
+            return self.app
+else:
+    GUnicornWrapper = None
 
 
 @click.command()
@@ -159,13 +166,14 @@ def main(host, log_file, log_level, log_format, root, prefix, workers, debug):
     init_logging(log_file, log_level, log_format)
 
     # start the server
-    if debug:
-        app.run(host=ip, port=port)
-    else:
-        if not workers:
-            workers = (multiprocessing.cpu_count() * 2) + 1
-        options = {
-            'bind': '%s:%s' % (ip, port),
-            'workers': workers,
-        }
-        GUnicornWrapper(app, options).run()
+    with app.with_context():
+        if debug or GUnicornWrapper is None:
+            app.run(host=ip, port=port)
+        else:
+            if not workers:
+                workers = (multiprocessing.cpu_count() * 2) + 1
+            options = {
+                'bind': '%s:%s' % (ip, port),
+                'workers': workers,
+            }
+            GUnicornWrapper(app, options).run()

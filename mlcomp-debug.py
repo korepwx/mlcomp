@@ -17,6 +17,7 @@ basicConfig(level='DEBUG')
 
 def debug_board():
     with TemporaryDirectory() as tempdir:
+        print(tempdir)
         f = lambda s: (
             s if isinstance(s, six.text_type) else s.decode('utf-8'))
 
@@ -45,11 +46,13 @@ def debug_board():
                 '/b/': os.path.join(tempdir, 'b'),
                 '/c/': os.path.join(tempdir, 'c'),
             })
-            app.run(debug=True, use_reloader=False, port=8888)
+            with app.with_context():
+                app.run(debug=True, use_reloader=False, port=8888)
 
 
 def debug_storage():
     with TemporaryDirectory() as tempdir:
+        print(tempdir)
         f = lambda s: (
             s if isinstance(s, six.text_type) else s.decode('utf-8'))
 
@@ -68,19 +71,22 @@ def debug_storage():
         s.save_script(__file__)
         with s.with_context():
             app = StorageApp(s.path)
-            app.run(debug=True, use_reloader=False, port=8888)
+            with app.with_context():
+                app.run(debug=True, use_reloader=False, port=8888)
 
 
 def debug_report():
     with TemporaryDirectory() as tempdir:
+        print(tempdir)
         r = demo_report()
         r.title = None
         r.save(tempdir)
         app = ReportApp(tempdir)
-        app.run(debug=True, use_reloader=False, port=8888)
+        with app.with_context():
+            app.run(debug=True, use_reloader=False, port=8888)
 
 
 if __name__ == '__main__':
-    debug_board()
-    # debug_storage()
+    # debug_board()
+    debug_storage()
     # debug_report()

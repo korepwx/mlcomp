@@ -134,6 +134,7 @@ class BackgroundWorker(object):
 
     def _thread_run(self):
         self._stopped = False
+
         # notify the `open()` method that we've successfully started.
         self._start_sem.release()
 
