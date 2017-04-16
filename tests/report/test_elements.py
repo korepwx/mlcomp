@@ -143,7 +143,7 @@ class ElementsTestCase(unittest.TestCase):
 
         with TemporaryDirectory() as tempdir:
             ReportSaver(tempdir).save(r)
-            r_content_type = '"content_type": "image/jpeg"' if Magic else ''
+            r_content_type = '"content_type": "image/jpeg", ' if Magic else ''
             self.assertEqual(
                 r.to_json(sort_keys=True),
                 '{"__id__": 0, "__type__": "Image", %s"extension": ".jpg", "name_scope": "image", "path": "res/image.jpg"}' % r_content_type
