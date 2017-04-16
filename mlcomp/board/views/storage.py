@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 import json
-import mimetypes
 import os
-
 import re
+import stat
+from logging import getLogger
+
 import six
 from flask import (Blueprint, current_app, send_from_directory, render_template,
-                   jsonify, request, url_for)
-from werkzeug.exceptions import NotFound, MethodNotAllowed
+                   jsonify, request, url_for, safe_join)
+from werkzeug.exceptions import NotFound, MethodNotAllowed, InternalServerError
 
-from .utils import is_testing
-
+from .utils import is_testing, send_from_directory_ex
 
 storage_bp = Blueprint('storage', __name__.rsplit('.')[1])
 
@@ -97,28 +97,33 @@ def handle_storage_info(storage, root_url, path):
         raise MethodNotAllowed()
 
 
-def send_from_directory_ex(directory, filename, **kwargs):
-    """Extended `send_from_directory`.
-    
-    This version of `send_from_directory` will would send 'abc.xxx.gz' as
-    response to the request for 'abc.xxx'.
-    """
+def handle_file_stat(storage, root_url, path):
+    def stat_to_entity(n, s):
+        return {
+            'name': n,
+            'size': s.st_size,
+            'is_dir': stat.S_ISDIR(s.st_mode)
+        }
 
+    fpath = safe_join(storage.path, path)
     try:
-        return send_from_directory(directory, filename, **kwargs)
-    except NotFound:
-        if 'mimetype' not in kwargs:
-            # we should set the mime-type, otherwise Flask will
-            # try to use the mime-type inferred from `filename + '.gz'`,
-            # which is not controllable by us.
-            mimetype = (
-                mimetypes.guess_type(filename)[0] or
-                'application/octet-stream'
-            )
-            kwargs['mimetype'] = mimetype
-        ret = send_from_directory(directory, filename + '.gz', **kwargs)
-        ret.headers['Content-Encoding'] = 'gzip'
-        return ret
+        st = os.stat(fpath)
+    except OSError:
+        if not os.path.exists(fpath):
+            raise NotFound()
+        getLogger(__name__).exception('Failed to stat %r.', fpath)
+        raise InternalServerError()
+
+    if stat.S_ISDIR(st.st_mode):
+        ret = []
+        for fname in os.listdir(fpath):
+            try:
+                ret.append(stat_to_entity(fname, os.stat(os.path.join(fpath, fname))))
+            except OSError:
+                getLogger(__name__).exception('Failed to stat %r.', fpath)
+        return jsonify(ret)
+    else:
+        return jsonify(stat_to_entity(os.path.split(fpath)[1], st))
 
 
 @storage_bp.route('/', methods=['GET', 'POST'])
@@ -143,18 +148,17 @@ def resources(storage, root, path):
         return handle_storage_info(storage, root_url, path)
 
     # if some static resources displayed at storage index are requested
-    as_attachment = request.query_string == b'attachment'
     if path.startswith('report/') or path in ('console.log', 'storage.json'):
-        return send_from_directory_ex(
-            storage.path, path, as_attachment=as_attachment)
+        return send_from_directory_ex(storage.path, path)
 
     # if the files are requested
-    if path.startswith('files/'):
-        return send_from_directory_ex(
-            storage.path, path[6:], as_attachment=as_attachment)
+    if path.startswith('files/') or path == 'files':
+        if request.args.get('stat', None) == '1':
+            return handle_file_stat(storage, root_url, path[6:])
+        else:
+            return send_from_directory(storage.path, path[6:])
 
     # no route is matched
     raise NotFound()
-
 
 STORAGE_INDEX_URL = re.compile(r'^(/?|report(/[^/]+)?/?|logs/?)$')

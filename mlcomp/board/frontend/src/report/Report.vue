@@ -7,12 +7,11 @@
     <!-- the loading error message -->
     <div v-if="errorMessage" class="main-content error">
       Failed to load report: {{ errorMessage }}.
-      <img src='asserts/404.png'/>
     </div>
 
     <!-- the main report body -->
     <div v-if="!errorMessage && reportFile" class="main-content report-body">
-      <h1>{{ reportTitle }}</h1>
+      <h1 v-if="reportTitle">{{ reportTitle }}</h1>
       <dispatch :rootUrl="rootUrl" :data="reportFile.data" :level="1"></dispatch>
     </div>
   </div> <!-- div.main-wrapper -->
@@ -29,6 +28,12 @@
       rootUrl: {
         type: String,
         default: '/',
+      },
+
+      // the directory name of the report
+      reportDirName: {
+        type: String,
+        default: window.report_dir_name || null,
       }
     },
 
@@ -47,7 +52,12 @@
     computed: {
       reportTitle() {
         const title = this.reportFile && this.reportFile.data && this.reportFile.data.title;
-        return title || 'Report';
+        if (title)
+          return title;
+        const reportDirName = this.reportDirName;
+        if (reportDirName)
+          return `Report “${this.reportDirName}”`;
+        return null;
       }
     },
 
@@ -112,10 +122,14 @@
 </script>
 
 <style lang="scss" scoped>
+  .main-wrapper {
+    height: 100%;
+    overflow: auto;
+  }
   .main-content {
-    padding: 5px 10px;
     max-width: 960px;
     margin: auto;
+    padding: 5px 10px;
   }
   h1 {
     color: #673ab7;

@@ -100,7 +100,7 @@ def make_dataframe_table():
     index = pd.MultiIndex.from_tuples(tuples, names=['first', 'second'])
     df = pd.DataFrame(
         np.arange(16).reshape([8, 2]), index=index, columns=['A', 'B'])
-    return dataframe_to_table(df, title='My Table', name='the-table')
+    return dataframe_to_table(df, name='the-table')
 
 
 def demo_report():
@@ -146,6 +146,8 @@ def demo_report():
         ]
     ))
     mandelbrot_image = mandelbrot()
+    mandelbrot_thumbail = mandelbrot_image.copy()
+    mandelbrot_thumbail.thumbnail((300, 300))
     r.add(Section(
         title='Resource Elements',
         children=[
@@ -155,8 +157,8 @@ def demo_report():
                 mandelbrot_image,
                 title='Mandelbrot Set',
             ),
-            ParagraphText('And image without title:'),
-            Image(mandelbrot_image),
+            ParagraphText('And its thumbnail without title:'),
+            Image(mandelbrot_thumbail),
             Attachment(
                 source_code(),
                 title='Script Source Code',

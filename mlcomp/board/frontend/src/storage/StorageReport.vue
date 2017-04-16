@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <report :rootUrl="reportUrl"></report>
+  <div class="storage-report">
+    <report :rootUrl="reportUrl" :reportDirName="selectedReport"></report>
   </div>
 </template>
 
@@ -29,3 +29,9 @@
     },
   }
 </script>
+
+<style lang="scss" scoped>
+  .storage-report {
+    height: 100%;
+  }
+</style>

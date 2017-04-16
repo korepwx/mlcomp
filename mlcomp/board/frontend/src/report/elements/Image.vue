@@ -43,19 +43,19 @@
   // apply to both situations
   .report-image {
     display: block;
-    width: 100%;
+    max-width: 100%;
     border: 1px solid $figure-border-color;
     border-radius: $block-border-radius;
     padding: $figure-border-padding;
-    margin: 1em 0;
+    margin: 1em auto;
   }
 
   // apply only if the image is wrapped in figure
   .report-image {
     img {
-      width: 100%;
-      margin: 0;
       padding: 0;
+      margin: 0;
+      width: 100%;
     }
     figcaption {
       width: 100%;

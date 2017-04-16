@@ -4,6 +4,7 @@
 
 {% block headScripts %}
   <link rel="stylesheet" type="text/css" href="{{ asset_url_for('report/css') }}" />
+  <script type="text/javascript">var report_dir_name = {{ report_dir_name | safe }};</script>
 {% endblock %}
 
 {% block tailScripts %}

@@ -204,7 +204,6 @@
 
     .storage-content {
       height: 100%;
-      overflow-y: scroll;
     }
   }
 

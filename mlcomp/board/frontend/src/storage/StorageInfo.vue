@@ -83,6 +83,10 @@
 </script>
 
 <style lang="scss" scoped>
+  .main-wrapper {
+    height: 100%;
+    overflow: auto;
+  }
   td.label {
     font-weight: bold;
     width: 120px;

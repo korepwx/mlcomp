@@ -88,9 +88,11 @@
 </script>
 
 <style lang="scss" scoped>
-  .main-content {
+  .main-wrapper {
     height: 100%;
-    overflow-y: scroll;
+    overflow: auto;
+  }
+  .main-content {
     padding: 5px 10px;
   }
 </style>

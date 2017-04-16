@@ -1,31 +1,29 @@
 <template>
-  <div class="components">
+  <div class="report-table">
     <div v-if="title" class="title">Table: {{ title }} </div>
-    <div class="report-table">
-      <table id="keywords">
-        <thead v-if="data['header']">
-          <tr v-for="row in data['header']" :key="row['name_scope']">
-            <th v-for="col in row['cells']" :key="col['name_scope']" :rowspan="col['rowspan']" :colspan="col['colspan']">
-              <dispatch :data="col" :rootUrl="rootUrl" :level="level" :inline="true"></dispatch>
-            </th>
-          </tr>
-        </thead>
-        <tbody v-if="data['rows']">
-          <tr v-for="row in data['rows']" :key="row['name_scope']">
-            <td v-for="col in row['cells']" :key="col['name_scope']" :rowspan="col['rowspan']" :colspan="col['colspan']">
-              <dispatch :data="col" :rootUrl="rootUrl" :level="level" :inline="true"></dispatch>
-            </td>
-          </tr>
-        </tbody>
-        <tfoot v-if="data['footer']">
-          <tr v-for="row in data['footer']" :key="row['name_scope']">
-            <th v-for="col in row['cells']" :key="col['name_scope']" :rowspan="col['rowspan']" :colspan="col['colspan']">
-              <dispatch :data="col" :rootUrl="rootUrl" :level="level" :inline="true"></dispatch>
-            </th>
-          </tr>
-        </tfoot>
-      </table>
-    </div>
+    <table>
+      <thead v-if="data['header']">
+        <tr v-for="row in data['header']" :key="row['name_scope']">
+          <th v-for="col in row['cells']" :key="col['name_scope']" :rowspan="col['rowspan']" :colspan="col['colspan']">
+            <dispatch :data="col" :rootUrl="rootUrl" :level="level" :inline="true"></dispatch>
+          </th>
+        </tr>
+      </thead>
+      <tbody v-if="data['rows']">
+        <tr v-for="row in data['rows']" :key="row['name_scope']">
+          <td v-for="col in row['cells']" :key="col['name_scope']" :rowspan="col['rowspan']" :colspan="col['colspan']">
+            <dispatch :data="col" :rootUrl="rootUrl" :level="level" :inline="true"></dispatch>
+          </td>
+        </tr>
+      </tbody>
+      <tfoot v-if="data['footer']">
+        <tr v-for="row in data['footer']" :key="row['name_scope']">
+          <th v-for="col in row['cells']" :key="col['name_scope']" :rowspan="col['rowspan']" :colspan="col['colspan']">
+            <dispatch :data="col" :rootUrl="rootUrl" :level="level" :inline="true"></dispatch>
+          </th>
+        </tr>
+      </tfoot>
+    </table>
   </div>
 </template>
 
@@ -41,12 +39,7 @@
 
     computed: {
       title() {
-        if (this.data['title'])
-          return this.data['title'];
-        else if (this.data['name'])
-          return this.data['name'];
-        else
-          return null;
+        return this.data['title'];
       },
 
       url() {
@@ -64,27 +57,22 @@
   @import './settings.scss';
 
   .title {
+    margin-bottom: 0.5em;
     font-weight: 400;
     font-size: 1.5em;
     text-align: center;
     color: $title-color;
   }
-  .component {
-    line-height: 1.5em;
-    margin: 1em 0;
-    width: 90%;
-    max-width: 1000px;
-    overflow: hidden;
-  }
-  .component .filler {
-    color: #d3d3d3;
-  }
   .report-table {
+    max-width: 100%;
+    margin: 1em auto;
+    overflow: auto;
+
     table {
       border-collapse: separate;
       border-spacing: 1px;
-      width: 100%;
       background: #fff;
+      width: 100%;
     }
     td, th {
       padding: 0.75em 1.5em;
@@ -101,51 +89,6 @@
     }
     tbody tr:nth-child(2n-1) {
       background-color: #f5f5f5;
-    }
-  }
-
-  /* For appearance */
-  .report-table {
-  	overflow-x: auto;
-  	overflow-y: hidden;
-  	position: relative;
-  	margin-top: 1em;
-  	width: 100%;
-    display: block;
-
-    .sticky-thead, .sticky-col, .sticky-intersect {
-      opacity: 0;
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 50;
-      width: auto; /* Prevent table from stretching to full size */
-    }
-  	.sticky-thead {
-      box-shadow: 0 0.25em 0.1em -0.1em rgba(0,0,0,.125);
-      z-index: 100;
-      width: 100%; /* Force stretch */
-  	}
-    .sticky-intersect {
-      opacity: 1;
-      z-index: 150;
-
-  	}
-    .sticky-intersect th {
-      background-color: #666;
-      color: #eee;
-    }
-    td, th {
-      box-sizing: border-box;
-    }
-
-    /* Not needed for sticky header/column functionality */
-    td.user-name {
-      text-transform: capitalize;
-    }
-    .overflow-y {
-      overflow-y: auto;
-      max-height: 50vh;
     }
   }
 </style>
