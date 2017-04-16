@@ -23,40 +23,48 @@ def parse_request_storage(method):
     """
     @six.wraps(method)
     def wrapped(*args, **kwargs):
-        # first, find the tree and get the path in the tree
-        path = kwargs.pop('path', '')
-        node = current_app.mounts.get_node(path, use_parent=True)
-        if not node or not node.data:
-            raise NotFound()
-        pop_items = [v for v in node.path.split('/') if v]
-        for i in range(len(pop_items)):
-            if not path:
+        if current_app.is_board_app:
+            # first, find the tree and get the path in the tree
+            path = kwargs.pop('path', '')
+            node = current_app.mounts.get_node(path, use_parent=True)
+            if not node or not node.data:
                 raise NotFound()
-            path = path.lstrip('/')
-            pos = path.find('/')
-            if pos >= 0:
-                path = path[pos+1:]
-            else:
-                path = ''
-        # now we've get the path inside the tree, continue to get the storage
-        tree = node.data
-        storage_and_path = tree.find_storage(path)
-        if not storage_and_path:
-            raise NotFound()
-        storage, storage_path = storage_and_path
-        # get the path of the storage
-        if pop_items:
-            storage_path = '/'.join(pop_items) + '/' + storage_path
-        storage_path = storage_path.strip('/')
-        # and get the path inside the storage
-        path = os.path.abspath(os.path.join(tree.path, path))
-        path = os.path.relpath(path, storage.path).replace('\\', '/')
-        path = '/'.join(v for v in path.split('/') if v not in ('', '.'))
-        # finally, call the method
-        kwargs.setdefault('storage', storage)
-        kwargs.setdefault('root', storage_path)
-        kwargs.setdefault('path', path)
-        return method(*args, **kwargs)
+            pop_items = [v for v in node.path.split('/') if v]
+            for i in range(len(pop_items)):
+                if not path:
+                    raise NotFound()
+                path = path.lstrip('/')
+                pos = path.find('/')
+                if pos >= 0:
+                    path = path[pos+1:]
+                else:
+                    path = ''
+            # now we've get the path inside tree, continue to get the storage
+            tree = node.data
+            storage_and_path = tree.find_storage(path)
+            if not storage_and_path:
+                raise NotFound()
+            storage, storage_path = storage_and_path
+            # get the path of the storage
+            if pop_items:
+                storage_path = '/'.join(pop_items) + '/' + storage_path
+            storage_path = storage_path.strip('/')
+            # and get the path inside the storage
+            path = os.path.abspath(os.path.join(tree.path, path))
+            path = os.path.relpath(path, storage.path).replace('\\', '/')
+            path = '/'.join(v for v in path.split('/') if v not in ('', '.'))
+            # finally, call the method
+            kwargs.setdefault('storage', storage)
+            kwargs.setdefault('root', storage_path)
+            kwargs.setdefault('path', path)
+            return method(*args, **kwargs)
+        else:
+            path = kwargs.pop('path', '')
+            path = '/'.join(v for v in path.split('/') if v)
+            kwargs.setdefault('storage', current_app.storage)
+            kwargs.setdefault('root', '')
+            kwargs.setdefault('path', path)
+            return method(*args, **kwargs)
     return wrapped
 
 
@@ -118,7 +126,8 @@ def handle_file_stat(storage, root_url, path):
         ret = []
         for fname in os.listdir(fpath):
             try:
-                ret.append(stat_to_entity(fname, os.stat(os.path.join(fpath, fname))))
+                f_stat = os.stat(os.path.join(fpath, fname))
+                ret.append(stat_to_entity(fname, f_stat))
             except OSError:
                 getLogger(__name__).exception('Failed to stat %r.', fpath)
         return jsonify(ret)

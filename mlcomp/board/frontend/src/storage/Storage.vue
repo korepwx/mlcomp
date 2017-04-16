@@ -2,9 +2,9 @@
   <div id="Storage" class="page-wrapper">
     <!-- the navigation bar -->
     <mu-appbar :title="storageInfo ? `Experiment “${storageInfo.name}”` : 'Experiment'" class="appbar">
-      <mu-icon-button icon="arrow_back" slot="left" href="/" />
-      <mu-flat-button v-if="bottomNavValue === '/report/'" :label="selectedReport" slot="right" @click="toggleSelectReport" />
-      <mu-icon-button icon="refresh" slot="right" @click="handleReload" />
+      <mu-icon-button v-if="rootUrl !== '/'" icon="arrow_back" slot="left" href="/"></mu-icon-button>
+      <mu-flat-button v-if="bottomNavValue === '/report/'" :label="selectedReport" slot="right" @click="toggleSelectReport"></mu-flat-button>
+      <mu-icon-button icon="refresh" slot="right" @click="handleReload"></mu-icon-button>
     </mu-appbar>
 
     <mu-bottom-sheet :open="selectReportOpen" @close="closeSelectReport">
@@ -12,7 +12,7 @@
         <mu-sub-header>
           Select a report
         </mu-sub-header>
-        <mu-list-item v-for="report in reportNames" :title="report" :key="report" :value="report" />
+        <mu-list-item v-for="report in reportNames" :title="report" :key="report" :value="report"></mu-list-item>
       </mu-list>
     </mu-bottom-sheet>
 
@@ -35,9 +35,9 @@
     <!-- the bottom navigation -->
     <mu-paper class="bottom-nav">
       <mu-bottom-nav :value="bottomNavValue">
-        <mu-bottom-nav-item value="/" to="/" title="Home" icon="home" exact />
-        <mu-bottom-nav-item value="/report/" :to="'/report/' + selectedReport + '/'" title="Report" icon="assignment" />
-        <mu-bottom-nav-item value="/logs/" to="/logs/" title="Log" icon="access_time"/>
+        <mu-bottom-nav-item value="/" to="/" title="Home" icon="home" exact></mu-bottom-nav-item>
+        <mu-bottom-nav-item value="/report/" :to="'/report/' + selectedReport + '/'" title="Report" icon="assignment"></mu-bottom-nav-item>
+        <mu-bottom-nav-item value="/logs/" to="/logs/" title="Log" icon="access_time"></mu-bottom-nav-item>
       </mu-bottom-nav>
     </mu-paper>
   </div> <!-- div.page-wrapper -->
