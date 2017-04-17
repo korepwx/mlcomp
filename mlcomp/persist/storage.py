@@ -11,10 +11,11 @@ from contextlib import contextmanager
 from json import JSONDecodeError
 from logging import getLogger
 
+from mlcomp.utils import BackgroundWorker
 from .errors import StorageReadOnlyError
 from .storage_meta import StorageMeta
 from .storage_status import StorageRunningStatus
-from .utils import duplicate_console_output, BackgroundWorker
+from .utils import duplicate_console_output
 
 __all__ = [
     'Storage',

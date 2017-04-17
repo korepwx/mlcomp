@@ -10,8 +10,7 @@ from flask import Flask
 from mlcomp import __version__
 from mlcomp.persist import Storage
 from mlcomp.persist.storage_tree import StorageTree, StorageTreeWatcher
-from mlcomp.persist.utils import BackgroundWorker
-from mlcomp.utils import object_to_dict, is_windows
+from mlcomp.utils import object_to_dict, is_windows, BackgroundWorker
 from . import config
 from .views import api_bp, main_bp, storage_bp, report_bp
 from .utils import MountTree
