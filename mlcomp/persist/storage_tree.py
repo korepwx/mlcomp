@@ -8,6 +8,7 @@ from sortedcontainers import SortedDict
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
+from mlcomp.utils import is_path_excluded
 from .storage import Storage, STORAGE_META_FILE
 
 __all__ = ['StorageTree', 'StorageTreeWatcher']
@@ -40,23 +41,6 @@ class StorageTreeNode(object):
         Whether or not this node needs reloading?
     """
 
-    IGNORE_PATTERNS = re.compile(
-        r'''
-          # match the start position, or parent directories
-          (?:^|.*[/\\])
-
-          # the main file pattern
-          (?:
-            # match the git or svn directory
-            (\.git|\.svn)(?:$|.*[/\\])
-
-            # match the DS_Store file.
-          | (\.DS_Store)$
-          )
-        ''',
-        re.VERBOSE
-    )
-
     def __init__(self, name, path, mode, children=None, storage=None,
                  need_reload=False):
         if mode not in ('read', 'write'):
@@ -75,7 +59,7 @@ class StorageTreeNode(object):
     def from_dir(cls, root_dir, mode):
         """Create the node from specified path."""
         def scan_dir(name, path):
-            if not cls.IGNORE_PATTERNS.match(path):
+            if not is_path_excluded(path):
                 meta_file = os.path.join(path, STORAGE_META_FILE)
                 if os.path.isfile(meta_file):
                     s = Storage(path, mode)

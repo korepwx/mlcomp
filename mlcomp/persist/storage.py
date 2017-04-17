@@ -11,7 +11,7 @@ from contextlib import contextmanager
 from json import JSONDecodeError
 from logging import getLogger
 
-from mlcomp.utils import BackgroundWorker
+from mlcomp.utils import BackgroundWorker, is_path_excluded, EXCLUDES_PATTERN
 from .errors import StorageReadOnlyError
 from .storage_meta import StorageMeta
 from .storage_status import StorageRunningStatus
@@ -373,7 +373,7 @@ class Storage(object):
                         overwrite=overwrite)
         s.save(report)
 
-    def save_script(self, script_path):
+    def save_script(self, script_path, excludes=EXCLUDES_PATTERN):
         """Save the specified experiment script(s) to storage.
         
         Script file(s) will be stored to "script/" directory of this
@@ -388,15 +388,32 @@ class Storage(object):
             "script/" with the same name.  Otherwise if the path
             is a directory, all the contents of this directory will
             be copied to "script/".
+            
+        excludes : regex | None
+            The excluded path pattern.
+            If `None` is specified, will not exclude any path.
         """
+        def copy_tree(src, dst):
+            os.makedirs(dst, exist_ok=True)
+            for fname in os.listdir(src):
+                srcpath = os.path.join(src, fname)
+                if is_path_excluded(srcpath, excludes):
+                    continue
+
+                dstpath = os.path.join(dst, fname)
+                if os.path.isdir(srcpath):
+                    copy_tree(srcpath, dstpath)
+                else:
+                    shutil.copy(srcpath, dstpath)
+
         self.check_write()
+        script_path = os.path.abspath(script_path)
         target_dir = self.resolve_path(STORAGE_SCRIPT_DIR)
         if os.path.isdir(target_dir):
             shutil.rmtree(target_dir)
 
-        script_stat = os.stat(script_path)
-        if stat.S_ISDIR(script_stat.st_mode):
-            shutil.copytree(script_path, target_dir)
+        if os.path.isdir(script_path):
+            copy_tree(script_path, target_dir)
         else:
             os.makedirs(target_dir, exist_ok=True)
             shutil.copy(

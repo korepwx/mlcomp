@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import codecs
 import os
 import time
 import unittest
@@ -79,3 +80,51 @@ class StorageTestCase(unittest.TestCase):
             self.assertFalse(os.path.exists(status_file))
             s1.reload()
             self.assertIsNone(s1.running_status)
+
+    def test_save_script(self):
+        def writefile(path, cnt):
+            with codecs.open(path, 'wb', 'utf-8') as f:
+                f.write(cnt)
+
+        def readfile(path):
+            with codecs.open(path, 'rb', 'utf-8') as f:
+                return f.read()
+
+        with TemporaryDirectory() as tempdir:
+            s = Storage(os.path.join(tempdir, 's'), mode='create')
+
+            # test copy script
+            script_path = os.path.join(tempdir, '1.py')
+            script_content = 'print("hello, world")'
+            writefile(script_path, script_content)
+            s.save_script(script_path)
+            s_script_path = os.path.join(s.path, 'script/1.py')
+            self.assertTrue(os.path.isfile(s_script_path))
+            self.assertEqual(readfile(s_script_path), script_content)
+
+            # test copy script directory
+            os.makedirs(os.path.join(tempdir, '2/3'))
+            os.makedirs(os.path.join(tempdir, '2/.git'))
+            writefile(os.path.join(tempdir, '2/a.py'), 'print(123)')
+            writefile(os.path.join(tempdir, '2/3/b.py'), 'print(456)')
+            writefile(os.path.join(tempdir, '2/.git/c.py'), 'print(789)')
+
+            s.save_script(os.path.join(tempdir, '2'))
+            s_a_script_path = os.path.join(s.path, 'script/a.py')
+            s_b_script_path = os.path.join(s.path, 'script/3/b.py')
+            s_git_path = os.path.join(s.path, 'script/.git')
+            s_c_script_path = os.path.join(s.path, 'script/.git/c.py')
+            self.assertTrue(os.path.isfile(s_a_script_path))
+            self.assertTrue(os.path.isfile(s_b_script_path))
+            self.assertFalse(os.path.isdir(s_git_path))
+            self.assertFalse(os.path.isfile(s_c_script_path))
+            self.assertEqual(readfile(s_a_script_path), 'print(123)')
+            self.assertEqual(readfile(s_b_script_path), 'print(456)')
+
+            # test copy without exclude
+            s.save_script(os.path.join(tempdir, '2'), excludes=None)
+            self.assertTrue(os.path.isfile(s_c_script_path))
+            self.assertEqual(readfile(s_c_script_path), 'print(789)')
+
+if __name__ == '__main__':
+    unittest.main()
