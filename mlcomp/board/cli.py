@@ -75,22 +75,27 @@ def get_application_for_path(path):
     ----------
     path : str
         The path to be served through web application.
+        
+    Returns
+    -------
+    (class, tuple, dict)
+        The class, as well as the args and kwargs to construct the instance.
     """
     path = os.path.abspath(path)
     if os.path.exists(os.path.join(path, STORAGE_META_FILE)):
-        return StorageApp(path)
+        return StorageApp, (path,), {}
     elif os.path.exists(os.path.join(path, REPORT_JSON_FILE)):
-        return ReportApp(path)
+        return ReportApp, (path,), {}
     else:
-        return BoardApp({'/': path})
+        return BoardApp, ({'/': path},), {}
 
 
 if BaseApplication:
     class GUnicornWrapper(BaseApplication):
 
-        def __init__(self, app, options=None):
+        def __init__(self, app_factory, options=None):
             self.options = options or {}
-            self.app = app
+            self.app_factory = app_factory
             super(GUnicornWrapper, self).__init__()
 
         def load_config(self):
@@ -103,7 +108,7 @@ if BaseApplication:
                 self.cfg.set(key.lower(), value)
 
         def load(self):
-            return self.app
+            return self.app_factory()
 else:
     GUnicornWrapper = None
 
@@ -149,7 +154,7 @@ def main(host, log_file, log_level, log_format, root, prefix, workers, debug):
             root = os.path.abspath(root)
         if not os.path.exists(root):
             raise IOError('%r does not exist.' % (root,))
-        app = get_application_for_path(root)
+        cls, args, kwargs = get_application_for_path(root)
 
     # otherwise compose a board app according to the mappings
     else:
@@ -162,20 +167,25 @@ def main(host, log_file, log_level, log_format, root, prefix, workers, debug):
             prefix = '/' + prefix.strip('/')
             path = os.path.realpath(path)
             mappings[prefix] = path
-        app = BoardApp(mappings)
+        cls, args, kwargs = BoardApp, (mappings,), {}
 
     # initialize the logging
     init_logging(log_file, log_level, log_format)
 
     # start the server
-    with app.with_context():
-        if debug or GUnicornWrapper is None:
+    if debug or not issubclass(cls, BoardApp) or GUnicornWrapper is None:
+        # since only `BoardApp` needs high-performance web server,
+        # and since only `StorageApp` requires `with_context()`,
+        # we just run the applications except `BoardApp` in single
+        # threaded mode.
+        app = cls(*args, **kwargs)
+        with app.with_context():
             app.run(host=ip, port=port)
-        else:
-            if not workers:
-                workers = (multiprocessing.cpu_count() * 2) + 1
-            options = {
-                'bind': '%s:%s' % (ip, port),
-                'workers': workers,
-            }
-            GUnicornWrapper(app, options).run()
+    else:
+        if not workers:
+            workers = (multiprocessing.cpu_count() * 2) + 1
+        options = {
+            'bind': '%s:%s' % (ip, port),
+            'workers': workers,
+        }
+        GUnicornWrapper(lambda: cls(*args, **kwargs), options).run()
