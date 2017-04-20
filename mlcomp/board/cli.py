@@ -132,7 +132,7 @@ def main(host, log_file, log_level, log_format, root, prefix, workers, debug):
     port = 8080
     if host:
         if ':' in host:
-            ip, port = host.rstrip(':', 1)
+            ip, port = host.split(':', 1)
             port = int(port)
         else:
             ip = host
