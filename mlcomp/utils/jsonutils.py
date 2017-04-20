@@ -26,8 +26,6 @@ class JsonEncoder(json.JSONEncoder):
 
     *   bytes | JsonBinary ->
             {'__type__': 'binary', 'data': base64 encoded}
-    *   numpy.integer ->
-            int
     *   numpy.ndarray ->
             {'__type__': 'ndarray', 'data': o.tolist(), 'dtype': o.dtype}
     *   datetime.datetime ->
@@ -58,8 +56,12 @@ class JsonEncoder(json.JSONEncoder):
         if isinstance(o, self.BINARY_TYPES):
             cnt = b64encode(o).decode('utf-8')
             yield {'__type__': 'binary', 'data': cnt}
-        elif isinstance(o, np.integer):
+        elif isinstance(o, (np.integer, np.int, np.uint,
+                            np.int8, np.int16, np.int32, np.int64,
+                            np.uint8, np.uint16, np.uint32, np.uint64)):
             yield int(o)
+        elif isinstance(o, (np.float, np.float16, np.float32, np.float64)):
+            yield float(o)
         elif isinstance(o, np.ndarray):
             yield {
                 '__type__': 'ndarray',
