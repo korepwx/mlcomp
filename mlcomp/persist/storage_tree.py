@@ -8,7 +8,7 @@ from sortedcontainers import SortedDict
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
-from mlcomp.utils import is_path_excluded
+from mlcomp.utils import default_path_excludes
 from .storage import Storage, STORAGE_META_FILE
 
 __all__ = ['StorageTree', 'StorageTreeWatcher']
@@ -59,7 +59,7 @@ class StorageTreeNode(object):
     def from_dir(cls, root_dir, mode):
         """Create the node from specified path."""
         def scan_dir(name, path):
-            if not is_path_excluded(path):
+            if not default_path_excludes.is_excluded(path):
                 meta_file = os.path.join(path, STORAGE_META_FILE)
                 if os.path.isfile(meta_file):
                     s = Storage(path, mode)

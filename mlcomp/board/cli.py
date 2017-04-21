@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import multiprocessing
 import os
+import warnings
 
 import click
 import six
@@ -114,9 +115,9 @@ else:
 
 
 @click.command()
-@click.option('-h', '--host', default='',
-              help='HTTP server host (IP:PORT). '
-                   'Use 8080 as port if not specified.')
+@click.option('-H', '--host', default='', help='HTTP server host.')
+@click.option('-P', '--port', default=8080, type=click.INT,
+              help='HTTP server port.')
 @click.option('-l', '--log-file', default=None, help='Save log to file.')
 @click.option('-L', '--log-level', default=LOG_LEVEL, help='Log level.')
 @click.option('-F', '--log-format', default=LOG_FORMAT, help='Log format.')
@@ -130,17 +131,13 @@ else:
               help='Number of worker processes.')
 @click.option('--debug', default=False, is_flag=True,
               help='Whether or not to enable debugging features?')
-def main(host, log_file, log_level, log_format, root, prefix, workers, debug):
+def main(host, port, log_file, log_level, log_format, root, prefix, workers,
+         debug):
     """MLComp experiment browser."""
-    # parse the host into ip & port
-    ip = ''
-    port = 8080
-    if host:
-        if ':' in host:
-            ip, port = host.rsplit(':', 1)
-            port = int(port)
-        else:
-            ip = host
+    if ':' in host:
+        print('Specify PORT in HOST argument is now deprecated.')
+        host, port = host.rsplit(':', 1)
+        port = int(port)
 
     # set the debug flag if required
     if debug:
@@ -180,12 +177,12 @@ def main(host, log_file, log_level, log_format, root, prefix, workers, debug):
         # threaded mode.
         app = cls(*args, **kwargs)
         with app.with_context():
-            app.run(host=ip, port=port)
+            app.run(host=host, port=port)
     else:
         if not workers:
             workers = (multiprocessing.cpu_count() * 2) + 1
         options = {
-            'bind': '%s:%s' % (ip, port),
+            'bind': '%s:%s' % (host, port),
             'workers': workers,
         }
         GUnicornWrapper(lambda: cls(*args, **kwargs), options).run()
