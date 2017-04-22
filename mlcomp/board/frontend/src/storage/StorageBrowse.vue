@@ -70,6 +70,7 @@
         }
 
         // start to load the data
+        self.entities = null;
         getJSON({
           url: self.rootUrl + 'files/' + self.browsePath + '?stat=1',
           cache: false,
