@@ -170,4 +170,6 @@ def resources(storage, root, path):
     # no route is matched
     raise NotFound()
 
-STORAGE_INDEX_URL = re.compile(r'^(/?|report(/[^/]+)?/?|logs/?)$')
+STORAGE_INDEX_URL = re.compile(
+    r'^(/?|report(/[^/]+)?/?|browse(?:/.*)?|logs/?)$'
+)

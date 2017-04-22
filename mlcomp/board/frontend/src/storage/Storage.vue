@@ -28,7 +28,7 @@
 
       <!-- the main list group -->
       <div v-if="!errorMessage && storageInfo" class="storage-content storage">
-        <router-view :storageInfo="storageInfo" :rootUrl="rootUrl"></router-view>
+        <router-view :storageInfo="storageInfo" :rootUrl="rootUrl" @changeBrowsePath="changeBrowsePath"></router-view>
       </div>
     </div> <!-- div.main-wrapper -->
 
@@ -38,6 +38,7 @@
         <mu-bottom-nav-item value="/" to="/" title="Home" icon="home" exact></mu-bottom-nav-item>
         <mu-bottom-nav-item value="/report/" :to="'/report/' + selectedReport + '/'" title="Report" icon="assignment"></mu-bottom-nav-item>
         <mu-bottom-nav-item value="/logs/" to="/logs/" title="Log" icon="access_time"></mu-bottom-nav-item>
+        <mu-bottom-nav-item value="/browse/" :to="'/browse/' + browsePath" title="Files" icon="library_books" exact></mu-bottom-nav-item>
       </mu-bottom-nav>
     </mu-paper>
   </div> <!-- div.page-wrapper -->
@@ -56,6 +57,7 @@
         errorMessage: null,
         selectedReport: 'default',
         selectReportOpen: false,
+        browsePath: '',
       };
     },
 
@@ -71,6 +73,14 @@
         initialReport = reportMatch[1];
       }
       this.selectedReport = initialReport;
+
+      // extract the default browse path
+      let initialBrowse = '';
+      const browseMatch = this.$route.path.match(/^\/browse\/(.*)$/);
+      if (browseMatch) {
+        initialBrowse = browseMatch[1];
+      }
+      this.browsePath = initialBrowse;
 
       // initialize the auto-refresh interval
       this.reloadInterval = setInterval(
@@ -100,6 +110,9 @@
         let val = this.$route.path;
         if (val.startsWith('/report/')) {
           val = '/report/';
+        }
+        if (val.startsWith('/browse/')) {
+          val = '/browse/';
         }
         return val;
       },
@@ -161,9 +174,14 @@
       },
 
       changeSelectReport(val) {
-        console.log(val);
         this.selectedReport = val;
         this.$router.push('/report/' + val + '/');
+      },
+
+      changeBrowsePath(val) {
+        const path = (val && !val.endsWith('/') ? val + '/' : val);
+        this.browsePath = val;
+        this.$router.push('/browse/' + path);
       },
 
       handleReload({ autoReload=false }) {

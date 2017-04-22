@@ -87,6 +87,6 @@ def debug_report():
 
 
 if __name__ == '__main__':
-    # debug_board()
-    debug_storage()
+    debug_board()
+    # debug_storage()
     # debug_report()

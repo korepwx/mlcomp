@@ -7,6 +7,7 @@ Vue.use(MuseUI);
 
 // Initialize the App
 import Storage from './storage/Storage.vue';
+import StorageBrowse from './storage/StorageBrowse.vue';
 import StorageInfo from './storage/StorageInfo.vue';
 import StorageReport from './storage/StorageReport.vue';
 import StorageLog from './storage/StorageLog.vue';
@@ -15,6 +16,7 @@ import StorageLog from './storage/StorageLog.vue';
 const routes = [
   { path: '/', component: StorageInfo },
   { path: '/report/:name', component: StorageReport },
+  { path: '/browse/*', component: StorageBrowse },
   { path: '/logs/', component: StorageLog },
 ];
 const router = new VueRouter({
