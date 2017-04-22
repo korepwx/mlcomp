@@ -153,6 +153,13 @@ class StorageGroup(object):
         return os.path.abspath(
             os.path.join(self.path, *(str(s) for s in paths)))
 
+    def ensure_parent_exists(self, *paths):
+        """Resolve the path pieces and ensure its parent exists."""
+        path = self.resolve_path(*paths)
+        if not os.path.isdir(path):
+            os.makedirs(os.path.split(path)[0], exist_ok=True)
+        return path
+
     def iter_storage(self, hostname=None, well_defined=True):
         """Iterate the storage directory under the group directory.
 
@@ -232,7 +239,7 @@ class StorageGroup(object):
             # find a non-conflict name for the storage.
             name = StorageName.unparse(datetime.now(), basename, hostname)
             try:
-                path = self.resolve_path(name)
+                path = self.ensure_parent_exists(name)
                 with FileLock(path + '.lock', timeout=1):
                     if not os.path.exists(path):
                         return Storage(path, 'create')

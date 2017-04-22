@@ -11,7 +11,7 @@ from contextlib import contextmanager
 from json import JSONDecodeError
 from logging import getLogger
 
-from mlcomp.utils import BackgroundWorker, is_path_excluded, EXCLUDES_PATTERN
+from mlcomp.utils import BackgroundWorker, PathExcludes, default_path_excludes
 from .errors import StorageReadOnlyError
 from .storage_meta import StorageMeta
 from .storage_status import StorageRunningStatus
@@ -373,7 +373,7 @@ class Storage(object):
                         overwrite=overwrite)
         s.save(report)
 
-    def save_script(self, script_path, excludes=EXCLUDES_PATTERN):
+    def save_script(self, script_path, excludes=default_path_excludes):
         """Save the specified experiment script(s) to storage.
         
         Script file(s) will be stored to "script/" directory of this
@@ -389,15 +389,15 @@ class Storage(object):
             is a directory, all the contents of this directory will
             be copied to "script/".
             
-        excludes : regex | None
-            The excluded path pattern.
+        excludes : PathExcludes
+            The path excludes rule.
             If `None` is specified, will not exclude any path.
         """
         def copy_tree(src, dst):
             os.makedirs(dst, exist_ok=True)
             for fname in os.listdir(src):
                 srcpath = os.path.join(src, fname)
-                if is_path_excluded(srcpath, excludes):
+                if excludes is not None and excludes.is_excluded(srcpath):
                     continue
 
                 dstpath = os.path.join(dst, fname)
