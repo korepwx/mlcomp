@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import multiprocessing
 import os
-import warnings
 
 import click
 import six
@@ -121,17 +120,15 @@ else:
 @click.option('-l', '--log-file', default=None, help='Save log to file.')
 @click.option('-L', '--log-level', default=LOG_LEVEL, help='Log level.')
 @click.option('-F', '--log-format', default=LOG_FORMAT, help='Log format.')
-@click.option('-r', '--root', default=None,
-              help='Root path to be served. Ignored if "-s" is specified. '
-                   'Default is the current directory.')
 @click.option('-p', '--prefix', multiple=True,
-              help='Map a URL prefix to local path. '
-                   'For example, "-p /foo:/path/to/foo".')
+              help='Map a URL prefix to local path, e.g., '
+                   '"-p /foo:/path/to/foo".')
 @click.option('-w', '--workers', default=None,
               help='Number of worker processes.')
 @click.option('--debug', default=False, is_flag=True,
               help='Whether or not to enable debugging features?')
-def main(host, port, log_file, log_level, log_format, root, prefix, workers,
+@click.argument('root-dir', default=None, required=False)
+def main(host, port, log_file, log_level, log_format, root_dir, prefix, workers,
          debug):
     """MLComp experiment browser."""
     if ':' in host:
@@ -145,13 +142,13 @@ def main(host, port, log_file, log_level, log_format, root, prefix, workers,
 
     # if the prefix is not specified, get an application for specified `root`
     if not prefix:
-        if not root:
-            root = os.path.abspath(os.path.curdir)
+        if not root_dir:
+            root_dir = os.path.abspath(os.path.curdir)
         else:
-            root = os.path.abspath(root)
-        if not os.path.exists(root):
-            raise IOError('%r does not exist.' % (root,))
-        cls, args, kwargs = get_application_for_path(root)
+            root_dir = os.path.abspath(root_dir)
+        if not os.path.exists(root_dir):
+            raise IOError('%r does not exist.' % (root_dir,))
+        cls, args, kwargs = get_application_for_path(root_dir)
 
     # otherwise compose a board app according to the mappings
     else:

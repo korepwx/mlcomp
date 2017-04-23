@@ -6,8 +6,8 @@ import unittest
 
 import six
 
-from mlcomp.persist import Storage
 from mlcomp.board.application import BoardApp
+from mlcomp.persist import Storage
 from mlcomp.utils import TemporaryDirectory, is_windows
 
 
