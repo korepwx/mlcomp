@@ -1,11 +1,12 @@
 language: python
 python:
-  - "2.7"
+  - "2.7_with_system_site_packages"
   - "3.5"
   - "3.6"
+before_install:
+  - sudo apt-get install -qq python-numpy python-scipy python-matplotlib
 install:
   # Build/test dependencies
-  - pip install 'scipy>=0.18'
   - pip install -r requirements.txt
   # Install scripts provided by MLComp
   - pip install -e .
