@@ -22,7 +22,7 @@ with open(os.path.join(_source_dir, 'mlcomp/__init__.py'), 'rb') as f:
 with codecs.open(os.path.join(_source_dir, 'requirements.txt'),
                  'rb', 'utf-8') as f:
     install_requires = list(filter(
-        lambda v: v,
+        lambda v: v and not v.startswith('#'),
         (s.strip() for s in f.read().split('\n'))
     ))
 
