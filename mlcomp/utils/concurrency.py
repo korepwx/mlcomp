@@ -36,7 +36,7 @@ class BackgroundWorker(object):
         self._stopped = False
         self._worker = None     # type: threading.Thread
         self._start_sem = None  # type: threading.Semaphore
-        self._stop_sem = None   # type: threading.Semaphore
+        self._stop_cond = None  # type: threading.Condition
 
     def _thread_run(self):
         self._stopped = False
@@ -64,8 +64,9 @@ class BackgroundWorker(object):
 
                 # sleep by using the condition, so that we can interrupt
                 # it gracefully.
-                if self._stop_sem.acquire(timeout=self.sleep_seconds):
-                    break
+                if not self._stopped:
+                    with self._stop_cond:
+                        self._stop_cond.wait(timeout=self.sleep_seconds)
         finally:
             self._stopped = True
 
@@ -73,7 +74,7 @@ class BackgroundWorker(object):
         # initialize synchronization objects
         self._stopped = False
         self._start_sem = threading.Semaphore(0)
-        self._stop_sem = threading.Semaphore(0)
+        self._stop_cond = threading.Condition()
         # create the worker thread
         self._worker = threading.Thread(target=self._thread_run)
         self._worker.daemon = True
@@ -85,7 +86,8 @@ class BackgroundWorker(object):
         if not self._stopped:
             # notify the worker thread to exit
             self._stopped = True
-            self._stop_sem.release()
+            with self._stop_cond:
+                self._stop_cond.notify_all()
 
             # wait for the worker thread to exit
             self._worker.join()

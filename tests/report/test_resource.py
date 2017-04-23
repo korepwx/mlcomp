@@ -4,9 +4,12 @@ import gzip
 import os
 import unittest
 
+import six
+
 from mlcomp.report import (Resource, ResourceManager, ReportObject,
                            default_report_types, Report)
 from mlcomp.utils import TemporaryDirectory
+from .helper import to_config
 
 
 class MyReportObject(ReportObject):
@@ -76,7 +79,7 @@ class ResourceTestCase(unittest.TestCase):
             with self.assertRaises(ValueError):
                 rm.save(b'', '', extension='')
             with self.assertRaises(TypeError):
-                rm.save('', 'x', extension='')
+                rm.save(six.text_type(''), 'x', extension='')
 
             # /1.txt
             with self.assertRaises(IOError):
@@ -110,7 +113,7 @@ class ResourceTestCase(unittest.TestCase):
                 TemporaryDirectory() as tempdir:
             rm = ResourceManager(tempdir)
 
-            # test to_json / from_json of unsaved resources
+            # test unsaved resources
             report = MyReportObject(
                 children=[
                     Resource(data=b'123', extension='.c', name='child'),
@@ -119,12 +122,11 @@ class ResourceTestCase(unittest.TestCase):
                 ]
             )
             self.assertEqual(
-                report.to_json(sort_keys=True),
-                '{"__id__": 0, "__type__": "MyReport", "children": [{"__id__": 1, "__type__": "Resource", "data": {"__id__": 2, "__type__": "binary", "data": "MTIz"}, "extension": ".c", "name": "child"}, {"__id__": 3, "__type__": "Resource", "content_type": "image/png", "data": {"__id__": 4, "__type__": "binary", "data": "NDU2"}}, {"__id__": 5, "__type__": "Resource", "data": {"__id__": 6, "__type__": "binary", "data": "Nzg5"}}]}'
-            )
-            self.assertEqual(
-                repr(MyReportObject.from_json(report.to_json(sort_keys=True))),
-                repr(report),
+                to_config(report),
+                {'children': [
+                    {'name': 'child', 'data': b'123', 'extension': '.c'},
+                    {'data': b'456', 'content_type': 'image/png'},
+                    {'data': b'789'}]}
             )
 
             # test save resources, as well as to_json / from_json

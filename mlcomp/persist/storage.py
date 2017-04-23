@@ -8,14 +8,21 @@ import shutil
 import stat
 import time
 from contextlib import contextmanager
-from json import JSONDecodeError
 from logging import getLogger
 
-from mlcomp.utils import BackgroundWorker, PathExcludes, default_path_excludes
+import six
+
+from mlcomp.utils import (BackgroundWorker, PathExcludes, default_path_excludes,
+                          makedirs, statpath)
 from .errors import StorageReadOnlyError
 from .storage_meta import StorageMeta
 from .storage_status import StorageRunningStatus
 from .utils import duplicate_console_output
+
+if six.PY2:
+    JsonDecodeError = ValueError
+else:
+    from json import JSONDecodeError
 
 __all__ = [
     'Storage',
@@ -68,13 +75,13 @@ class Storage(object):
         path = os.path.abspath(path)
         meta_file = os.path.join(path, STORAGE_META_FILE)
         try:
-            st = os.stat(path, follow_symlinks=True)
-        except IOError:
+            st = statpath(path, follow_symlinks=True)
+        except (IOError, OSError):
             # 'read' or 'write' mode: raise all errors including in-exist
             if mode in ('read', 'write'):
                 raise
             # 'create' mode: raise error if the directory exists.
-            os.makedirs(path, exist_ok=False)
+            makedirs(path, exist_ok=False)
             initial_cnt = json.dumps({
                 'create_time': time.time()
             })
@@ -147,13 +154,13 @@ class Storage(object):
             try:
                 with codecs.open(status_file, 'rb', 'utf-8') as f:
                     cnt = f.read()
+            except IOError:
+                if not os.path.exists(status_file):
+                    return None
+                raise
+
+            try:
                 values = json.loads(cnt)
-                return StorageRunningStatus(
-                    pid=values.get('pid'),
-                    hostname=values.get('hostname'),
-                    start_time=values.get('start_time'),
-                    active_time=values.get('active_time')
-                )
             except JSONDecodeError:
                 retry += 1
                 delay = (
@@ -161,10 +168,13 @@ class Storage(object):
                     retry_delay_min
                 )
                 time.sleep(delay)
-            except IOError:
-                if not os.path.exists(status_file):
-                    return None
-                raise
+            else:
+                return StorageRunningStatus(
+                    pid=values.get('pid'),
+                    hostname=values.get('hostname'),
+                    start_time=values.get('start_time'),
+                    active_time=values.get('active_time')
+                )
 
     @property
     def readonly(self):
@@ -196,7 +206,7 @@ class Storage(object):
         path = self.resolve_path(*paths)
         if not os.path.isdir(path):
             self.check_write()
-            os.makedirs(os.path.split(path)[0], exist_ok=True)
+            makedirs(os.path.split(path)[0], exist_ok=True)
         return path
 
     def reload(self):
@@ -394,7 +404,7 @@ class Storage(object):
             If `None` is specified, will not exclude any path.
         """
         def copy_tree(src, dst):
-            os.makedirs(dst, exist_ok=True)
+            makedirs(dst, exist_ok=True)
             for fname in os.listdir(src):
                 srcpath = os.path.join(src, fname)
                 if excludes is not None and excludes.is_excluded(srcpath):
@@ -415,7 +425,7 @@ class Storage(object):
         if os.path.isdir(script_path):
             copy_tree(script_path, target_dir)
         else:
-            os.makedirs(target_dir, exist_ok=True)
+            makedirs(target_dir, exist_ok=True)
             shutil.copy(
                 script_path,
                 os.path.join(target_dir, os.path.split(script_path)[1])

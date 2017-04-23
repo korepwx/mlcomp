@@ -126,7 +126,7 @@ class _ResourceWithTitle(Resource):
     def title(self):
         title = self._title
         if not title and self.path:
-            title = self.path.rsplit('/', maxsplit=1)[-1]
+            title = self.path.rsplit('/', 1)[-1]
         if not title and self.name:
             title = self.name
         return title
@@ -407,18 +407,18 @@ class DynamicContent(ReportObject, _Element):
                  **kwargs):
         if not html and not script:
             raise ValueError(
-                'At least one of `html`, `scrpit` should be specified.')
+                'At least one of `html`, `script` should be specified.')
 
         if element_id is None:
             element_id = str(uuid.uuid4())
 
         if script is not None and not isinstance(script, Resource):
+            if not isinstance(script, six.string_types):
+                raise TypeError('`script` must be text or binary type.')
+            script = self._SCRIPT % {'el': element_id, 'script': script}
             if isinstance(script, six.text_type):
-                script = self._SCRIPT % {'el': element_id, 'script': script}
-                script = Resource(script.encode('utf-8'), extension='.js',
-                                  name='Script')
-            else:
-                raise TypeError('`script` must be string type.')
+                script = script.encode('utf-8')
+            script = Resource(script, extension='.js', name='Script')
 
         if data is not None and not isinstance(data, Resource):
             data = json.dumps(data, cls=JsonEncoder)

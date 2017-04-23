@@ -3,6 +3,7 @@ import copy
 import unittest
 
 from mlcomp.report import ReportObject, default_report_types
+from .helper import to_config
 
 
 class MyReportObject(ReportObject):
@@ -40,7 +41,6 @@ class BaseTestCase(unittest.TestCase):
             name='My Report'
         ),
         '{"__id__": 0, "__type__": "MyReport", "name": "My Report", "value": {"__id__": 1, "__type__": "MyReport", "children": [{"__id__": 2, "__type__": "MyReport", "value": 1}, {"__id__": 3, "__type__": "MyReport", "value": 2}, {"__id__": 4, "__type__": "MyReport", "name": "list_child", "value": 3}, {"__id__": 5, "__type__": "MyReport", "name": "list_child", "value": 4}], "name": "Child", "value": 12345678}}',
-        "MyReportObject(name='My Report',value=MyReportObject(children=[MyReportObject(value=1), MyReportObject(value=2), MyReportObject(name='list_child',value=3), MyReportObject(name='list_child',value=4)],name='Child',value=12345678))"
     )
 
     def test_ReportObject(self):
@@ -51,8 +51,8 @@ class BaseTestCase(unittest.TestCase):
                 self.MY_REPORT[1]
             )
             self.assertEqual(
-                repr(ReportObject.from_json(self.MY_REPORT[1])),
-                self.MY_REPORT[2]
+                to_config(ReportObject.from_json(self.MY_REPORT[1])),
+                to_config(self.MY_REPORT[0])
             )
 
             # test gather children
@@ -69,16 +69,47 @@ class BaseTestCase(unittest.TestCase):
             obj = ReportObject.from_json(self.MY_REPORT[1])
             obj.assign_name_scopes()
             self.assertEqual(
-                repr(obj),
-                "MyReportObject(name='My Report',name_scope='my_report',value=MyReportObject(children=[MyReportObject(name_scope='my_report/child/my_report_object',value=1), MyReportObject(name_scope='my_report/child/my_report_object_1',value=2), MyReportObject(name='list_child',name_scope='my_report/child/list_child',value=3), MyReportObject(name='list_child',name_scope='my_report/child/list_child_1',value=4)],name='Child',name_scope='my_report/child',value=12345678))"
+                to_config(obj),
+                {'name': 'My Report',
+                 'name_scope': 'my_report',
+                 'value': {'children': [{'name_scope': 'my_report/child/my_report_object',
+                                         'value': 1},
+                                        {'name_scope': 'my_report/child/my_report_object_1',
+                                         'value': 2},
+                                        {'name': 'list_child',
+                                         'name_scope': 'my_report/child/list_child',
+                                         'value': 3},
+                                        {'name': 'list_child',
+                                         'name_scope': 'my_report/child/list_child_1',
+                                         'value': 4}],
+                           'name': 'Child',
+                           'name_scope': 'my_report/child',
+                           'value': 12345678}}
             )
 
             # test multi-reference to a single report object
             obj.children = [obj.value.children[3]]
             obj.assign_name_scopes()
             self.assertEqual(
-                repr(obj),
-                "MyReportObject(children=[MyReportObject(name='list_child',name_scope='my_report/list_child',value=4)],name='My Report',name_scope='my_report',value=MyReportObject(children=[MyReportObject(name_scope='my_report/child/my_report_object',value=1), MyReportObject(name_scope='my_report/child/my_report_object_1',value=2), MyReportObject(name='list_child',name_scope='my_report/child/list_child',value=3), MyReportObject(name='list_child',name_scope='my_report/list_child',value=4)],name='Child',name_scope='my_report/child',value=12345678))"
+                to_config(obj),
+                {'children': [{'name': 'list_child',
+                               'name_scope': 'my_report/list_child',
+                               'value': 4}],
+                 'name': 'My Report',
+                 'name_scope': 'my_report',
+                 'value': {'children': [{'name_scope': 'my_report/child/my_report_object',
+                                         'value': 1},
+                                        {'name_scope': 'my_report/child/my_report_object_1',
+                                         'value': 2},
+                                        {'name': 'list_child',
+                                         'name_scope': 'my_report/child/list_child',
+                                         'value': 3},
+                                        {'name': 'list_child',
+                                         'name_scope': 'my_report/list_child',
+                                         'value': 4}],
+                           'name': 'Child',
+                           'name_scope': 'my_report/child',
+                           'value': 12345678}}
             )
 
 

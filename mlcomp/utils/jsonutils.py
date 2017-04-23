@@ -11,14 +11,45 @@ __all__ = [
 ]
 
 
-class JsonBinary(six.binary_type):
+class JsonBinary(object):
     """Wrapper class for binary objects.
 
     In Python2, ordinary strings are binary strings, thus we cannot encode
     the binary strings into base64 strings directly.  In this case, one
     may explicitly wrap such a binary string in this class to inform the
     encoder.
+    
+    Parameters
+    ----------
+    value : bytes
+        The wrapped binary object.
     """
+
+    def __init__(self, value):
+        if not isinstance(value, six.binary_type):
+            raise TypeError('`value` is not a binary object.')
+        self.value = value
+
+    def __repr__(self):
+        return 'JsonBinary(%r)' % (self.value,)
+
+    def __eq__(self, other):
+        return isinstance(other, JsonBinary) and self.value == other.value
+
+    def __ne__(self, other):
+        return isinstance(other, JsonBinary) and self.value != other.value
+
+    def __lt__(self, other):
+        return isinstance(other, JsonBinary) and self.value < other.value
+
+    def __le__(self, other):
+        return isinstance(other, JsonBinary) and self.value <= other.value
+
+    def __gt__(self, other):
+        return isinstance(other, JsonBinary) and self.value > other.value
+
+    def __ge__(self, other):
+        return isinstance(other, JsonBinary) and self.value >= other.value
 
 
 class JsonEncoder(json.JSONEncoder):
@@ -28,8 +59,6 @@ class JsonEncoder(json.JSONEncoder):
             {'__type__': 'binary', 'data': base64 encoded}
     *   numpy.ndarray ->
             {'__type__': 'ndarray', 'data': o.tolist(), 'dtype': o.dtype}
-    *   datetime.datetime ->
-            {'__type__': 'datetime', 'value': o.timestamp() * 1000}
 
     Besides, if the same (customized) object is referenced for multiple
     times, and if `object_ref` is set to True, it will only be serialized
@@ -53,9 +82,13 @@ class JsonEncoder(json.JSONEncoder):
         self._ref_dict = {}
 
     def _default_object_handler(self, o):
-        if isinstance(o, self.BINARY_TYPES):
-            cnt = b64encode(o).decode('utf-8')
+        if isinstance(o, JsonBinary):
+            cnt = b64encode(o.value).decode('utf-8')
             yield {'__type__': 'binary', 'data': cnt}
+        elif six.PY3 and isinstance(o, six.binary_type):
+            # use a different type indicator for internal binary type
+            cnt = b64encode(o).decode('utf-8')
+            yield {'__type__': 'bytes', 'data': cnt}
         elif isinstance(o, (np.integer, np.int, np.uint,
                             np.int8, np.int16, np.int32, np.int64,
                             np.uint8, np.uint16, np.uint32, np.uint64)):
@@ -68,8 +101,6 @@ class JsonEncoder(json.JSONEncoder):
                 'data': o.tolist(),
                 'dtype': str(o.dtype)
             }
-        elif isinstance(o, datetime):
-            yield {'__type__': 'datetime', 'value': o.timestamp() * 1000}
 
     #: List of object serialization handlers
     OBJECT_HANDLERS = [_default_object_handler]
@@ -115,10 +146,10 @@ class JsonDecoder(json.JSONDecoder):
         v_type = v['__type__']
         if v_type == 'binary':
             yield JsonBinary(b64decode(v['data']))
+        elif six.PY3 and v_type == 'bytes':
+            yield b64decode(v['data'])
         elif v_type == 'ndarray':
             yield np.asarray(v['data'], dtype=v['dtype'])
-        elif v_type == 'datetime':
-            yield datetime.fromtimestamp(v['value'] / 1000.0)
 
     #: List of object deserialization handlers
     OBJECT_HANDLERS = [_default_object_handler]

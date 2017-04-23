@@ -12,7 +12,7 @@ import six
 __all__ = [
     'unique', 'sorted_unique', 'AutoReprObject', 'object_to_dict',
     'camel_to_underscore', 'import_string', 'ContextStack',
-    'flatten_list', 'wrap_text_writer', 'is_windows',
+    'flatten_list', 'wrap_text_writer',
 ]
 
 NON_OBJECT_TYPES = (
@@ -301,8 +301,3 @@ def wrap_text_writer(out, encoding, manage=True):
     return UnbufferedTextIOWrapper(buffer, encoding=encoding,
                                    errors='xmlcharrefreplace',
                                    newline='\n')
-
-
-def is_windows():
-    """Check whether or not it is Windows operating system."""
-    return sys.platform == 'win32'

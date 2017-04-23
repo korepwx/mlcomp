@@ -1,7 +1,7 @@
 # anaconda packages
 click >= 6.6
 pandas >= 0.18
-pillow >= 4.1.0
+pillow >= 4.0.0
 nose >= 1.3.7
 numpy >= 1.11
 scipy >= 0.18

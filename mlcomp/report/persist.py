@@ -5,6 +5,7 @@ import os
 import stat
 
 from mlcomp import __version__
+from mlcomp.utils import makedirs
 from .base import ReportJsonEncoder, ReportJsonDecoder
 from .resource import ResourceManager
 
@@ -85,7 +86,7 @@ class ReportSaver(object):
         """
         if not self.overwrite and self.save_dir_exists():
             raise IOError('%r already exists.' % (self.save_dir,))
-        os.makedirs(self.save_dir, exist_ok=True)
+        makedirs(self.save_dir, exist_ok=True)
         report.assign_name_scopes()
         rm = ResourceManager(
             os.path.join(self.save_dir, REPORT_RESOURCE_DIR),

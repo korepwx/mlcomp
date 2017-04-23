@@ -5,6 +5,7 @@ import os
 
 import six
 
+from mlcomp.utils import makedirs
 from .base import ReportObject
 
 __all__ = [
@@ -50,6 +51,8 @@ class Resource(ReportObject):
         if data is None and path is None:
             raise ValueError(
                 'At least one of `data`, `path` should be specified.')
+        if data and not isinstance(data, six.binary_type):
+            raise TypeError('`data` must be binary type.')
         self._data = data
         self._extension = extension
         self._content_type = content_type
@@ -190,7 +193,10 @@ class ResourceManager(object):
             The save path.
         """
         if not isinstance(data, six.binary_type):
-            raise TypeError('`data` must be binary object.')
+            raise TypeError(
+                'at %r: `data` must be binary object.' %
+                (name_scope,)
+            )
         path = name_scope.strip('/')
         if not path:
             raise ValueError('`name_scope` must not be empty.')
@@ -199,7 +205,7 @@ class ResourceManager(object):
 
         file_path = os.path.join(self.save_dir, path)
         parent_dir = os.path.split(file_path)[0]
-        os.makedirs(parent_dir, exist_ok=True)
+        makedirs(parent_dir, exist_ok=True)
 
         if gzip_compress:
             with gzip.open(file_path + '.gz', 'wb') as f:

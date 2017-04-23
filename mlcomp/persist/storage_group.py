@@ -8,6 +8,7 @@ from datetime import datetime
 
 from filelock import FileLock, Timeout as LockTimeout
 
+from mlcomp.utils import makedirs
 from .storage import STORAGE_META_FILE, Storage
 
 __all__ = ['StorageName', 'StorageGroup']
@@ -157,7 +158,7 @@ class StorageGroup(object):
         """Resolve the path pieces and ensure its parent exists."""
         path = self.resolve_path(*paths)
         if not os.path.isdir(path):
-            os.makedirs(os.path.split(path)[0], exist_ok=True)
+            makedirs(os.path.split(path)[0], exist_ok=True)
         return path
 
     def iter_storage(self, hostname=None, well_defined=True):
