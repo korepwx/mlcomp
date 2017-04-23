@@ -50,7 +50,7 @@ class JsonUtilsTestCase(unittest.TestCase):
     )
     MY_OBJECT = (
         [MyObject(1), MyObject('2'), MyObject(np.asarray(3, dtype=np.float32)),
-         datetime(2000, 1, 1)],
+         datetime.fromtimestamp(946656000)],
         '[{"__id__": 0, "__type__": "MyObject", "value": 1}, {"__id__": 1, "__type__": "MyObject", "value": "2"}, {"__id__": 2, "__type__": "MyObject", "value": {"__id__": 3, "__type__": "ndarray", "data": 3.0, "dtype": "float32"}}, {"__type__": "datetime", "value": 946656000.0}]'
     )
     BINARY_OBJECT = (
