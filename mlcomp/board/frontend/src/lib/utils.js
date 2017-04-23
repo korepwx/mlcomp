@@ -34,7 +34,7 @@ export function parseJSON(json) {
  * @param error Callback on error.
  * @param cache Whether or not to use cache for this request? (default false)
  */
-export function getJSON({ url, success, error, cache = false }) {
+export function getJSON({ url, success, error, cache = true }) {
   $.ajax({
     url: url,
     success: function(data) {

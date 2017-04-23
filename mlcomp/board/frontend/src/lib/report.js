@@ -81,6 +81,7 @@ export class ReportFile {
 export function getReportObject({ url, success, error }) {
   getJSON({
     url: url,
+    cache: false,
     success(data) {
       if (success) {
         try {

@@ -17,7 +17,7 @@ const routes = [
   { path: '/', component: StorageInfo },
   { path: '/report/:name', component: StorageReport },
   { path: '/browse/*', component: StorageBrowse },
-  { path: '/logs/', component: StorageLog },
+  { path: '/console/', component: StorageLog },
 ];
 const router = new VueRouter({
   routes,

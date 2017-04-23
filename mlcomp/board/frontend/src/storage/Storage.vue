@@ -4,7 +4,8 @@
     <mu-appbar :title="storageInfo ? `Experiment “${storageInfo.name}”` : 'Experiment'" class="appbar">
       <mu-icon-button v-if="rootUrl !== '/'" icon="arrow_back" slot="left" href="/"></mu-icon-button>
       <mu-flat-button v-if="bottomNavValue === '/report/'" :label="selectedReport" slot="right" @click="toggleSelectReport"></mu-flat-button>
-      <mu-icon-button icon="refresh" slot="right" @click="handleReload"></mu-icon-button>
+      <mu-icon-button icon="get_app" slot="right" :href="rootUrl + 'archive.zip'" target="_blank" tooltip="Download as Zip"></mu-icon-button>
+      <mu-icon-button icon="refresh" slot="right" @click="handleReload" tooltip="Reload"></mu-icon-button>
     </mu-appbar>
 
     <mu-bottom-sheet :open="selectReportOpen" @close="closeSelectReport">
@@ -37,7 +38,7 @@
       <mu-bottom-nav :value="bottomNavValue">
         <mu-bottom-nav-item value="/" to="/" title="Home" icon="home" exact></mu-bottom-nav-item>
         <mu-bottom-nav-item value="/report/" :to="'/report/' + selectedReport + '/'" title="Report" icon="assignment"></mu-bottom-nav-item>
-        <mu-bottom-nav-item value="/logs/" to="/logs/" title="Log" icon="access_time"></mu-bottom-nav-item>
+        <mu-bottom-nav-item value="/console/" to="/console/" title="Console" icon="access_time"></mu-bottom-nav-item>
         <mu-bottom-nav-item value="/browse/" :to="'/browse/' + browsePath" title="Files" icon="library_books" exact></mu-bottom-nav-item>
       </mu-bottom-nav>
     </mu-paper>
@@ -138,6 +139,7 @@
         // start to load the data
         getJSON({
           url: self.rootUrl + 'info',
+          cache: false,
           success: function (data) {
             if (data['__type__'] !== 'StorageInfo') {
               self.storageInfo = null;
@@ -160,10 +162,6 @@
           }
         });
       }, // loadStorageInfo
-
-      handleNavChange(val) {
-        this.$router.push(val);
-      },
 
       closeSelectReport() {
         this.selectReportOpen = false;
@@ -189,7 +187,7 @@
           eventBus.$emit('handleReload', autoReload);
           this.loadStorageInfo();
         }
-      }
+      },
     },
   }
 </script>

@@ -13,3 +13,4 @@ scikit-learn >= 0.17
 six >= 1.10.0
 sortedcontainers >= 1.5.7
 watchdog >= 0.8.3
+zipstream >= 1.1.4

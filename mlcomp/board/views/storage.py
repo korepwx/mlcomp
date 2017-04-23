@@ -4,13 +4,20 @@ import os
 import re
 import stat
 from logging import getLogger
+from zipfile import ZIP_DEFLATED
 
 import six
+import zipstream
 from flask import (Blueprint, current_app, send_from_directory, render_template,
-                   jsonify, request, url_for, safe_join)
+                   jsonify, request, url_for, safe_join, Response)
 from werkzeug.exceptions import NotFound, MethodNotAllowed, InternalServerError
 
 from .utils import is_testing, send_from_directory_ex
+
+if six.PY2:
+    from urllib import quote as urlquote
+else:
+    from urllib.parse import quote as urlquote
 
 storage_bp = Blueprint('storage', __name__.rsplit('.')[1])
 
@@ -135,6 +142,29 @@ def handle_file_stat(storage, root_url, path):
         return jsonify(stat_to_entity(os.path.split(fpath)[1], st))
 
 
+def handle_storage_zip(storage):
+    def collect(z, path, relpath):
+        if os.path.isdir(path):
+            for fname in os.listdir(path):
+                f_path = os.path.join(path, fname)
+                f_relpath = relpath + '/' + fname
+                collect(z, f_path, f_relpath)
+        else:
+            z.write(path, arcname=relpath)
+
+    def gen():
+        z = zipstream.ZipFile(mode='w', compression=ZIP_DEFLATED)
+        collect(z, os.path.abspath(storage.path), storage.name)
+        for chunk in z:
+            yield chunk
+
+    response = Response(gen(), mimetype='application/zip')
+    response.headers['Content-Disposition'] = (
+        'attachment; filename=%s' % (urlquote(storage.name + '.zip'))
+    )
+    return response
+
+
 @storage_bp.route('/', methods=['GET', 'POST'])
 @storage_bp.route('/<path:path>', methods=['GET', 'POST'])
 @parse_request_storage
@@ -167,9 +197,13 @@ def resources(storage, root, path):
         else:
             return send_from_directory(storage.path, path[6:])
 
+    # if the storage zip archive is requested
+    if path == 'archive.zip':
+        return handle_storage_zip(storage)
+
     # no route is matched
     raise NotFound()
 
 STORAGE_INDEX_URL = re.compile(
-    r'^(/?|report(/[^/]+)?/?|browse(?:/.*)?|logs/?)$'
+    r'^(/?|report(/[^/]+)?/?|browse(?:/.*)?|console/?)$'
 )
