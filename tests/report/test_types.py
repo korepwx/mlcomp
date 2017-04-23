@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import unittest
 
-from mlcomp.report import ReportTypes, ReportObject, HTML, \
-    get_default_report_types, default_report_types
+from mlcomp.report import (ReportTypes, ReportObject, HTML,
+                           get_default_report_types, default_report_types)
 
 
 class MyReport(ReportObject):

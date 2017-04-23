@@ -7,6 +7,8 @@ from mlcomp.utils import TemporaryDirectory
 from mlcomp.report import (ReportSaver, ReportObject, Resource,
                            default_report_types, Report)
 
+from .helper import to_config
+
 
 class MyReportObject(ReportObject):
 
@@ -47,7 +49,10 @@ class PersistTestCase(unittest.TestCase):
             saver = ReportSaver(tempdir + '/1')
             saver.save(report)
             report2 = saver.load()
-            self.assertEqual(repr(report), repr(report2))
+            self.assertEqual(
+                to_config(report),
+                to_config(report2)
+            )
             self.assertEqual(report.children[0].data,
                              report2.children[0].data)
             self.assertEqual(report.children[1].value.data,
@@ -71,7 +76,10 @@ class PersistTestCase(unittest.TestCase):
             # test the `save` and `load` method of Report
             report.save(tempdir + '/3')
             report2 = Report.load(tempdir + '/3')
-            self.assertEqual(repr(report), repr(report2))
+            self.assertEqual(
+                to_config(report),
+                to_config(report2)
+            )
             self.assertEqual(report.children[0].data,
                              report2.children[0].data)
             self.assertEqual(report.children[1].value.data,

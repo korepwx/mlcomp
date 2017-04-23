@@ -4,6 +4,7 @@ import gzip
 import os
 import unittest
 
+import json
 import six
 
 from mlcomp.report import (Resource, ResourceManager, ReportObject,
@@ -133,12 +134,29 @@ class ResourceTestCase(unittest.TestCase):
             report.assign_name_scopes()
             report.save_resources(rm)
             self.assertEqual(
-                report.to_json(sort_keys=True),
-                '{"__id__": 0, "__type__": "MyReport", "children": [{"__id__": 1, "__type__": "Resource", "extension": ".c", "name": "child", "name_scope": "my_report_object/child", "path": "my_report_object/child.c"}, {"__id__": 2, "__type__": "Resource", "content_type": "image/png", "name_scope": "my_report_object/resource", "path": "my_report_object/resource.png"}, {"__id__": 3, "__type__": "Resource", "name_scope": "my_report_object/resource_1", "path": "my_report_object/resource_1"}], "name_scope": "my_report_object"}'
+                json.loads(report.to_json(sort_keys=True)),
+                {'__id__': 0,
+                 '__type__': 'MyReport',
+                 'children': [{'__id__': 1,
+                               '__type__': 'Resource',
+                               'extension': '.c',
+                               'name': 'child',
+                               'name_scope': 'my_report_object/child',
+                               'path': 'my_report_object/child.c'},
+                              {'__id__': 2,
+                               '__type__': 'Resource',
+                               'content_type': 'image/png',
+                               'name_scope': 'my_report_object/resource',
+                               'path': 'my_report_object/resource.png'},
+                              {'__id__': 3,
+                               '__type__': 'Resource',
+                               'name_scope': 'my_report_object/resource_1',
+                               'path': 'my_report_object/resource_1'}],
+                 'name_scope': 'my_report_object'}
             )
             self.assertEqual(
-                repr(MyReportObject.from_json(report.to_json(sort_keys=True))),
-                repr(report),
+                to_config(MyReportObject.from_json(report.to_json())),
+                to_config(report),
             )
             self.assertEqual(rm.load('my_report_object/child.c'), b'123')
             self.assertEqual(rm.load('my_report_object/resource.png'), b'456')
@@ -161,8 +179,13 @@ class ResourceTestCase(unittest.TestCase):
                 r.assign_name_scopes()
                 r.save_resources(ResourceManager(tempdir))
                 self.assertEqual(
-                    r.to_json(sort_keys=True),
-                    '{"__id__": 0, "__type__": "Resource", "extension": ".txt", "gzip_compress": true, "name_scope": "resource", "path": "resource.txt"}'
+                    json.loads(r.to_json(sort_keys=True)),
+                    {'__id__': 0,
+                     '__type__': 'Resource',
+                     'extension': '.txt',
+                     'gzip_compress': True,
+                     'name_scope': 'resource',
+                     'path': 'resource.txt'}
                 )
                 r_path = os.path.join(tempdir, 'resource.txt.gz')
                 self.assertTrue(os.path.exists(r_path))
@@ -171,8 +194,13 @@ class ResourceTestCase(unittest.TestCase):
 
                 r2 = Report.from_json(r.to_json(sort_keys=True))
                 self.assertEqual(
-                    r2.to_json(sort_keys=True),
-                    '{"__id__": 0, "__type__": "Resource", "extension": ".txt", "gzip_compress": true, "name_scope": "resource", "path": "resource.txt"}'
+                    json.loads(r2.to_json(sort_keys=True)),
+                    {'__id__': 0,
+                     '__type__': 'Resource',
+                     'extension': '.txt',
+                     'gzip_compress': True,
+                     'name_scope': 'resource',
+                     'path': 'resource.txt'}
                 )
                 r2.load_resources(ResourceManager(tempdir))
                 self.assertEqual(r2.data, b'123')
