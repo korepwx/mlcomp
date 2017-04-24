@@ -64,8 +64,8 @@ class BackgroundWorker(object):
 
                 # sleep by using the condition, so that we can interrupt
                 # it gracefully.
-                if not self._stopped:
-                    with self._stop_cond:
+                with self._stop_cond:
+                    if not self._stopped:
                         self._stop_cond.wait(timeout=self.sleep_seconds)
         finally:
             self._stopped = True
@@ -85,8 +85,8 @@ class BackgroundWorker(object):
     def stop(self):
         if not self._stopped:
             # notify the worker thread to exit
-            self._stopped = True
             with self._stop_cond:
+                self._stopped = True
                 self._stop_cond.notify_all()
 
             # wait for the worker thread to exit

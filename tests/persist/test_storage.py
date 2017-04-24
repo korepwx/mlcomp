@@ -4,6 +4,8 @@ import os
 import time
 import unittest
 
+from logging import getLogger
+
 from mlcomp.persist import Storage, StorageReadOnlyError
 from mlcomp.persist.storage import STORAGE_META_FILE, STORAGE_RUNNING_STATUS
 from mlcomp.utils import TemporaryDirectory

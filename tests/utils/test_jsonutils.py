@@ -81,10 +81,6 @@ class JsonUtilsTestCase(unittest.TestCase):
         JsonBinary(b'abc'),
         '{"__id__": 0, "__type__": "binary", "data": "YWJj"}'
     )
-    PLAIN_BINARY_OBJECT = (
-        b'abc',
-        '{"__id__": 0, "__type__": "bytes", "data": "YWJj"}'
-    )
     REF_OBJECT = (
         [BINARY_OBJECT[0], BINARY_OBJECT[0], MyObject(BINARY_OBJECT[0])],
         '[{"__id__": 0, "__type__": "binary", "data": "YWJj"}, {"__id__": 0, "__type__": "ObjectRef"}, {"__id__": 1, "__type__": "MyObject", "value": {"__id__": 0, "__type__": "ObjectRef"}}]',
@@ -112,15 +108,9 @@ class JsonUtilsTestCase(unittest.TestCase):
     def test_BinaryObject(self):
         e = JsonEncoder(sort_keys=True)
         self.assertEqual(e.encode(self.BINARY_OBJECT[0]), self.BINARY_OBJECT[1])
-        if six.PY3:
-            self.assertEqual(e.encode(self.PLAIN_BINARY_OBJECT[0]),
-                             self.PLAIN_BINARY_OBJECT[1])
 
         d = JsonDecoder()
         self.assertEqual(d.decode(self.BINARY_OBJECT[1]), self.BINARY_OBJECT[0])
-        if six.PY3:
-            self.assertEqual(d.decode(self.PLAIN_BINARY_OBJECT[1]),
-                             self.PLAIN_BINARY_OBJECT[0])
 
     def test_ObjectRef(self):
         # test object_ref = True

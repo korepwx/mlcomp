@@ -73,7 +73,6 @@ class JsonEncoder(json.JSONEncoder):
         (default True)
     """
 
-    BINARY_TYPES = (six.binary_type, JsonBinary) if six.PY3 else JsonBinary
     NO_REF_TYPES = six.integer_types + (float, bool, datetime,)
 
     def __init__(self, object_ref=True, **kwargs):
@@ -85,10 +84,6 @@ class JsonEncoder(json.JSONEncoder):
         if isinstance(o, JsonBinary):
             cnt = b64encode(o.value).decode('utf-8')
             yield {'__type__': 'binary', 'data': cnt}
-        elif six.PY3 and isinstance(o, six.binary_type):
-            # use a different type indicator for internal binary type
-            cnt = b64encode(o).decode('utf-8')
-            yield {'__type__': 'bytes', 'data': cnt}
         elif isinstance(o, (np.integer, np.int, np.uint,
                             np.int8, np.int16, np.int32, np.int64,
                             np.uint8, np.uint16, np.uint32, np.uint64)):
@@ -146,8 +141,6 @@ class JsonDecoder(json.JSONDecoder):
         v_type = v['__type__']
         if v_type == 'binary':
             yield JsonBinary(b64decode(v['data']))
-        elif six.PY3 and v_type == 'bytes':
-            yield b64decode(v['data'])
         elif v_type == 'ndarray':
             yield np.asarray(v['data'], dtype=v['dtype'])
 
