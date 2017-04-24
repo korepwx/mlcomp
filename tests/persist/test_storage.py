@@ -4,11 +4,31 @@ import os
 import time
 import unittest
 
-from logging import getLogger
-
 from mlcomp.persist import Storage, StorageReadOnlyError
 from mlcomp.persist.storage import STORAGE_META_FILE, STORAGE_RUNNING_STATUS
 from mlcomp.utils import TemporaryDirectory
+
+
+def writefile(path, cnt):
+    with codecs.open(path, 'wb', 'utf-8') as f:
+        f.write(cnt)
+
+
+def readfile(path):
+    with codecs.open(path, 'rb', 'utf-8') as f:
+        return f.read()
+
+
+def list_dir_contents(path):
+    def discover(p):
+        if os.path.isdir(p):
+            return {
+                fname: discover(os.path.join(p, fname))
+                for fname in os.listdir(p)
+            }
+        else:
+            return readfile(p)
+    return discover(os.path.abspath(path))
 
 
 class StorageTestCase(unittest.TestCase):
@@ -84,25 +104,17 @@ class StorageTestCase(unittest.TestCase):
             self.assertIsNone(s1.running_status)
 
     def test_save_script(self):
-        def writefile(path, cnt):
-            with codecs.open(path, 'wb', 'utf-8') as f:
-                f.write(cnt)
-
-        def readfile(path):
-            with codecs.open(path, 'rb', 'utf-8') as f:
-                return f.read()
-
         with TemporaryDirectory() as tempdir:
             s = Storage(os.path.join(tempdir, 's'), mode='create')
 
             # test copy script
             script_path = os.path.join(tempdir, '1.py')
-            script_content = 'print("hello, world")'
-            writefile(script_path, script_content)
+            writefile(script_path, 'print("hello, world")')
             s.save_script(script_path)
-            s_script_path = os.path.join(s.path, 'script/1.py')
-            self.assertTrue(os.path.isfile(s_script_path))
-            self.assertEqual(readfile(s_script_path), script_content)
+            self.assertEqual(
+                list_dir_contents(s.resolve_path('script')),
+                {'1.py': 'print("hello, world")'}
+            )
 
             # test copy script directory
             os.makedirs(os.path.join(tempdir, '2/3'))
@@ -112,21 +124,83 @@ class StorageTestCase(unittest.TestCase):
             writefile(os.path.join(tempdir, '2/.git/c.py'), 'print(789)')
 
             s.save_script(os.path.join(tempdir, '2'))
-            s_a_script_path = os.path.join(s.path, 'script/a.py')
-            s_b_script_path = os.path.join(s.path, 'script/3/b.py')
-            s_git_path = os.path.join(s.path, 'script/.git')
-            s_c_script_path = os.path.join(s.path, 'script/.git/c.py')
-            self.assertTrue(os.path.isfile(s_a_script_path))
-            self.assertTrue(os.path.isfile(s_b_script_path))
-            self.assertFalse(os.path.isdir(s_git_path))
-            self.assertFalse(os.path.isfile(s_c_script_path))
-            self.assertEqual(readfile(s_a_script_path), 'print(123)')
-            self.assertEqual(readfile(s_b_script_path), 'print(456)')
+            self.assertEqual(
+                list_dir_contents(s.resolve_path('script')),
+                {'a.py': 'print(123)',
+                 '3': {'b.py': 'print(456)'}}
+            )
 
             # test copy without exclude
             s.save_script(os.path.join(tempdir, '2'), excludes=None)
-            self.assertTrue(os.path.isfile(s_c_script_path))
-            self.assertEqual(readfile(s_c_script_path), 'print(789)')
+            self.assertEqual(
+                list_dir_contents(s.resolve_path('script')),
+                {'a.py': 'print(123)',
+                 '3': {'b.py': 'print(456)'},
+                 '.git': {'c.py': 'print(789)'}}
+            )
+
+    def test_copy_files(self):
+        with TemporaryDirectory() as tempdir:
+            s = Storage(os.path.join(tempdir, 's'), mode='create')
+
+            # test copy file without overwrite
+            script_path = os.path.join(tempdir, '1.py')
+            writefile(script_path, 'print("hello, world")')
+            s.copy_file(script_path, 'a/1.py', overwrite=False)
+            self.assertEqual(
+                list_dir_contents(s.resolve_path('a')),
+                {'1.py': 'print("hello, world")'}
+            )
+            with self.assertRaises(IOError):
+                s.copy_file(script_path, 'a/1.py', overwrite=False)
+
+            # test copy file with overwrite
+            writefile(script_path, 'print("apple")')
+            s.copy_file(script_path, 'a/1.py', overwrite=True)
+            self.assertEqual(
+                list_dir_contents(s.resolve_path('a')),
+                {'1.py': 'print("apple")'}
+            )
+
+            # test copy directory without overwrite
+            os.makedirs(os.path.join(tempdir, '2/3'))
+            os.makedirs(os.path.join(tempdir, '2/.git'))
+            writefile(os.path.join(tempdir, '2/a.py'), 'print(123)')
+            writefile(os.path.join(tempdir, '2/3/b.py'), 'print(456)')
+            writefile(os.path.join(tempdir, '2/.git/c.py'), 'print(789)')
+
+            s.copy_dir(os.path.join(tempdir, '2'), '3/4', overwrite=False)
+            self.assertEqual(
+                list_dir_contents(s.resolve_path('3/4')),
+                {'a.py': 'print(123)',
+                 '3': {'b.py': 'print(456)'}}
+            )
+            with self.assertRaises(IOError):
+                s.copy_dir(os.path.join(tempdir, '2'), '3/4', overwrite=False)
+
+            # test copy directory without excludes
+            s.copy_dir(os.path.join(tempdir, '2'), '5/6', overwrite=False,
+                       excludes=None)
+            self.assertEqual(
+                list_dir_contents(s.resolve_path('5/6')),
+                {'a.py': 'print(123)',
+                 '3': {'b.py': 'print(456)'},
+                 '.git': {'c.py': 'print(789)'}}
+            )
+            with self.assertRaises(IOError):
+                s.copy_dir(os.path.join(tempdir, '2'), '5/6', overwrite=False)
+
+            # test copy directory with overwrite
+            os.makedirs(os.path.join(tempdir, '3/6'))
+            writefile(os.path.join(tempdir, '3/x.py'), 'print(987)')
+            writefile(os.path.join(tempdir, '3/6/y.py'), 'print(654)')
+
+            s.copy_dir(os.path.join(tempdir, '3'), '3/4', overwrite=True)
+            self.assertEqual(
+                list_dir_contents(s.resolve_path('3/4')),
+                {'x.py': 'print(987)',
+                 '6': {'y.py': 'print(654)'}}
+            )
 
 if __name__ == '__main__':
     unittest.main()

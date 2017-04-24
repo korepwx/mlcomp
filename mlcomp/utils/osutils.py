@@ -27,7 +27,8 @@ if six.PY2:
     def _stat(path, follow_symlinks=None):
         if follow_symlinks:
             return os.stat(os.path.realpath(path))
-        return os.stat(path)
+        else:
+            return os.stat(path)
 
     makedirs = _makedirs
     statpath = _stat

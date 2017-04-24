@@ -47,6 +47,35 @@ def storage_property(name):
     )
 
 
+def try_rmtree(path):
+    """Remove file or directory at `path`."""
+    try:
+        path = os.path.abspath(path)
+        st = statpath(path, follow_symlinks=False)
+    except IOError:
+        if os.path.exists(path):
+            raise
+    else:
+        if stat.S_ISDIR(st.st_mode):
+            shutil.rmtree(path)
+        else:
+            os.remove(path)
+
+
+def copy_tree(src, dst, excludes):
+    """Copy directory `src` to `dst`."""
+    makedirs(dst, exist_ok=True)
+    for fname in os.listdir(src):
+        srcpath = os.path.join(src, fname)
+        if excludes is not None and excludes.is_excluded(srcpath):
+            continue
+        dstpath = os.path.join(dst, fname)
+        if os.path.isdir(srcpath):
+            copy_tree(srcpath, dstpath, excludes)
+        else:
+            shutil.copy(srcpath, dstpath)
+
+
 class Storage(object):
     """Storage for experiment persistent.
 
@@ -215,7 +244,18 @@ class Storage(object):
         self._running_status = self._load_running_status()
 
     def reopen(self, mode):
-        """Re-open the storage in alternative mode."""
+        """Re-open the storage in alternative mode.
+        
+        Parameters
+        ----------
+        mode : {'read', 'write', 'create'}
+            In which mode should this storage to be open?
+        
+        Returns
+        -------
+        Storage 
+            A new storage opened in specified mode.
+        """
         return Storage(self._path, mode)
 
     def to_dict(self):
@@ -265,7 +305,12 @@ class Storage(object):
         encoding : str
             If specified None, will return the logs as bytes.
             Otherwise will decode the logs in specified codec.
-            Default is 'utf-8'.
+            (default is 'utf-8').
+            
+        Returns
+        -------
+        bytes | str
+            The log of the file, as string or bytes.
         """
         if encoding:
             with codecs.open(self.resolve_path(filename), 'rb', encoding) as f:
@@ -383,6 +428,63 @@ class Storage(object):
                         overwrite=overwrite)
         s.save(report)
 
+    def copy_file(self, src, dst, overwrite=False):
+        """Copy `src` file to `dst`.
+        
+        Parameters
+        ----------
+        src : str
+            The source file path.
+            
+        dst : str
+            The destination file path.  It should be the relative path
+            of the file.  The parent directory will be created 
+            automatically if not exist.
+            
+        overwrite : bool
+            Whether or not to overwrite existing file or directory? 
+            (default False)
+        """
+        dst_path = self.ensure_parent_exists(dst)
+        self.check_write()
+        if os.path.exists(dst_path):
+            if overwrite:
+                try_rmtree(dst_path)
+            else:
+                raise IOError('Destination %r exists.' % (dst,))
+        shutil.copy(os.path.abspath(src), dst_path)
+
+    def copy_dir(self, src, dst, excludes=default_path_excludes,
+                 overwrite=False):
+        """Copy `src` directory to `dst` recursively.
+        
+        Parameters
+        ----------
+        src : str
+            The source directory path.
+            
+        dst : str
+            The destination directory path.  It should be the relative
+            path of the file.  The parent directory will be created 
+            automatically if not exist.
+            
+        excludes : PathExcludes
+            The path excludes rule.
+            If `None` is specified, will not exclude any path.
+            
+        overwrite : bool
+            Whether or not to overwrite existing file or directory? 
+            (default False)
+        """
+        dst_path = self.ensure_parent_exists(dst)
+        self.check_write()
+        if os.path.exists(dst_path):
+            if overwrite:
+                try_rmtree(dst_path)
+            else:
+                raise IOError('Destination %r exists.' % (dst,))
+        copy_tree(os.path.abspath(src), dst_path, excludes)
+
     def save_script(self, script_path, excludes=default_path_excludes):
         """Save the specified experiment script(s) to storage.
         
@@ -403,30 +505,13 @@ class Storage(object):
             The path excludes rule.
             If `None` is specified, will not exclude any path.
         """
-        def copy_tree(src, dst):
-            makedirs(dst, exist_ok=True)
-            for fname in os.listdir(src):
-                srcpath = os.path.join(src, fname)
-                if excludes is not None and excludes.is_excluded(srcpath):
-                    continue
-
-                dstpath = os.path.join(dst, fname)
-                if os.path.isdir(srcpath):
-                    copy_tree(srcpath, dstpath)
-                else:
-                    shutil.copy(srcpath, dstpath)
-
-        self.check_write()
         script_path = os.path.abspath(script_path)
-        target_dir = self.resolve_path(STORAGE_SCRIPT_DIR)
-        if os.path.isdir(target_dir):
-            shutil.rmtree(target_dir)
-
         if os.path.isdir(script_path):
-            copy_tree(script_path, target_dir)
+            self.copy_dir(script_path, STORAGE_SCRIPT_DIR, overwrite=True,
+                          excludes=excludes)
         else:
-            makedirs(target_dir, exist_ok=True)
-            shutil.copy(
+            self.copy_file(
                 script_path,
-                os.path.join(target_dir, os.path.split(script_path)[1])
+                os.path.join(STORAGE_SCRIPT_DIR, os.path.split(script_path)[1]),
+                overwrite=True
             )
