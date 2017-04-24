@@ -30,7 +30,7 @@ with codecs.open(os.path.join(_source_dir, 'requirements.txt'),
 setup(
     name='MLComp',
     version=version,
-    url='https://git.peidan.me/xhw15/mlcomp/',
+    url='https://github.com/korepwx/mlcomp/',
     license='MIT',
     author='Haowen Xu',
     author_email='public@korepwx.com',
