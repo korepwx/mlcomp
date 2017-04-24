@@ -6,6 +6,7 @@ import unittest
 
 from mlcomp.persist import Storage, StorageReadOnlyError
 from mlcomp.persist.storage import STORAGE_META_FILE, STORAGE_RUNNING_STATUS
+from mlcomp.report import Text
 from mlcomp.utils import TemporaryDirectory
 
 
@@ -201,6 +202,30 @@ class StorageTestCase(unittest.TestCase):
                 {'x.py': 'print(987)',
                  '6': {'y.py': 'print(654)'}}
             )
+
+    def test_save_report(self):
+        with TemporaryDirectory() as tempdir:
+            s = Storage(os.path.join(tempdir, 's'), mode='create')
+            s.save_report(Text('hello, world'))
+            s.save_report(Text('hi, google'), dir_name='test')
+            self.assertEqual(
+                list_dir_contents(s.resolve_path('report')),
+                {
+                    'default': {
+                        'report.json': '{"generator": "mlcomp 0.1", '
+                                       '"report": {"__id__": 0, '
+                                       '"__type__": "Text", "name_scope": '
+                                       '"text", "text": "hello, world"}}'
+                    },
+                    'test': {
+                        'report.json': '{"generator": "mlcomp 0.1", '
+                                       '"report": {"__id__": 0, '
+                                       '"__type__": "Text", "name_scope": '
+                                       '"text", "text": "hi, google"}}'
+                    }
+                }
+            )
+            self.assertEqual(s.list_reports(), ['default', 'test'])
 
 if __name__ == '__main__':
     unittest.main()

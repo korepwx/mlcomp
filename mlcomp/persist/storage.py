@@ -397,6 +397,7 @@ class Storage(object):
                 fpath = os.path.join(report_dir, fname, REPORT_JSON_FILE)
                 if os.path.isfile(fpath):
                     ret.append(fname)
+            ret.sort()
             return ret
         except IOError:
             return []
