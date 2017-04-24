@@ -10,6 +10,7 @@ import time
 from contextlib import contextmanager
 from logging import getLogger
 
+import re
 import six
 
 from mlcomp.utils import (BackgroundWorker, PathExcludes, default_path_excludes,
@@ -429,8 +430,25 @@ class Storage(object):
                         overwrite=overwrite)
         s.save(report)
 
+    _PROTECTED_FILES = re.compile(
+        r'''
+          # match the start position
+          ^
+    
+          # the main file pattern
+          (?:
+            # match protected directories
+            (report)(?:$|[/\\].*)
+    
+            # match protected files
+          | (storage\.json|console\.log|running.json)$
+          )
+        ''',
+        re.VERBOSE
+    )
+
     def copy_file(self, src, dst, overwrite=False):
-        """Copy `src` file to `dst`.
+        """Copy `src` file as `dst`.
         
         Parameters
         ----------
@@ -447,6 +465,10 @@ class Storage(object):
             (default False)
         """
         dst_path = self.ensure_parent_exists(dst)
+        dst_relpath = os.path.relpath(dst_path, self.path)
+        if self._PROTECTED_FILES.match(dst_relpath):
+            raise IOError('%r is protected and cannot be overwritten.' % (dst,))
+
         self.check_write()
         if os.path.exists(dst_path):
             if overwrite:
@@ -457,7 +479,7 @@ class Storage(object):
 
     def copy_dir(self, src, dst, excludes=default_path_excludes,
                  overwrite=False):
-        """Copy `src` directory to `dst` recursively.
+        """Copy `src` directory as `dst`.
         
         Parameters
         ----------
@@ -478,6 +500,10 @@ class Storage(object):
             (default False)
         """
         dst_path = self.ensure_parent_exists(dst)
+        dst_relpath = os.path.relpath(dst_path, self.path)
+        if self._PROTECTED_FILES.match(dst_relpath):
+            raise IOError('%r is protected and cannot be overwritten.' % (dst,))
+
         self.check_write()
         if os.path.exists(dst_path):
             if overwrite:

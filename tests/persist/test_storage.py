@@ -163,6 +163,18 @@ class StorageTestCase(unittest.TestCase):
                 {'1.py': 'print("apple")'}
             )
 
+            # test overwrite protected files
+            with self.assertRaises(IOError):
+                s.copy_file(script_path, 'storage.json')
+            with self.assertRaises(IOError):
+                s.copy_file(script_path, './console.log')
+            with self.assertRaises(IOError):
+                s.copy_file(script_path, 'report/../running.json')
+            with self.assertRaises(IOError):
+                s.copy_file(script_path, 'report')
+            with self.assertRaises(IOError):
+                s.copy_file(script_path, 'report/')
+
             # test copy directory without overwrite
             os.makedirs(os.path.join(tempdir, '2/3'))
             os.makedirs(os.path.join(tempdir, '2/.git'))
@@ -202,6 +214,19 @@ class StorageTestCase(unittest.TestCase):
                 {'x.py': 'print(987)',
                  '6': {'y.py': 'print(654)'}}
             )
+
+            # test overwrite protected files
+            data_dir = os.path.join(tempdir, '3')
+            with self.assertRaises(IOError):
+                s.copy_dir(data_dir, 'storage.json')
+            with self.assertRaises(IOError):
+                s.copy_dir(data_dir, './console.log')
+            with self.assertRaises(IOError):
+                s.copy_dir(data_dir, 'report/../running.json')
+            with self.assertRaises(IOError):
+                s.copy_dir(data_dir, 'report')
+            with self.assertRaises(IOError):
+                s.copy_dir(data_dir, 'report/')
 
     def test_save_report(self):
         with TemporaryDirectory() as tempdir:
