@@ -85,9 +85,15 @@ def split_numpy_array(arrays, portion=None, size=None, shuffle=True):
     (tuple[np.ndarray], tuple[np.ndarray])
         Splitted two halves of arrays.
     """
+    # check the arguments
+    if size is None and portion is None:
+        raise ValueError('At least one of `portion` and `size` should '
+                         'be specified.')
+
+    # zero arrays should return empty tuples
     arrays = tuple(arrays)
     if not arrays:
-        raise ValueError('`arrays` must not be empty.')
+        return (), ()
 
     # check the length of provided arrays
     data_count = len(arrays[0])
@@ -97,31 +103,27 @@ def split_numpy_array(arrays, portion=None, size=None, shuffle=True):
 
     # determine the size for second half
     if size is None:
-        if portion is None:
-            raise ValueError('At least one of `portion` and `size` should '
-                             'be specified.')
-
-        if portion < 0.5:
+        if portion < 0.0 or portion > 1.0:
+            raise ValueError('`portion` must range from 0.0 to 1.0.')
+        elif portion < 0.5:
             size = data_count - int(data_count * (1.0 - portion))
         else:
             size = int(data_count * portion)
 
-    if size < 0:
-        size = 0
-    if size > data_count:
-        size = data_count
-
-    # derive the data splitter
+    # shuffle the data if necessary
     if shuffle:
         indices = np.arange(data_count)
         np.random.shuffle(indices)
-        get_first = lambda v: v[indices[: -size]]
-        get_second = lambda v: v[indices[-size:]]
-    else:
-        get_first = lambda v: v[: -size, ...]
-        get_second = lambda v: v[-size:, ...]
+        arrays = tuple(a[indices] for a in arrays)
 
+    # return directly if each side remains no data after splitting
+    if size <= 0:
+        return arrays, tuple(a[:0] for a in arrays)
+    elif size >= data_count:
+        return tuple(a[:0] for a in arrays), arrays
+
+    # split the data according to demand
     return (
-        tuple(get_first(v) for v in arrays),
-        tuple(get_second(v) for v in arrays)
+        tuple(v[: -size, ...] for v in arrays),
+        tuple(v[-size:, ...] for v in arrays)
     )
