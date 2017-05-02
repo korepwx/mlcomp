@@ -56,6 +56,10 @@ class DataUtilsTestCase(unittest.TestCase):
             [np.arange(9)]
         )
 
+    def test_split_numpy_array(self):
+        # TODO: add tests for split_numpy_array
+        pass
+
 
 if __name__ == '__main__':
     unittest.main()
