@@ -2,7 +2,8 @@
 import numpy as np
 
 __all__ = [
-    'minibatch_slices_iterator', 'minibatch_iterator', 'split_numpy_array',
+    'minibatch_slices_iterator', 'minibatch_iterator', 'split_numpy_arrays',
+    'split_numpy_array',
 ]
 
 
@@ -63,7 +64,7 @@ def minibatch_iterator(array, batch_size, ignore_incomplete_batch=False):
         yield array[s]
 
 
-def split_numpy_array(arrays, portion=None, size=None, shuffle=True):
+def split_numpy_arrays(arrays, portion=None, size=None, shuffle=True):
     """Split NumPy arrays into two halves, by portion or by size.
 
     Parameters
@@ -127,3 +128,30 @@ def split_numpy_array(arrays, portion=None, size=None, shuffle=True):
         tuple(v[: -size, ...] for v in arrays),
         tuple(v[-size:, ...] for v in arrays)
     )
+
+
+def split_numpy_array(array, portion=None, size=None, shuffle=True):
+    """Split NumPy array into two halves, by portion or by size.
+
+    Parameters
+    ----------
+    array : np.ndarray
+        A NumPy array to be splitted.
+
+    portion : float
+        Portion of the second half.  Ignored if `size` is specified.
+
+    size : int
+        Size of the second half.
+
+    shuffle : bool
+        Whether or not to shuffle before splitting?
+
+    Returns
+    -------
+    tuple[np.ndarray]
+        Splitted two halves of array.
+    """
+    (a,), (b,) = split_numpy_arrays((array,), portion=portion, size=size,
+                                    shuffle=shuffle)
+    return a, b
