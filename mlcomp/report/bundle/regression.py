@@ -9,7 +9,7 @@ __all__ = ['regression_report']
 def regression_report(truth, predict, label=None, per_target=True,
                        target_names=None, title=None):
     """Regression report.
-    
+
     This method will compose a standard regression report, including
     the summary and the result attachment.
 

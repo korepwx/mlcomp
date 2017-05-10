@@ -13,18 +13,18 @@ __all__ = [
 
 def dataframe_to_table(df, title=None, name=None, name_scope=None):
     """Create a report Table from pandas DataFrame.
-    
+
     Parameters
     ----------
     df : pd.DataFrame
         The dataframe object.
-        
+
     title : str
         Optional title of the table.
-        
+
     name, name_scope : str
         Name and name scope of the table.
-        
+
     Returns
     -------
     Table

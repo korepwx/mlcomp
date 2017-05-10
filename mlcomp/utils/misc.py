@@ -256,15 +256,15 @@ def flatten_list(nested_list, list_types=(list, tuple), return_type=list):
 
 def wrap_text_writer(out, encoding, manage=True):
     """Wrap a binary output stream as a text writer.
-    
+
     Parameters
     ----------
     out : io.IOBase
         The binary output stream.
-        
+
     encoding : str
         The encoding of the text writer.
-        
+
     manage : bool
         If set to True, will close the underlying binary stream when
         the text writer has been closed.

@@ -22,7 +22,7 @@ __all__ = [
 
 def binary_classification_auc_curve(y_true, y_prob, title=None):
     """Binary classification AUC curve.
-    
+
     Parameters
     ----------
     y_true : numpy.ndarray
@@ -89,7 +89,7 @@ def binary_classification_auc_curve(y_true, y_prob, title=None):
 def classification_summary(y_true, y_pred, labels=None, target_names=None,
                            title=None):
     """Classification result summary table.
-    
+
     Parameters
     ----------
     y_true : numpy.ndarray
@@ -97,12 +97,12 @@ def classification_summary(y_true, y_pred, labels=None, target_names=None,
 
     y_pred : numpy.ndarray
         Predicted target values.
-        
+
     labels : np.ndarray | list
         Array of all labels.  If not specified, will be inferred from
         `y_true` and `y_pred`.  This argument should be specified if
         not all labels appear in the test data.
-        
+
     target_names : collections.Iterable[any]
         Optional alternative names for the `labels`.
 
@@ -149,7 +149,7 @@ def classification_summary(y_true, y_pred, labels=None, target_names=None,
 def classification_result_attachment(y_true, y_pred, y_prob, title=None,
                                      link_only=False):
     """Classification result attachment.
-    
+
     Parameters
     ----------
     y_true : numpy.ndarray
@@ -157,17 +157,17 @@ def classification_result_attachment(y_true, y_pred, y_prob, title=None,
 
     y_pred : numpy.ndarray
         Predicted target values.
-        
+
     y_prob : numpy.ndarray
         Estimated probabilities for each target to be each class.
-        
+
     title : str
         Optional title of this attachment.
 
     link_only : bool
         Whether or not to render only link of this attachment?
         (default False)
-        
+
     Returns
     -------
     Attachment

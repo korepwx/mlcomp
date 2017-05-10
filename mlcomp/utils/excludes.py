@@ -8,7 +8,7 @@ __all__ = ['PathExcludes', 'default_path_excludes']
 
 class PathExcludes(object):
     """Class to exclude paths according to patterns.
-    
+
     Parameters
     ----------
     pattern : re.__Regex | str | None
@@ -21,7 +21,7 @@ class PathExcludes(object):
 
     def set_pattern(self, pattern):
         """Set the pattern of excluded paths.
-        
+
         Parameters
         ----------
         pattern : re.__Regex | str | None
@@ -34,12 +34,12 @@ class PathExcludes(object):
 
     def is_excluded(self, path):
         """Check whether or not `path` is excluded.
-        
+
         Parameters
         ----------
         path : str
             The path to be checked.
-        
+
         Returns
         -------
         bool
@@ -53,12 +53,12 @@ default_path_excludes = PathExcludes(
         r'''
           # match the start position, or parent directories
           (?:^|.*[/\\])
-    
+
           # the main file pattern
           (?:
             # match excluded directories
             (\.git|\.svn|\.idea|node_modules)(?:$|[/\\].*)
-    
+
             # match excluded files
           | (\.DS_Store)$
           )

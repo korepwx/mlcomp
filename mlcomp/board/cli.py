@@ -66,16 +66,16 @@ def init_logging(log_file, log_level, log_format):
 
 def get_application_for_path(path):
     """Get the most proper application for specified `path`.
-    
+
     If `path + '/storage.json'` exists, returns a `StorageApp`.
     If `path + '/report.json'` exists, returns a `ReportApp`.
     Otherwise returns a `BoardApp` with `path` mapped to root.
-    
+
     Parameters
     ----------
     path : str
         The path to be served through web application.
-        
+
     Returns
     -------
     (class, tuple, dict)

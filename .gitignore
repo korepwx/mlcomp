@@ -1,4 +1,6 @@
 .idea
+.cache
+.vscode
 *.iml
 /config.py
 /debug.py

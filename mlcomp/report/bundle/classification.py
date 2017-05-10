@@ -8,11 +8,11 @@ __all__ = ['classification_report']
 
 def classification_report(y_true, y_pred, y_prob, title=None):
     """Classification report.
-    
+
     This method will compose a standard classification report, including
     the summary, the result attachment, and the AUC curve if specified
     result is a binary classification result.
-    
+
     Parameters
     ----------
     y_true : numpy.ndarray
@@ -20,13 +20,13 @@ def classification_report(y_true, y_pred, y_prob, title=None):
 
     y_pred : numpy.ndarray
         Predicted target values.
-        
+
     y_prob : numpy.ndarray
         Estimated probabilities for each target to be each class.
-        
+
     title : str
         Optional title of this report.
-        
+
         If specified, the resulting report will be a Section.
         Otherwise the resulting report will be a Group.
     """

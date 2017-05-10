@@ -4,9 +4,10 @@ import numpy as np
 
 from mlcomp.utils import (minibatch_iterator, minibatch_slices_iterator,
                           split_numpy_arrays)
+from tests.helper import TestCase
 
 
-class DataUtilsTestCase(unittest.TestCase):
+class DataUtilsTestCase(TestCase):
 
     def test_minibatch_slices_iterator(self):
         self.assertEqual(

@@ -33,14 +33,14 @@ class Resource(ReportObject):
 
     content_type : str
         Content-type of this resource.
-        
+
     gzip_compress : bool
         Whether or not to compress the data with gzip?
-        
+
         If True, the data will be stored in `name_scope + extension + '.gz'`.
         Meanwhile, the stored path will still be `name_scope + extension`.
         (default is False)
-        
+
     **kwargs
         Other arguments passed to `ReportObject`.
     """
@@ -161,7 +161,7 @@ class ResourceManager(object):
 
     def has_saved(self, name_scope):
         """Check whether or not the resource at `name_scope` has been saved.
-        
+
         Parameters
         ----------
         name_scope : str
@@ -182,7 +182,7 @@ class ResourceManager(object):
 
         extension : str
             Optional extension for the save path.
-            
+
         gzip_compress : bool
             Whether or not to store the data in gzip compressed file?
             (default is False)
@@ -224,7 +224,7 @@ class ResourceManager(object):
         ----------
         path : str
             The save path, which is expected to start with `rel_path`.
-            
+
         gzip_compress : bool
             Whether or not to load data from gzip compressed file?
             (default is False)

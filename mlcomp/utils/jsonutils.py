@@ -18,7 +18,7 @@ class JsonBinary(object):
     the binary strings into base64 strings directly.  In this case, one
     may explicitly wrap such a binary string in this class to inform the
     encoder.
-    
+
     Parameters
     ----------
     value : bytes

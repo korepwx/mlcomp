@@ -364,20 +364,20 @@ class Section(Block):
 
 class DynamicContent(ReportObject, _Element):
     """Dynamic content element.
-    
+
     Sometimes it is needed to generate dynamic contents via JavaScript.
     And when large amount of data is required for generating the content,
     it is an ideal practice to store the data as JSON resource file.
     `DynamicContent` provide such a framework to do so.
-     
+
     Parameters
     ----------
     html : str
         The HTML content, as the basic skeleton of the element.
-        
+
         All these HTML code will be wrapped in an inline DIV with
         a unique ID as soon as the report is rendered.
-        
+
     script : str
         The JavaScript to render the dynamic content.
 
@@ -435,15 +435,15 @@ class DynamicContent(ReportObject, _Element):
 
 class CanvasJS(ReportObject, _Element):
     """CanvasJS figure element.
-    
+
     Parameters
     ----------
     data : dict
         The chart data as JSON serializable dict.
-        
+
     title : str
         Optional title of this figure.
-        
+
     **kwargs
         Other arguments passed to `ReportObject`.
     """

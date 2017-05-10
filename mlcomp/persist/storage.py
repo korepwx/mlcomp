@@ -246,15 +246,15 @@ class Storage(object):
 
     def reopen(self, mode):
         """Re-open the storage in alternative mode.
-        
+
         Parameters
         ----------
         mode : {'read', 'write', 'create'}
             In which mode should this storage to be open?
-        
+
         Returns
         -------
-        Storage 
+        Storage
             A new storage opened in specified mode.
         """
         return Storage(self._path, mode)
@@ -307,7 +307,7 @@ class Storage(object):
             If specified None, will return the logs as bytes.
             Otherwise will decode the logs in specified codec.
             (default is 'utf-8').
-            
+
         Returns
         -------
         bytes | str
@@ -384,7 +384,7 @@ class Storage(object):
 
     def list_reports(self):
         """List the report directories of this storage.
-        
+
         Returns
         -------
         list[str]
@@ -434,12 +434,12 @@ class Storage(object):
         r'''
           # match the start position
           ^
-    
+
           # the main file pattern
           (?:
             # match protected directories
             (report)(?:$|[/\\].*)
-    
+
             # match protected files
           | (storage\.json|console\.log|running.json)$
           )
@@ -449,19 +449,19 @@ class Storage(object):
 
     def copy_file(self, src, dst, overwrite=False):
         """Copy `src` file as `dst`.
-        
+
         Parameters
         ----------
         src : str
             The source file path.
-            
+
         dst : str
             The destination file path.  It should be the relative path
-            of the file.  The parent directory will be created 
+            of the file.  The parent directory will be created
             automatically if not exist.
-            
+
         overwrite : bool
-            Whether or not to overwrite existing file or directory? 
+            Whether or not to overwrite existing file or directory?
             (default False)
         """
         dst_path = self.ensure_parent_exists(dst)
@@ -480,23 +480,23 @@ class Storage(object):
     def copy_dir(self, src, dst, excludes=default_path_excludes,
                  overwrite=False):
         """Copy `src` directory as `dst`.
-        
+
         Parameters
         ----------
         src : str
             The source directory path.
-            
+
         dst : str
             The destination directory path.  It should be the relative
-            path of the file.  The parent directory will be created 
+            path of the file.  The parent directory will be created
             automatically if not exist.
-            
+
         excludes : PathExcludes
             The path excludes rule.
             If `None` is specified, will not exclude any path.
-            
+
         overwrite : bool
-            Whether or not to overwrite existing file or directory? 
+            Whether or not to overwrite existing file or directory?
             (default False)
         """
         dst_path = self.ensure_parent_exists(dst)
@@ -514,20 +514,20 @@ class Storage(object):
 
     def save_script(self, script_path, excludes=default_path_excludes):
         """Save the specified experiment script(s) to storage.
-        
+
         Script file(s) will be stored to "script/" directory of this
         storage.  Existing files under "script/" will be removed.
-        
+
         Parameters
         ----------
         script_path : str
             The path of the experiment scripts.
-            
-            If the specified path is a file, it will be copied to 
+
+            If the specified path is a file, it will be copied to
             "script/" with the same name.  Otherwise if the path
             is a directory, all the contents of this directory will
             be copied to "script/".
-            
+
         excludes : PathExcludes
             The path excludes rule.
             If `None` is specified, will not exclude any path.

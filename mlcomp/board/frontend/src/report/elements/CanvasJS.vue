@@ -53,7 +53,13 @@
                   for (const dataPoint of dataPoints) {
                     for (const key of Object.keys(dataPoint)) {
                       const val = dataPoint[key];
-                      if (isNaN(val)) {
+                      if (Array.isArray(val)) {
+                        // data types like "rangeArea" requires a list of data.
+                        for (let i=0; i<val.length; ++i) {
+                          if (Number.isNaN(val[i]))
+                            val[i] = null;
+                        }
+                      } else if (Number.isNaN(val)) {
                         dataPoint[key] = null;
                       }
                     } // for (key)

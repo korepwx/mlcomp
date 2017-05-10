@@ -13,7 +13,7 @@ def is_testing():
 
 def send_from_directory_ex(directory, filename, **kwargs):
     """Extended `send_from_directory`.
-    
+
     This version of `send_from_directory` will would send 'abc.xxx.gz' as
     response to the request for 'abc.xxx'.
     """

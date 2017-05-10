@@ -113,28 +113,28 @@ def regression_report_data_frame(truth, predict, label, per_target=True,
 def regression_summary(truth, predict, label=None, per_target=True,
                        target_names=None, title=None):
     """Regression result summary table.
-    
+
     Parameters
     ----------
     truth : np.ndarray
         Ground truth (correct) target values.
-        
+
     predict : np.ndarray
         Predicted target values.
-        
+
     label : np.ndarray | list
         If specified, will compute the regression scores for each label class.
-        
+
     per_target : bool
         Whether or not to compute the regression score for each dimension?
         (default True)
-        
+
     target_names : np.ndarray | list
         Name of each dimension in regression results.
-        
+
         If not specified, will use the coordinate of each dimension, e.g.,
         "(0,0,0)".
-        
+
     title : str
         Optional title of this regression summary table.
     """
@@ -161,22 +161,22 @@ def regression_summary(truth, predict, label=None, per_target=True,
 
 def regression_result_attachment(truth, predict, title=None, link_only=False):
     """Regression result attachment.
-    
+
     Parameters
     ----------
     truth : np.ndarray
         Ground truth (correct) target values.
-        
+
     predict : np.ndarray
         Predicted target values.
-        
+
     title : str
         Optional title of this attachment.
 
     link_only : bool
         Whether or not to render only link of this attachment?
         (default False)
-        
+
     Returns
     -------
     Attachment

@@ -165,7 +165,7 @@ class StorageTree(object):
         Returns
         -------
         (Storage, str)
-            The storage and the path of the storage, or None if 
+            The storage and the path of the storage, or None if
             the storage does not exist.
         """
         names = re.split(r'[/\\]+', path)
