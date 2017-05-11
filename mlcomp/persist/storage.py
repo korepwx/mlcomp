@@ -370,7 +370,14 @@ class Storage(object):
         """
         try:
             with self.capture_logging(), self.keep_running_status():
-                yield
+                try:
+                    yield
+                except Exception:
+                    # print the exception, so that it would be captured
+                    # by the logging file.
+                    getLogger(__name__).exception(
+                        'An error occurred within storage context.')
+                    raise
             self._meta.has_error = False
         except Exception:
             self._meta.has_error = True
