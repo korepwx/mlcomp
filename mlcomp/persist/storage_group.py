@@ -193,7 +193,7 @@ class StorageGroup(object):
                     yield name
 
     def open_latest_storage(self, hostname=None, mode='read'):
-        """Open the latest storage according to name.
+        """Open the latest storage.
 
         This method only matches the well-named storage directories.
         It extracts the creation time of the storage directory from name.
@@ -218,6 +218,24 @@ class StorageGroup(object):
                 candidate = name
         if candidate:
             return Storage(self.resolve_path(candidate), mode=mode)
+
+    def open_storage(self, name, mode='read'):
+        """Open the storage according to name.
+
+        Parameters
+        ----------
+        name : str
+            Name of the storage directory.  If the specified directory
+            is not a storage, the method will raise IOError.
+
+        mode : {'read', 'write'}
+            In which mode should this storage to be open?
+            See the constructor of `Storage` for more details.
+        """
+        path = self.resolve_path(name)
+        if not os.path.isfile(os.path.join(path, STORAGE_META_FILE)):
+            raise IOError('%r is not a storage directory.' % path)
+        return Storage(path, mode=mode)
 
     def create_storage(self, basename=None, hostname=None):
         """Create a new storage with unique name.
