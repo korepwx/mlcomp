@@ -25,7 +25,12 @@ class Webpack(object):
         # if `dev/assets.json` exists, use the development version of assets
         # otherwise use the production version of assets
         self.manifest_file = None
-        for f in ('dev/assets.json', 'prod/assets.json'):
+
+        if app.config['DEBUG']:
+            candidate_files = ('dev/assets.json', 'prod/assets.json')
+        else:
+            candidate_files = ('prod/assets.json',)
+        for f in candidate_files:
             manifest_file = os.path.abspath(os.path.join(app.static_folder, f))
             if os.path.exists(manifest_file):
                 getLogger(__name__).info('Loaded assets from %r.', f)

@@ -96,9 +96,8 @@ export function getStorageGroups({ url, success, error }) {
               for (const child of parent) {
                 // If the node is a directory node
                 if (Array.isArray(child[1])) {
-                  if (pa_path)
-                    pa_path += '/';
-                  dfs(groups, pa_path + child[0], child[1]);
+                  const path_pfx = pa_path ? pa_path + '/' : '';
+                  dfs(groups, path_pfx + child[0], child[1]);
                 }
 
                 // Otherwise if the node is a storage node
