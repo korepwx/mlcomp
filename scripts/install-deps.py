@@ -38,7 +38,12 @@ pip_deps = []
 active_deps = pip_deps
 requirements_file = os.path.join(script_root, '../requirements.txt')
 
-with codecs.open(requirements_file, 'rb', 'utf-8') as f:
+if sys.version_info[0] == 2:
+    f = open(requirements_file, 'rb')
+else:
+    f = codecs.open(requirements_file, 'rb', 'utf-8')
+
+with f:
     for line in f:
         line = line.strip()
         if line.startswith('# tensorFlow'):

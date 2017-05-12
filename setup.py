@@ -5,26 +5,34 @@ ML Companion
 ML Companion is a set of utilities for data preparation and result analysis
 in daily machine learning experiments.
 """
+import ast
 import codecs
 import os
 import re
-import ast
+import sys
 from setuptools import setup, find_packages
 
 
 _version_re = re.compile(r'__version__\s+=\s+(.*)')
 _source_dir = os.path.split(os.path.abspath(__file__))[0]
 
-with open(os.path.join(_source_dir, 'mlcomp/__init__.py'), 'rb') as f:
-    version = str(ast.literal_eval(_version_re.search(
-        f.read().decode('utf-8')).group(1)))
+if sys.version_info[0] == 2:
+    def read_file(path):
+        with open(path, 'rb') as f:
+            return f.read()
+else:
+    def read_file(path):
+        with codecs.open(path, 'rb', 'utf-8') as f:
+            return f.read()
 
-with codecs.open(os.path.join(_source_dir, 'requirements.txt'),
-                 'rb', 'utf-8') as f:
-    install_requires = list(filter(
-        lambda v: v and not v.startswith('#'),
-        (s.strip() for s in f.read().split('\n'))
-    ))
+version = str(ast.literal_eval(_version_re.search(
+    read_file(os.path.join(_source_dir, 'mlcomp/__init__.py'))).group(1)))
+
+install_requires = read_file(os.path.join(_source_dir, 'requirements.txt'))
+install_requires = list(filter(
+    lambda v: v and not v.startswith('#'),
+    (s.strip() for s in install_requires.split('\n'))
+))
 
 
 setup(
