@@ -47,8 +47,10 @@ setup(
     packages=find_packages('.', exclude=['tests', 'tests.*']),
     package_data={
         'mlcomp.board': [
-            'templates/*',
-            'templates/skeleton/*',
+            'templates/board.html',
+            'templates/report.html',
+            'templates/storage.html',
+            'templates/skeleton/base.html',
             'static/prod/*',
         ],
         'mlcomp.report': ['demo/mandelbrot.png', 'demo/mandelbrot.pyx'],
