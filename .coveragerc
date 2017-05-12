@@ -23,3 +23,6 @@ omit =
 
     # test code need not coverage statistics
     tests/*
+
+    # maintenance scripts need not coverage statistics
+    scripts/*
