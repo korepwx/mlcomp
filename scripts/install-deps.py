@@ -66,11 +66,11 @@ if conda_deps:
 
 # Install dependencies via pip
 if pip_deps:
-    subprocess.check_call(['python', '-m', 'pip', 'install', '-q'] + pip_deps)
+    subprocess.check_call(['python', '-m', 'pip', 'install'] + pip_deps)
 
 # Install TensorFlow
 tf_package = 'tensorflow-gpu' if device == 'gpu' else 'tensorflow'
-subprocess.check_call(['python', '-m', 'pip', 'install', '-q', tf_package])
+subprocess.check_call(['python', '-m', 'pip', 'install', tf_package])
 
 # Install dependencies after TensorFlow
 if tf_deps:
@@ -78,4 +78,4 @@ if tf_deps:
         lambda s: not re.match(r'^tensorflow(-gpu)?$', s, re.I),
         tf_deps
     ))
-    subprocess.check_call(['python', '-m', 'pip', 'install', '-q'] + tf_deps)
+    subprocess.check_call(['python', '-m', 'pip', 'install'] + tf_deps)
