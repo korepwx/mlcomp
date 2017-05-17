@@ -2,9 +2,10 @@
 import unittest
 
 from mlcomp.utils import camel_to_underscore
+from tests.helper import TestCase
 
 
-class MiscTestCase(unittest.TestCase):
+class MiscTestCase(TestCase):
 
     def test_camel_to_underscore(self):
         def assert_convert(camel, underscore):

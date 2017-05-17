@@ -8,19 +8,19 @@
         </mu-tr>
         <mu-tr>
           <mu-td class="label">Status</mu-td>
-          <mu-td v-if="storage.is_active">Running</mu-td>
-          <mu-td v-if="!storage.is_active && !storage.has_error">Finished</mu-td>
-          <mu-td v-if="!storage.is_active && storage.has_error">Error</mu-td>
+          <mu-td v-if="storage.is_active" class="text-active">Running</mu-td>
+          <mu-td v-if="!storage.is_active && !storage.has_error" class="text-success">Finished</mu-td>
+          <mu-td v-if="!storage.is_active && storage.has_error" class="text-error">Error</mu-td>
         </mu-tr>
-        <mu-tr v-if="storage.tags && storage.tags.length">
+        <mu-tr>
           <mu-td class="label">Tags</mu-td>
-          <mu-td class="tag-container">
-            <mu-chip class="tag" v-for="tag in storage.tags" :key="tag">{{ tag }}</mu-chip>
+          <mu-td>
+            <editable-tags :tags="storage.tags" @change="onTagsChange"></editable-tags>
           </mu-td>
         </mu-tr>
-        <mu-tr v-if="storage.description">
+        <mu-tr>
           <mu-td class="label">Description</mu-td>
-          <mu-td>{{ storage.description }}</mu-td>
+          <mu-td><editable-text :value="storage.description" @change="onDescriptionChange"></editable-text></mu-td>
         </mu-tr>
         <mu-tr v-if="storage.create_time">
           <mu-td class="label">Create Time</mu-td>
@@ -46,6 +46,8 @@
 
 <script>
   import TimeLabel from '../comp/TimeLabel.vue';
+  import EditableText from '../comp/EditableText.vue';
+  import EditableTags from '../comp/EditableTags.vue';
   import { Storage } from '../lib/api.js';
 
   export default {
@@ -55,7 +57,9 @@
     ],
 
     components: {
-      TimeLabel
+      TimeLabel,
+      EditableText,
+      EditableTags,
     },
 
     data() {
@@ -77,6 +81,15 @@
           }
           return new Storage(path, name, this.storageInfo);
         }
+      }
+    },
+
+    methods: {
+      onDescriptionChange(val) {
+        this.$emit('infoChanged', {'description': val});
+      },
+      onTagsChange(tags) {
+        this.$emit('infoChanged', {'tags': tags});
       }
     }
   }

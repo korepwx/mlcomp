@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import unittest
 
-__all__ = ['TestCase']
+__all__ = ['TestCase', 'captured_output']
 
 
 class TestCase(unittest.TestCase):

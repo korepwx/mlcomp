@@ -2,7 +2,7 @@
   <!-- the main content -->
   <div class="main-wrapper">
     <!-- the loading progress -->
-    <mu-linear-progress class="loading-progress" v-if="isLoading"></mu-linear-progress>
+    <delayed-progress-bar :loading="isLoading"></delayed-progress-bar>
 
     <!-- the loading error message -->
     <div v-if="errorMessage" class="main-content error">
@@ -20,6 +20,7 @@
 <script>
   import { getReportObject } from '../lib/report.js';
   import { eventBus } from '../lib/eventBus.js';
+  import DelayedProgressBar from '../comp/DelayedProgressBar.vue';
   import Dispatch from './elements/Dispatch.vue';
 
   export default {
@@ -38,7 +39,8 @@
     },
 
     components: {
-      dispatch: Dispatch
+      Dispatch,
+      DelayedProgressBar,
     },
 
     data() {
@@ -79,19 +81,7 @@
     methods: {
       loadReportObject() {
         const self = this;
-
-        // show the loading flag if the resource cannot be retrieved within half a second
-        const loadingFlag = [true];
-        const showLoadingAfterHalfSecond = setInterval(function() {
-          self.isLoading = loadingFlag[0];
-          clearInterval(showLoadingAfterHalfSecond);
-        }, 500);
-
-        function clearLoadingFlag() {
-          loadingFlag[0] = false;
-          clearInterval(showLoadingAfterHalfSecond);
-          self.isLoading = false;
-        }
+        self.isLoading = true;
 
         // start to load the data
         getReportObject({
@@ -100,13 +90,13 @@
             self.reportFile = report;
             self.errorMessage = null;
             console.log(`loaded report ${self.rootUrl}.`);
-            clearLoadingFlag();
+            self.isLoading = false;
           },
           error: function (e) {
             self.reportFile = null;
             self.errorMessage = e;
             console.log(`error when loading report: ${e}.`);
-            clearLoadingFlag();
+            self.isLoading = false;
           }
         });
       }

@@ -1,14 +1,13 @@
-import threading
+import time
 import unittest
 
-import time
-
 from mlcomp.utils import BackgroundWorker
+from tests.helper import TestCase
 
 
-class ConcurrencyTestCase(unittest.TestCase):
+class BackgroundWorkerTestCase(TestCase):
 
-    def test_BackgroundWorker(self):
+    def test_NoError(self):
         # test no error
         counter = [0]
 
@@ -28,26 +27,47 @@ class ConcurrencyTestCase(unittest.TestCase):
         # test the counter has been increased
         self.assertGreaterEqual(counter[0], 1)
 
-        # test error
-        def action2():
+    def test_NotStopOnError(self):
+        def action():
             counter[0] += 1
             raise ValueError()
 
         counter = [0]
         worker = BackgroundWorker(
-            action2, sleep_seconds=0.1, stop_on_error=False)
+            action, sleep_seconds=0.1, stop_on_error=False)
         worker.start()
         time.sleep(0.5)
         worker.stop()
         self.assertGreaterEqual(counter[0], 4)
 
+    def test_StopOnError(self):
+        def action():
+            counter[0] += 1
+            raise ValueError()
+
         counter = [0]
         worker = BackgroundWorker(
-            action2, sleep_seconds=0.1, stop_on_error=True)
+            action, sleep_seconds=0.1, stop_on_error=True)
         worker.start()
         time.sleep(0.5)
         worker.stop()
         self.assertEqual(counter[0], 1)
+
+    def test_WorkerNameInLog(self):
+        def action():
+            counter[0] += 1
+            raise ValueError()
+
+        counter = [0]
+        worker = BackgroundWorker(
+            action, sleep_seconds=0.1, name='worker_name',
+            stop_on_error=True,
+        )
+        worker.start()
+        time.sleep(0.5)
+        worker.stop()
+        self.assertEqual(counter[0], 1)
+
 
 if __name__ == '__main__':
     unittest.main()

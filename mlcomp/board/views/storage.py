@@ -102,14 +102,19 @@ def handle_storage_index(storage, root_url, path):
 
 
 def handle_storage_info(storage, root_url, path):
-    if request.method == 'GET':
-        s_dict = storage.to_dict()
-        s_dict['__type__'] = 'StorageInfo'
-        s_dict['reports'] = storage.list_reports()
-        s_dict['root_url'] = root_url
-        return jsonify(s_dict)
-    else:
-        raise MethodNotAllowed()
+    if request.method == 'POST':
+        s_update = request.json
+        s = storage.reopen('write')
+        if 'description' in s_update:
+            s.description = s_update['description'].strip()
+        if 'tags' in s_update:
+            s.tags = list(s_update['tags'])
+        storage.reload()
+    s_dict = storage.to_dict()
+    s_dict['__type__'] = 'StorageInfo'
+    s_dict['reports'] = storage.list_reports()
+    s_dict['root_url'] = root_url
+    return jsonify(s_dict)
 
 
 def handle_file_stat(storage, root_url, path):
@@ -178,13 +183,13 @@ def resources(storage, root, path):
     if STORAGE_INDEX_URL.match(path):
         return handle_storage_index(storage, root_url, path)
 
-    # all of the remaining routes do not accept POST requests
-    if request.method != 'GET':
-        raise MethodNotAllowed()
-
     # if the storage info JSON is requested
     if path == 'info':
         return handle_storage_info(storage, root_url, path)
+
+    # all of the remaining routes do not accept POST requests
+    if request.method != 'GET':
+        raise MethodNotAllowed()
 
     # if some static resources displayed at storage index are requested
     if path.startswith('report/') or path in ('console.log', 'storage.json'):

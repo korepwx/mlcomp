@@ -1,7 +1,7 @@
 <template>
   <div class="main-wrapper">
     <!-- the loading progress -->
-    <mu-linear-progress class="loading-progress" v-if="isLoading"></mu-linear-progress>
+    <delayed-progress-bar :loading="isLoading"></delayed-progress-bar>
 
     <!-- the loading error message -->
     <div v-if="errorMessage" class="main-content error">
@@ -18,8 +18,13 @@
 <script>
   import $ from 'jquery';
   import { eventBus } from '../lib/eventBus.js';
+  import DelayedProgressBar from '../comp/DelayedProgressBar.vue';
 
   export default {
+    components: {
+      DelayedProgressBar
+    },
+
     props: ['rootUrl'],
 
     data() {
@@ -33,19 +38,7 @@
     methods: {
       loadLogs() {
         const self = this;
-
-        // show the loading flag if the resource cannot be retrieved within half a second
-        const loadingFlag = [true];
-        const showLoadingAfterHalfSecond = setInterval(function() {
-          self.isLoading = loadingFlag[0];
-          clearInterval(showLoadingAfterHalfSecond);
-        }, 500);
-
-        function clearLoadingFlag() {
-          loadingFlag[0] = false;
-          clearInterval(showLoadingAfterHalfSecond);
-          self.isLoading = false;
-        }
+        self.isLoading = true;
 
         // start to load the data
         $.ajax({
@@ -55,13 +48,13 @@
           success: function (data) {
             self.logs = data;
             self.errorMessage = null;
-            clearLoadingFlag();
+            self.isLoading = false;
           },
           error: function (e) {
             self.logs = null;
             self.errorMessage = e.statusText;
             console.log(`error when loading logs: ${e.statusText}`);
-            clearLoadingFlag();
+            self.isLoading = false;
           }
         });
       }

@@ -1,7 +1,7 @@
 <template>
   <div class="main-wrapper">
     <!-- the loading progress -->
-    <mu-linear-progress class="loading-progress" v-if="isLoading"></mu-linear-progress>
+    <delayed-progress-bar :loading="isLoading"></delayed-progress-bar>
 
     <!-- the loading error message -->
     <div v-if="errorMessage" class="main-content error">
@@ -27,12 +27,17 @@
 <script>
   import { getJSON } from '../lib/utils.js';
   import { eventBus } from '../lib/eventBus.js';
+  import DelayedProgressBar from '../comp/DelayedProgressBar.vue';
 
   export default {
     props: [
       'storageInfo',
       'rootUrl',
     ],
+
+    components: {
+      DelayedProgressBar
+    },
 
     data() {
       return {
@@ -55,19 +60,7 @@
     methods: {
       loadEntities() {
         const self = this;
-
-        // show the loading flag if the resource cannot be retrieved within half a second
-        const loadingFlag = [true];
-        const showLoadingAfterHalfSecond = setInterval(function() {
-          self.isLoading = loadingFlag[0];
-          clearInterval(showLoadingAfterHalfSecond);
-        }, 500);
-
-        function clearLoadingFlag() {
-          loadingFlag[0] = false;
-          clearInterval(showLoadingAfterHalfSecond);
-          self.isLoading = false;
-        }
+        self.isLoading = true;
 
         // start to load the data
         self.entities = null;
@@ -90,13 +83,13 @@
               self.errorMessage = null;
               console.log(`navigated to "${self.browsePath}".`);
             }
-            clearLoadingFlag();
+            self.isLoading = false;
           },
           error: function (e) {
             self.entities = null;
             self.errorMessage = e;
             console.log(`error when loading entities: ${e}`);
-            clearLoadingFlag();
+            self.isLoading = false;
           }
         })
       },

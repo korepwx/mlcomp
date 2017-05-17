@@ -17,7 +17,7 @@
     <!-- the main content -->
     <div class="main-wrapper" :class="{'side-panel-hided': !sidePanelOpen}">
       <!-- the loading progress -->
-      <mu-linear-progress class="loading-progress" v-if="isLoading"></mu-linear-progress>
+      <delayed-progress-bar :loading="isLoading"></delayed-progress-bar>
 
       <!-- the loading error message -->
       <div v-if="errorMessage" class="main-content error">
@@ -35,14 +35,16 @@
   import { GroupFilter } from '../lib/query.js';
   import { isDesktop } from '../lib/utils.js';
   import persist from '../lib/persist.js';
+  import DelayedProgressBar from '../comp/DelayedProgressBar.vue';
   import SidePanel from './SidePanel.vue';
   import GroupList from './GroupList.vue';
 
   // The component definition.
   export default {
     components: {
-      'side-panel': SidePanel,
-      'group-list': GroupList,
+      SidePanel,
+      GroupList,
+      DelayedProgressBar,
     },
 
     data() {
@@ -116,19 +118,7 @@
 
       loadStorageGroups() {
         const self = this;
-
-        // show the loading flag if the resource cannot be retrieved within half a second
-        const loadingFlag = [true];
-        const showLoadingAfterHalfSecond = setInterval(function() {
-          self.isLoading = loadingFlag[0];
-          clearInterval(showLoadingAfterHalfSecond);
-        }, 500);
-
-        function clearLoadingFlag() {
-          loadingFlag[0] = false;
-          clearInterval(showLoadingAfterHalfSecond);
-          self.isLoading = false;
-        }
+        self.isLoading = true;
 
         // start to load the data
         getStorageGroups({
@@ -137,13 +127,13 @@
             self.storageGroups = groups;
             self.errorMessage = null;
             console.log('loaded storage groups.');
-            clearLoadingFlag();
+            self.isLoading = false;
           },
           error: function (e) {
             self.storageGroups = null;
             self.errorMessage = e;
             console.log(`error when loading storage groups: ${e}.`);
-            clearLoadingFlag();
+            self.isLoading = false;
           }
         });
       },

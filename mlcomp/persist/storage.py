@@ -364,9 +364,8 @@ class Storage(object):
     def with_context(self):
         """Open a context that keeps this storage active.
 
-        This method will open all other contexts, e.g., `capture_logging()`
-        and `keep_running_status()`.  Furthermore, when existing the context
-        of this method,
+        This method will open all other contexts, including `capture_logging()`
+        and `keep_running_status()`.
         """
         try:
             with self.capture_logging(), self.keep_running_status():

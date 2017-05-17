@@ -55,3 +55,36 @@ export function getJSON({ url, success, error, cache = true }) {
     dataType: 'text'
   })
 }
+
+/**
+ * Post JSON and get JSON result from API backend.
+ *
+ * @param url URL of the API backend.
+ * @param payload JSON payload of this request.
+ * @param success Callback on success.
+ * @param error Callback on error.
+ */
+export function postGetJSON({ url, payload, success, error }) {
+  $.ajax({
+    method: "POST",
+    url: url,
+    data: JSON.stringify(payload),
+    contentType: "application/json",
+    success: function(data) {
+      if (success) {
+        try {
+          success(parseJSON(data));
+        } catch (e) {
+          console.log(e);
+          if (error) error(e.message);
+        }
+      }
+    },
+    error: function(e) {
+      console.log(e);
+      if (error) error(e.statusText);
+    },
+    cache: false,
+    dataType: "text"
+  })
+}

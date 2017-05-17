@@ -20,7 +20,7 @@
     <!-- the main content -->
     <div class="storage-wrapper">
       <!-- the loading progress -->
-      <mu-linear-progress class="loading-progress" v-if="isLoading"></mu-linear-progress>
+      <delayed-progress-bar :loading="isLoading"></delayed-progress-bar>
 
       <!-- the loading error message -->
       <div v-if="errorMessage" class="storage-content error">
@@ -29,7 +29,8 @@
 
       <!-- the main list group -->
       <div v-if="!errorMessage && storageInfo" class="storage-content storage">
-        <router-view :storageInfo="storageInfo" :rootUrl="rootUrl" @changeBrowsePath="changeBrowsePath"></router-view>
+        <router-view :storageInfo="storageInfo" :rootUrl="rootUrl" @changeBrowsePath="changeBrowsePath"
+                     @infoChanged="storageInfoChanged"></router-view>
       </div>
     </div> <!-- div.main-wrapper -->
 
@@ -47,10 +48,15 @@
 
 <script>
   import $ from 'jquery';
-  import { getJSON } from '../lib/utils.js';
+  import { getJSON, postGetJSON } from '../lib/utils.js';
   import { eventBus } from '../lib/eventBus.js';
+  import DelayedProgressBar from '../comp/DelayedProgressBar.vue';
 
   export default {
+    components: {
+      DelayedProgressBar
+    },
+
     data() {
       return {
         isLoading: false,
@@ -120,48 +126,53 @@
     },
 
     methods: {
+      loadStorageInfoSuccess (data) {
+        if (data['__type__'] !== 'StorageInfo') {
+          this.storageInfo = null;
+          this.errorMessage = 'This URL seems not to be an experiment storage';
+          console.log(`storage info: ${data}.`);
+        } else {
+          window.document.title = `${data['name']} - ML Board`;
+          this.storageInfo = data;
+          this.errorMessage = null;
+          console.log(`loaded storage info ${this.rootUrl}.`);
+        }
+        this.isLoading = false;
+      },
+
+      loadStorageInfoError (e) {
+        this.storageInfo = null;
+        this.errorMessage = e;
+        console.log(`error when loading storage info: ${e}`);
+        this.isLoading = false;
+      },
+
       loadStorageInfo() {
         const self = this;
-
-        // show the loading flag if the resource cannot be retrieved within half a second
-        const loadingFlag = [true];
-        const showLoadingAfterHalfSecond = setInterval(function() {
-          self.isLoading = loadingFlag[0];
-          clearInterval(showLoadingAfterHalfSecond);
-        }, 500);
-
-        function clearLoadingFlag() {
-          loadingFlag[0] = false;
-          clearInterval(showLoadingAfterHalfSecond);
-          self.isLoading = false;
-        }
+        this.isLoading = true;
 
         // start to load the data
         getJSON({
           url: self.rootUrl + 'info',
           cache: false,
-          success: function (data) {
-            if (data['__type__'] !== 'StorageInfo') {
-              self.storageInfo = null;
-              self.errorMessage = 'This URL seems not to be an experiment storage';
-              console.log(`storage info: ${data}.`);
-              clearLoadingFlag();
-            } else {
-              window.document.title = `${data['name']} - ML Board`;
-              self.storageInfo = data;
-              self.errorMessage = null;
-              console.log(`loaded storage info ${self.rootUrl}.`);
-              clearLoadingFlag();
-            }
-          },
-          error: function (e) {
-            self.storageInfo = null;
-            self.errorMessage = e;
-            console.log(`error when loading storage info: ${e}`);
-            clearLoadingFlag();
-          }
+          success: (data) => self.loadStorageInfoSuccess(data),
+          error: (e) => self.loadStorageInfoError(e)
         });
       }, // loadStorageInfo
+
+      updateStorageInfo(payload) {
+        const self = this;
+        this.isLoading = true;
+
+        // start to load the data
+        postGetJSON({
+          url: self.rootUrl + 'info',
+          payload: payload,
+          cache: false,
+          success: (data) => self.loadStorageInfoSuccess(data),
+          error: (e) => self.loadStorageInfoError(e)
+        });
+      }, // updateStorageInfo
 
       closeSelectReport() {
         this.selectReportOpen = false;
@@ -188,6 +199,10 @@
           this.loadStorageInfo();
         }
       },
+
+      storageInfoChanged(payload) {
+        this.updateStorageInfo(payload);
+      }
     },
   }
 </script>

@@ -33,6 +33,9 @@ class JsonBinary(object):
     def __repr__(self):
         return 'JsonBinary(%r)' % (self.value,)
 
+    def __hash__(self):
+        return hash(self.value)
+
     def __eq__(self, other):
         return isinstance(other, JsonBinary) and self.value == other.value
 
@@ -124,7 +127,10 @@ class JsonEncoder(json.JSONEncoder):
 
 
 class JsonDecoder(json.JSONDecoder):
-    """Extended JSON decoder coupled with `mlcomp.utils.JsonEncoder`."""
+    """Extended JSON decoder coupled with `mlcomp.utils.JsonEncoder`.
+    
+    Note that a `JsonDecoder` instance is designed to be used for only once.
+    """
 
     def __init__(self, **kwargs):
         self._object_hook = kwargs.get('object_hook', None)
@@ -132,10 +138,6 @@ class JsonDecoder(json.JSONDecoder):
         kwargs['object_hook'] = self._injected_object_hook
         kwargs.setdefault('object_hook', self._injected_object_hook)
         super(JsonDecoder, self).__init__(**kwargs)
-
-    def clear_object_ref(self):
-        """Clear all deserialized object references."""
-        self._ref_dict.clear()
 
     def _default_object_handler(self, v):
         v_type = v['__type__']
