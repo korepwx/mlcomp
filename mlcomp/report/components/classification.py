@@ -139,7 +139,7 @@ def classification_summary(y_true, y_pred, labels=None, target_names=None,
 
     summary = pd.DataFrame(data=data, columns=list(data.keys()),
                            index=target_names + ['total'])
-    ret = dataframe_to_table(summary, title=title)
+    ret = data_frame_to_table(summary, title=title)
 
     # make the total row as footer
     ret.footer = [ret.rows.pop()]

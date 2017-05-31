@@ -138,7 +138,7 @@ def regression_summary(truth, predict, label=None, per_target=True,
     title : str
         Optional title of this regression summary table.
     """
-    ret = dataframe_to_table(
+    ret = data_frame_to_table(
         regression_report_data_frame(
             truth=truth,
             predict=predict,

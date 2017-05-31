@@ -100,7 +100,7 @@ def make_dataframe_table():
     index = pd.MultiIndex.from_tuples(tuples, names=['first', 'second'])
     df = pd.DataFrame(
         np.arange(16).reshape([8, 2]), index=index, columns=['A', 'B'])
-    return dataframe_to_table(df, name='the-table')
+    return data_frame_to_table(df, name='the-table')
 
 
 def demo_report():

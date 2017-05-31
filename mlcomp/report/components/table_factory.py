@@ -7,11 +7,11 @@ import pandas as pd
 from ..elements import *
 
 __all__ = [
-    'dataframe_to_table',
+    'data_frame_to_table',
 ]
 
 
-def dataframe_to_table(df, title=None, name=None, name_scope=None):
+def data_frame_to_table(df, title=None, name=None, name_scope=None):
     """Create a report Table from pandas DataFrame.
 
     Parameters
