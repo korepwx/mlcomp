@@ -48,9 +48,12 @@
 
 <script>
   import $ from 'jquery';
+  import naturalSort from 'javascript-natural-sort';
   import { getJSON, postGetJSON } from '../lib/utils.js';
   import { eventBus } from '../lib/eventBus.js';
   import DelayedProgressBar from '../comp/DelayedProgressBar.vue';
+
+  naturalSort.insensitive = true;
 
   export default {
     components: {
@@ -110,7 +113,8 @@
       },
 
       reportNames() {
-        return this.storageInfo && this.storageInfo['reports'];
+        const ret = this.storageInfo && this.storageInfo['reports'];
+        return ret && ret.sort(naturalSort);
       },
 
       bottomNavValue() {
