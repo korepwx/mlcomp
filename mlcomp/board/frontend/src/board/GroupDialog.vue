@@ -65,6 +65,10 @@
 
 <style lang="scss" scoped>
   .group-detail {
+    max-height: 280px;
+    overflow-x: hidden;
+    overflow-y: auto;
+
     .storage-title {
       font-weight: bold;
       .update-time {
