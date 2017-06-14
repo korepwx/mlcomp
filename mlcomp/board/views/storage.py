@@ -2,11 +2,12 @@
 import json
 import os
 import re
+import shutil
 import stat
+import time
 from logging import getLogger
 from zipfile import ZIP_DEFLATED
 
-import shutil
 import six
 import zipstream
 from flask import (Blueprint, current_app, send_from_directory, render_template,
@@ -176,6 +177,9 @@ def handle_storage_delete(storage):
         raise MethodNotAllowed()
 
     shutil.rmtree(storage.path)
+    # wait for a sufficient time, so that the storage tree is ensured to be
+    # reloaded.
+    time.sleep(0.5)
     return jsonify({'error': 0})
 
 
