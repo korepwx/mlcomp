@@ -1,5 +1,5 @@
 <template>
-  <mu-dialog :open="!!group" :title="group ? '/' + group.path : ''" scrollable @close="handleClose">
+  <mu-dialog :open="!!group" :title="group ? '/' + group.path : ''" @close="handleClose">
     <mu-list class="group-detail" v-if="group">
       <mu-list-item v-for="storage in group.items" titleClass="storage-title"
                     :value="storage" :data="storage" :key="storage.name"

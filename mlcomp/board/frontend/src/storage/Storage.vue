@@ -25,7 +25,7 @@
     </mu-bottom-sheet>
 
     <!-- the delete confirmation dialog -->
-    <mu-dialog :open="deleteConfirm" title="Confirm to Delete" scrollable @close="handleCloseDialog">
+    <mu-dialog :open="deleteConfirm" title="Confirm to Delete" @close="handleCloseDialog">
       <div style="margin-top: 20px">
         Are you sure to delete {{ getStorageTitle(true) }}?
        </div>
