@@ -62,7 +62,7 @@ export class GroupFilter {
     // build the query matcher
     const queryMatcher = (function() {
       const matchedStorageFullPath = new Set();
-      if (!!query) {
+      if (!!query && self.searcher) {
         for (const s of self.searcher.search(query)) {
           matchedStorageFullPath.add(s.full_path);
         }

@@ -1,11 +1,18 @@
 <template>
   <div id="Storage" class="page-wrapper">
     <!-- the navigation bar -->
-    <mu-appbar :title="storageInfo ? `Experiment “${storageInfo.name}”` : 'Experiment'" class="appbar">
+    <mu-appbar :title="getStorageTitle()" class="appbar">
       <mu-icon-button v-if="rootUrl !== '/'" icon="arrow_back" slot="left" href="/"></mu-icon-button>
       <mu-flat-button v-if="bottomNavValue === '/report/'" :label="selectedReport" slot="right" @click="toggleSelectReport"></mu-flat-button>
-      <mu-icon-button icon="get_app" slot="right" :href="rootUrl + 'archive.zip'" target="_blank" tooltip="Download as Zip"></mu-icon-button>
-      <mu-icon-button icon="refresh" slot="right" @click="handleReload" tooltip="Reload"></mu-icon-button>
+
+      <mu-icon-menu icon="more_vert" slot="right" tooltip="Actions"
+                    :anchorOrigin="{horizontal: 'right', vertical: 'bottom'}"
+                    :targetOrigin="{horizontal: 'right', vertical: 'top'}">
+        <mu-menu-item leftIcon="refresh" @click="handleReload" title="Reload"></mu-menu-item>
+        <mu-menu-item leftIcon="get_app" :href="rootUrl + 'archive.zip'" target="_blank" title="Download"></mu-menu-item>
+        <mu-divider></mu-divider>
+        <mu-menu-item leftIcon="delete" @click="handleOpenDialog" title="Delete"></mu-menu-item>
+      </mu-icon-menu>
     </mu-appbar>
 
     <mu-bottom-sheet :open="selectReportOpen" @close="closeSelectReport">
@@ -16,6 +23,16 @@
         <mu-list-item v-for="report in reportNames" :title="report" :key="report" :value="report"></mu-list-item>
       </mu-list>
     </mu-bottom-sheet>
+
+    <!-- the delete confirmation dialog -->
+    <mu-dialog :open="deleteConfirm" title="Confirm to Delete" scrollable @close="handleCloseDialog">
+      <div style="margin-top: 20px">
+        Are you sure to delete {{ getStorageTitle(true) }}?
+       </div>
+
+      <mu-flat-button primary label="Delete" @click="handleDelete" slot="actions"/>
+      <mu-flat-button default label="Cancel" @click="handleCloseDialog" slot="actions"/>
+    </mu-dialog>
 
     <!-- the main content -->
     <div class="storage-wrapper">
@@ -68,6 +85,7 @@
         selectedReport: 'default',
         selectReportOpen: false,
         browsePath: '',
+        deleteConfirm: false,
       };
     },
 
@@ -130,6 +148,14 @@
     },
 
     methods: {
+      getStorageTitle(lower=false) {
+        const expTitle = lower ? 'experiment' : 'Experiment';
+        if (this.storageInfo)
+          return `${expTitle} “${this.storageInfo.name}”`;
+        else
+          return expTitle;
+      },
+
       loadStorageInfoSuccess (data) {
         if (data['__type__'] !== 'StorageInfo') {
           this.storageInfo = null;
@@ -198,10 +224,47 @@
       },
 
       handleReload({ autoReload=false }) {
-        if (this.storageInfo.is_active) {
+        if (!autoReload || this.storageInfo.is_active) {
           eventBus.$emit('handleReload', autoReload);
           this.loadStorageInfo();
         }
+      },
+
+      handleOpenDialog() {
+        this.deleteConfirm = true;
+      },
+
+      handleCloseDialog() {
+        this.deleteConfirm = false;
+      },
+
+      handleDelete() {
+        const self = this;
+        this.isLoading = true;
+        this.deleteConfirm = false;
+
+        // start to load the data
+        postGetJSON({
+          url: self.rootUrl + 'delete',
+          payload: {},
+          cache: false,
+          success: (data) => {
+            if (data['error'] !== 0) {
+              self.storageInfo = null;
+              self.errorMessage = data;
+              console.log(`error when deleting storage: ${data}`);
+              self.isLoading = false;
+            } else {
+              window.location.href = '/';
+            }
+          },
+          error: (e) => {
+            self.storageInfo = null;
+            self.errorMessage = e;
+            console.log(`error when deleting storage: ${e}`);
+            self.isLoading = false;
+          }
+        });
       },
 
       storageInfoChanged(payload) {

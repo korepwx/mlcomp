@@ -6,6 +6,7 @@ import stat
 from logging import getLogger
 from zipfile import ZIP_DEFLATED
 
+import shutil
 import six
 import zipstream
 from flask import (Blueprint, current_app, send_from_directory, render_template,
@@ -170,6 +171,14 @@ def handle_storage_zip(storage):
     return response
 
 
+def handle_storage_delete(storage):
+    if request.method != 'POST':
+        raise MethodNotAllowed()
+
+    shutil.rmtree(storage.path)
+    return jsonify({'error': 0})
+
+
 @storage_bp.route('/', methods=['GET', 'POST'])
 @storage_bp.route('/<path:path>', methods=['GET', 'POST'])
 @parse_request_storage
@@ -186,6 +195,10 @@ def resources(storage, root, path):
     # if the storage info JSON is requested
     if path == 'info':
         return handle_storage_info(storage, root_url, path)
+
+    # if the storage deletion is requested
+    if path == 'delete':
+        return handle_storage_delete(storage)
 
     # all of the remaining routes do not accept POST requests
     if request.method != 'GET':
