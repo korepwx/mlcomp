@@ -27,7 +27,10 @@ export class GroupFilter {
         distance: 10,
         maxPatternLength: 32,
         minMatchCharLength: 1,
-        keys: ['name', 'path', 'full_path', 'description', 'tags', 'running_status.hostname']
+        keys: [
+          'name', 'path', 'full_path', 'path_segments', 'description',
+          'tags', 'running_status.hostname'
+        ]
       };
       this.searcher = new Fuse(storageList, options);
     } else {

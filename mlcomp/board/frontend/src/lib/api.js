@@ -39,6 +39,11 @@ export class Storage {
   get full_path() {
     return '/' + (this.path ? this.path + '/' + this.name : this.name);
   }
+
+  /** Get the path segments (typically used as search tokens). */
+  get path_segments() {
+    return this.full_path.split('/').filter(s => !!s);
+  }
 }
 
 /**
