@@ -1,35 +1,37 @@
 <template>
-  <mu-dialog class="group-dialog" :open="!!group" :title="group ? '/' + group.path : ''" @close="handleClose">
-    <mu-list class="group-detail" v-if="group">
-      <mu-list-item v-for="storage in group.items" titleClass="storage-title"
-                    :value="storage" :data="storage" :key="storage.name"
-                    :href="getStorageURL(storage)"
-      >
-        <!-- storage status as left icon -->
-        <mu-icon v-if="storage.is_active" value="update" slot="left"/>
-        <mu-icon v-if="!storage.is_active && !storage.has_error" value="done" slot="left"/>
-        <mu-icon v-if="!storage.is_active && storage.has_error" value="error_outline" slot="left"/>
+  <div class="group-dialog">
+    <mu-dialog :open="!!group" :title="group ? '/' + group.path : ''" @close="handleClose">
+      <mu-list class="group-detail" v-if="group">
+        <mu-list-item v-for="storage in group.items" titleClass="storage-title"
+                      :value="storage" :data="storage" :key="storage.name"
+                      :href="getStorageURL(storage)"
+        >
+          <!-- storage status as left icon -->
+          <mu-icon v-if="storage.is_active" value="update" slot="left"/>
+          <mu-icon v-if="!storage.is_active && !storage.has_error" value="done" slot="left"/>
+          <mu-icon v-if="!storage.is_active && storage.has_error" value="error_outline" slot="left"/>
 
-        <!-- storage title -->
-        <div slot="title" class="storage-title">
-          {{ storage.name }}
-          <time-label class="update-time text-info" :timestamp="storage.update_time"></time-label>
-          <div class="clear"></div>
-        </div>
-
-        <!-- storage describe -->
-        <div slot="describe" class="summary">
-          <div class="description status-left" v-if="storage.description">{{ storage.description }}</div>
-          <div class="tags status-right" v-if="storage.tags">
-            <span v-for="tag in storage.tags" class="tag">{{ tag }}</span>
+          <!-- storage title -->
+          <div slot="title" class="storage-title">
+            {{ storage.name }}
+            <time-label class="update-time text-info" :timestamp="storage.update_time"></time-label>
+            <div class="clear"></div>
           </div>
-          <div class="clear"></div>
-        </div>
-      </mu-list-item>
-    </mu-list>
 
-    <mu-flat-button primary label="Close" @click="handleClose" slot="actions"/>
-  </mu-dialog>
+          <!-- storage describe -->
+          <div slot="describe" class="summary">
+            <div class="description status-left" v-if="storage.description">{{ storage.description }}</div>
+            <div class="tags status-right" v-if="storage.tags">
+              <span v-for="tag in storage.tags" class="tag">{{ tag }}</span>
+            </div>
+            <div class="clear"></div>
+          </div>
+        </mu-list-item>
+      </mu-list>
+
+      <mu-flat-button primary label="Close" @click="handleClose" slot="actions"/>
+    </mu-dialog>
+  </div>
 </template>
 
 <script>
