@@ -1,5 +1,5 @@
 <template>
-  <mu-dialog :open="!!group" :title="group ? '/' + group.path : ''" @close="handleClose">
+  <mu-dialog class="group-dialog" :open="!!group" :title="group ? '/' + group.path : ''" @close="handleClose">
     <mu-list class="group-detail" v-if="group">
       <mu-list-item v-for="storage in group.items" titleClass="storage-title"
                     :value="storage" :data="storage" :key="storage.name"
@@ -64,11 +64,15 @@
 </script>
 
 <style lang="scss" scoped>
-  .group-detail {
+  /* hot fix for https://github.com/museui/muse-ui/issues/510
+     todo: remove this hot fix after the new version of muse-ui has been released. */
+  .group-dialog .mu-dialog-body {
     max-height: 280px;
     overflow-x: hidden;
     overflow-y: auto;
+  }
 
+  .group-detail {
     .storage-title {
       font-weight: bold;
       .update-time {
