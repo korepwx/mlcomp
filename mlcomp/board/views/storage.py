@@ -176,6 +176,7 @@ def handle_storage_delete(storage):
         raise MethodNotAllowed()
 
     shutil.rmtree(storage.path)
+    storage.reload()
     return jsonify({'error': 0})
 
 
