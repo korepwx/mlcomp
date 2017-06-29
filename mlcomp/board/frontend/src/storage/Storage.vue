@@ -5,10 +5,10 @@
       <mu-icon-button v-if="rootUrl !== '/'" icon="arrow_back" slot="left" href="/"></mu-icon-button>
       <mu-flat-button v-if="bottomNavValue === '/report/'" :label="selectedReport" slot="right" @click="toggleSelectReport"></mu-flat-button>
 
+      <mu-icon-button icon="refresh" @click="handleReload" slot="right" title="Reload"></mu-icon-button>
       <mu-icon-menu icon="more_vert" slot="right" tooltip="Actions"
                     :anchorOrigin="{horizontal: 'right', vertical: 'bottom'}"
                     :targetOrigin="{horizontal: 'right', vertical: 'top'}">
-        <mu-menu-item leftIcon="refresh" @click="handleReload" title="Reload"></mu-menu-item>
         <mu-menu-item leftIcon="get_app" :href="rootUrl + 'archive.zip'" target="_blank" title="Download"></mu-menu-item>
         <mu-divider></mu-divider>
         <mu-menu-item leftIcon="delete" @click="handleOpenDialog" title="Delete"></mu-menu-item>
