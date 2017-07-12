@@ -24,9 +24,11 @@ def regression_report_data_frame(truth, predict, label, per_target=True,
                                  target_names=None):
     # check the arguments
     if predict.shape != truth.shape:
-        raise TypeError('Shape of `predict` does not match `truth`.')
+        raise TypeError('Shape of `predict` does not match `truth`: '
+                        '%r vs %r.' % (predict.shape, truth.shape))
     if label is not None and len(label) != len(truth):
-        raise TypeError('Size of `label` != size of `truth`.')
+        raise TypeError('Size of `label` != size of `truth`: '
+                        '%r vs %r.' % (label.shape, truth.shape))
 
     # generate the target names
     target_shape = truth.shape[1:]
