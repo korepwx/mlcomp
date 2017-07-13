@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import codecs
 import copy
+import gzip
 import json
 import os
 import random
@@ -548,3 +549,24 @@ class Storage(object):
                 os.path.join(STORAGE_SCRIPT_DIR, os.path.split(script_path)[1]),
                 overwrite=True
             )
+
+    def open_gzip(self, path, mode='rb', compresslevel=9,
+                  encoding=None, errors=None, newline=None):
+        """Open a gzip file for read or write.
+
+        Parameters
+        ----------
+        path : str
+            The path of gzip file, relative to the root of storage.
+
+        mode, compresslevel, encoding, errors, newline
+            Arguments passed to the gzip constructor.
+
+        Returns
+        -------
+        gzip.GzipFile
+            The opened gzip file.
+        """
+        return gzip.open(self.ensure_parent_exists(path), mode=mode,
+                         compresslevel=compresslevel, encoding=encoding,
+                         errors=errors, newline=newline)
