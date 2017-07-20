@@ -2,8 +2,6 @@
 import json
 from collections import OrderedDict
 
-import os
-import tempfile
 import numpy as np
 import pandas as pd
 from sklearn.metrics import (average_precision_score,
@@ -11,7 +9,6 @@ from sklearn.metrics import (average_precision_score,
                              precision_recall_fscore_support,
                              auc)
 from sklearn.utils.multiclass import unique_labels
-from explib.utils.scoring import segment_precision_recall_curve
 
 from mlcomp.utils import JsonEncoder
 from .table_factory import *
@@ -26,7 +23,8 @@ __all__ = [
 
 def binary_classification_segment_auc_curve(
         y_true, y_prob, title=None,
-        threshold_low=0.0, threshold_high=1.0):
+        threshold_low=0.0, threshold_high=1.0,
+        segment_precision_recall_curve=None):
     """Binary classification AUC curve. The Precision and recall
     would calculate in the segment concept.
 
@@ -48,7 +46,13 @@ def binary_classification_segment_auc_curve(
     threshold_high:
         The highest value of threshold need to be used into auc calculation.
         Noticing, it means the ratio instead of the real value.
+
+    segment_precision_recall_curve:
+        The function we used to calculate the precision and recall.
     """
+
+    if segment_precision_recall_curve is None:
+        segment_precision_recall_curve = precision_recall_curve
 
     p1, r1 = segment_precision_recall_curve(
         y_true, y_prob,
