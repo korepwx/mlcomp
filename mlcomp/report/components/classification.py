@@ -16,6 +16,7 @@ from ..elements import *
 
 __all__ = [
     'binary_classification_auc_curve',
+    'binary_classification_segment_auc_curve',
     'classification_summary',
     'classification_result_attachment',
 ]
