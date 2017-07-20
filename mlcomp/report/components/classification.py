@@ -2,12 +2,16 @@
 import json
 from collections import OrderedDict
 
+import os
+import tempfile
 import numpy as np
 import pandas as pd
 from sklearn.metrics import (average_precision_score,
                              precision_recall_curve,
-                             precision_recall_fscore_support)
+                             precision_recall_fscore_support,
+                             auc)
 from sklearn.utils.multiclass import unique_labels
+from explib.utils.scoring import segment_precision_recall_curve
 
 from mlcomp.utils import JsonEncoder
 from .table_factory import *
@@ -18,6 +22,91 @@ __all__ = [
     'classification_summary',
     'classification_result_attachment',
 ]
+
+
+def binary_classification_segment_auc_curve(
+        y_true, y_prob, title=None,
+        threshold_low=0.0, threshold_high=1.0):
+    """Binary classification AUC curve. The Precision and recall
+    would calculate in the segment concept.
+
+    Parameters
+    ----------
+    y_true : numpy.ndarray
+        Ground truth (correct) target values.
+
+    y_prob : numpy.ndarray
+        Estimated probabilities for each target to be each class.
+
+    title : str
+        Optional title of this AUC curve figure.
+
+    threshold_low:
+        The lowest value of threshold need to be used into auc calculation.
+        Noticing, it means the ratio instead of the real value.
+
+    threshold_high:
+        The highest value of threshold need to be used into auc calculation.
+        Noticing, it means the ratio instead of the real value.
+    """
+
+    p1, r1 = segment_precision_recall_curve(
+        y_true, y_prob,
+        threshold_low, threshold_high
+    )
+    area1 = auc(r1, p1)
+    y_true = 1 - y_true
+    y_prob = 1. - y_prob
+    threshold_high, threshold_low = 1 - threshold_low, 1 - threshold_high
+    p0, r0 = segment_precision_recall_curve(
+        y_true, y_prob,
+        threshold_low, threshold_high
+    )
+    area0 = auc(r0, p0)
+
+    chart = {
+        'legend': {
+            'horizontalAlign': 'center',
+            'verticalAlign': 'top',
+            'fontSize': 12,
+        },
+        'axisX': {
+            'title': 'Recall',
+            'minimum': 0,
+            'maximum': 1.05,
+            'gridColor': '#ccc',
+            'gridThickness': 1,
+        },
+        'axisY': {
+            'title': 'Precision',
+            'minimum': 0,
+            'maximum': 1.05,
+            'gridColor': '#ccc',
+            'gridThickness': 1,
+        },
+        'data': [
+            {
+                'name': 'AUC curve of class 0 (area=%.4f)' % area0,
+                'showInLegend': True,
+                'type': 'line',
+                'dataPoints': [
+                    {'x': x, 'y': y} for x, y in zip(r0, p0)
+                ]
+            },
+            {
+                'name': 'AUC curve of class 1 (area=%.4f)' % area1,
+                'showInLegend': True,
+                'type': 'line',
+                'dataPoints': [
+                    {'x': x, 'y': y} for x, y in zip(r1, p1)
+                ]
+            }
+        ]
+    }
+    if title:
+        chart['title'] = {'text': title, 'fontSize': 24}
+
+    return CanvasJS(data=chart)
 
 
 def binary_classification_auc_curve(y_true, y_prob, title=None):
