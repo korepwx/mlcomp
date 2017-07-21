@@ -24,8 +24,8 @@ __all__ = [
 
 def binary_classification_segment_auc_curve(
         y_true, y_prob, title=None,
-        threshold_low=0.0, threshold_high=1.0,
-        segment_precision_recall_curve=None):
+        precision_recall_curve_func=None,
+        *tuple_arg, **dict_arg):
     """Binary classification AUC curve. The Precision and recall
     would calculate in the segment concept.
 
@@ -40,34 +40,32 @@ def binary_classification_segment_auc_curve(
     title : str
         Optional title of this AUC curve figure.
 
-    threshold_low:
+    precision_recall_curve_func: Callable function
+        The function we used to calculate the precision and recall.
+
+    threshold_low: float
         The lowest value of threshold need to be used into auc calculation.
         Noticing, it means the ratio instead of the real value.
 
-    threshold_high:
+    threshold_high: float
         The highest value of threshold need to be used into auc calculation.
         Noticing, it means the ratio instead of the real value.
 
-    segment_precision_recall_curve:
-        The function we used to calculate the precision and recall.
+    T: int
+        The window should be used with window_precision_recall_curve.
+
     """
 
-    if segment_precision_recall_curve is None:
-        segment_precision_recall_curve = precision_recall_curve
-
-    p1, r1 = segment_precision_recall_curve(
-        y_true, y_prob,
-        threshold_low, threshold_high
-    )
+    if precision_recall_curve_func is None:
+        precision_recall_curve_func = precision_recall_curve
+        p1, r1, t1 = precision_recall_curve_func(
+            y_true, y_prob)
+    else:
+        p1, r1 = precision_recall_curve_func(
+            y_true, y_prob,
+            *tuple_arg, **dict_arg
+        )
     area1 = auc(r1, p1)
-    y_true = 1 - y_true
-    y_prob = 1. - y_prob
-    threshold_high, threshold_low = 1 - threshold_low, 1 - threshold_high
-    p0, r0 = segment_precision_recall_curve(
-        y_true, y_prob,
-        threshold_low, threshold_high
-    )
-    area0 = auc(r0, p0)
 
     chart = {
         'legend': {
@@ -90,14 +88,6 @@ def binary_classification_segment_auc_curve(
             'gridThickness': 1,
         },
         'data': [
-            {
-                'name': 'AUC curve of class 0 (area=%.4f)' % area0,
-                'showInLegend': True,
-                'type': 'line',
-                'dataPoints': [
-                    {'x': x, 'y': y} for x, y in zip(r0, p0)
-                ]
-            },
             {
                 'name': 'AUC curve of class 1 (area=%.4f)' % area1,
                 'showInLegend': True,
