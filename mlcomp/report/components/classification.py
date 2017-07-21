@@ -83,7 +83,7 @@ def binary_classification_segment_auc_curve(
     selected_p = []
     selected_r = []
     if selected_threshold is not None:
-        if not isinstance(selected_threshold, (float, int)):
+        if isinstance(selected_threshold, (float, int)):
             selected_threshold = [selected_threshold]
         for sel_th in selected_threshold:
             tur_th = float("inf")
