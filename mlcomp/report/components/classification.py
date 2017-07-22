@@ -134,7 +134,7 @@ def binary_classification_segment_auc_curve(
         chart['title'] = {'text': title, 'fontSize': 24}
     if selected_threshold is not None:
         return CanvasJS(data=chart), selected_p, selected_r
-    return CanvasJS(data=chart)
+
 
 
 def binary_classification_auc_curve(y_true, y_prob, title=None):
