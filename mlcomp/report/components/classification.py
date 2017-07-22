@@ -98,7 +98,6 @@ def binary_classification_segment_auc_curve(
             selected_r.append(tur_r)
 
     area1 = auc(r1, p1)
-    print(area1)
     chart = {
         'legend': {
             'horizontalAlign': 'center',
@@ -134,6 +133,7 @@ def binary_classification_segment_auc_curve(
         chart['title'] = {'text': title, 'fontSize': 24}
     if selected_threshold is not None:
         return CanvasJS(data=chart), selected_p, selected_r
+    return CanvasJS(data=chart)
 
 
 
