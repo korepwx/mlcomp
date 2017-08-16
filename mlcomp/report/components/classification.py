@@ -136,7 +136,6 @@ def binary_classification_segment_auc_curve(
     return CanvasJS(data=chart)
 
 
-
 def binary_classification_auc_curve(y_true, y_prob, title=None):
     """Binary classification AUC curve.
 

@@ -6,7 +6,8 @@ from ..elements import *
 __all__ = ['classification_report']
 
 
-def classification_report(y_true, y_pred, y_prob, title=None):
+def classification_report(y_true, y_pred, y_prob=None, title=None):
+    import numpy as np
     """Classification report.
 
     This method will compose a standard classification report, including
@@ -30,6 +31,8 @@ def classification_report(y_true, y_pred, y_prob, title=None):
         If specified, the resulting report will be a Section.
         Otherwise the resulting report will be a Group.
     """
+    if y_prob is None:
+        y_prob = np.ones(shape=np.shape(y_pred))
     children = [
         classification_summary(y_true=y_true, y_pred=y_pred),
         classification_result_attachment(
