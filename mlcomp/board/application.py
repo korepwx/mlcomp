@@ -62,11 +62,15 @@ class BoardApp(BaseApp):
     ----------
     mappings : dict[str, str]
         Mappings from URL prefix to directory.
+
+    disable_watcher : bool
+        Whether or not to disable the file system watcher? (default False)
     """
 
-    def __init__(self, mappings):
-        if is_windows():
-            raise RuntimeError('MLComp Board does not support windows yet.')
+    def __init__(self, mappings, disable_watcher=False):
+        if not disable_watcher and is_windows():
+            raise RuntimeError('MLComp Board does not support watching file '
+                               'system changes on windows yet.')
         super(BoardApp, self).__init__()
 
         # check the mappings
@@ -83,8 +87,11 @@ class BoardApp(BaseApp):
         self.mounts = MountTree()
         for url, tree in six.iteritems(self.trees):
             self.mounts.mount(url, tree)
-        self.watcher = StorageTreeWatcher(six.itervalues(self.trees))
-        self.watcher.start()
+        if disable_watcher:
+            self.watcher = None
+        else:
+            self.watcher = StorageTreeWatcher(six.itervalues(self.trees))
+            self.watcher.start()
 
         # setup the plugins and views
         self.register_blueprint(main_bp, url_prefix='')
@@ -104,9 +111,12 @@ class StorageApp(BaseApp):
     ----------
     storage_dir : str
         The path of the storage directory (which contains "storage.json").
+
+    disable_watcher : bool
+        Whether or not to disable the file system watcher? (default False)
     """
 
-    def __init__(self, storage_dir):
+    def __init__(self, storage_dir, disable_watcher=False):
         super(StorageApp, self).__init__()
 
         # open the storage
@@ -138,9 +148,12 @@ class ReportApp(BaseApp):
     ----------
     report_dir : str
         The path of the report directory (which contains "report.json").
+
+    disable_watcher : bool
+        Whether or not to disable the file system watcher? (default False)
     """
 
-    def __init__(self, report_dir):
+    def __init__(self, report_dir, disable_watcher=False):
         super(ReportApp, self).__init__()
 
         # check the report directory

@@ -125,11 +125,13 @@ else:
                    '"-p /foo:/path/to/foo".')
 @click.option('-w', '--workers', default=None,
               help='Number of worker processes.')
+@click.option('--disable-watcher', default=False, is_flag=True,
+              help='Whether or not to disable the file system watcher?')
 @click.option('--debug', default=False, is_flag=True,
               help='Whether or not to enable debugging features?')
 @click.argument('root-dir', default=None, required=False)
 def main(host, port, log_file, log_level, log_format, root_dir, prefix, workers,
-         debug):
+         disable_watcher, debug):
     """MLComp experiment browser."""
     if ':' in host:
         print('Specify PORT in HOST argument is now deprecated.')
@@ -162,6 +164,8 @@ def main(host, port, log_file, log_level, log_format, root_dir, prefix, workers,
             path = os.path.realpath(path)
             mappings[prefix] = path
         cls, args, kwargs = BoardApp, (mappings,), {}
+
+    kwargs.setdefault('disable_watcher', disable_watcher)
 
     # initialize the logging
     init_logging(log_file, log_level, log_format)
